@@ -64,8 +64,17 @@ data class InkStrokeRecord(
 /** Lightweight internal instrumentation surfaced by Art Lab only. */
 data class DrawingSurfaceMetrics(
     val committedStrokeCount: Int = 0,
+    val committedEraseMaskCount: Int = 0,
     val activeTool: PointerTool? = null,
     val lastSampleCount: Int = 0,
     val lastCommitLatencyMillis: Long? = null,
     val lastPressure: Float? = null,
+    val selectedDrawingTool: DrawingTool = DrawingTool.PENCIL,
+    val selectedColorArgb: Int = DrawingToolSettings.DEFAULT_PENCIL_COLOR_ARGB,
+    val selectedWidth: Float = DrawingToolSettings.DEFAULT_PENCIL_WIDTH,
+    val viewportWidthPx: Int = 0,
+    val viewportHeightPx: Int = 0,
+    val documentToViewportScale: Float? = null,
+    val documentOffsetXPx: Float? = null,
+    val documentOffsetYPx: Float? = null,
 )

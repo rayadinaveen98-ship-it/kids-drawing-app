@@ -5,7 +5,7 @@
 **Phase:** Phase 1 — Art Lab / Drawing Engine 0.1  
 **Foundation version:** 0.0.1  
 **Target milestone:** `0.1.0-art-lab`  
-**Status:** P1.1 complete; P1.2 software merged with physical-device gates pending; P1.3 document/history implementation starting  
+**Status:** P1.1 complete; P1.2 software merged with physical-device gates pending; P1.3 complete; P1.4 persistence/recovery starting  
 **Last updated:** 2026-09-11
 
 ## Phase 0 — COMPLETE
@@ -55,34 +55,41 @@ Selected reproducible baseline:
 - Compose BOM: `2026.06.00`;
 - AndroidX Ink: `1.0.0` stable.
 
-`minSdk 23` is the initial Art Lab device-support assumption. It preserves broad coverage while staying aligned with the selected AndroidX baseline; physical-device distribution/performance still must validate it before public V1.
-
-CI runs with `contents: read`, validates the committed Gradle wrapper, parses lesson JSON, runs unit tests + Android lint, assembles the debug APK, enforces the AndroidX Ink architecture boundary, checks the merged APK permission allowlist, and uploads the APK only after all gates pass.
-
-The only permitted merged-manifest permission is the AndroidX-generated app-internal `com.navin.kidsdrawing.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`.
+CI runs with `contents: read`, validates the wrapper, parses lesson JSON, runs unit tests + Android lint, assembles the debug APK, enforces the AndroidX Ink architecture boundary, checks the merged APK permission allowlist, and uploads the APK only after all gates pass.
 
 ## P1.2 DrawingSurface — SOFTWARE MERGED / HARDWARE GATES PENDING
 
-Issue **#9** remains open intentionally. PR **#16** was squash-merged to `main` as commit `00c851d73fd47fd5d5d6f1c88b44e51df80fab86` after final PR-head CI run **#16 / run `34626370788`** passed every software gate.
+Issue **#9** remains open intentionally. PR **#16** was squash-merged to `main` as `00c851d73fd47fd5d5d6f1c88b44e51df80fab86` after PR-head CI run `34626370788` passed every software gate.
 
-Merged P1.2 capabilities:
-- View-backed AndroidX Ink 1.0 wet-stroke authoring and committed rendering hosted in Compose;
-- product-owned stroke/domain models with no Ink types outside infrastructure;
-- logical `1000 × 1000` document coordinates and viewport mapping with resize/rotation tests;
-- stable MotionEvent prediction via `androidx.input:input-motionprediction:1.0.0`;
-- finger/stylus pressure metadata and nullable tilt/orientation only where the device exposes those axes;
-- single-primary-pointer ownership, secondary-pointer protection and Android 13+ canceled-pointer handling;
-- inverted stylus does not silently become ordinary black ink;
-- safe cancellation/finish handoff and resize-time transient cancellation;
-- Art Lab stroke/sample/pressure/handoff diagnostics;
-- CI-enforced `androidx.ink` import boundary limited to `drawing/infrastructure`.
+Merged P1.2 capabilities include view-backed Ink authoring/rendering, owned document-space stroke records, stable MotionEvent prediction, finger/stylus metadata, cancellation/multi-pointer hardening, live Art Lab metrics, and CI-enforced Ink isolation.
 
-Physical-device acceptance is not inferred from CI. Repeated finger strokes, cancellation, resize/rotation behavior and responsiveness require real-hardware verification. Stylus-specific checks remain `PENDING-HARDWARE` until a suitable active-stylus device is available.
+Physical-device acceptance is not inferred from CI. Repeated finger strokes, cancellation, resize/rotation behavior and responsiveness still require real hardware. Stylus-specific checks remain `PENDING-HARDWARE` until a suitable active-stylus device is tested.
 
-P1.2 CI APK from PR-head run `34626370788`:
+P1.2 CI APK:
 - artifact ID: `10273803825`;
-- extracted APK size: `18,062,506` bytes;
-- APK SHA-256: `196357c1fba520a6a367f18617ad89d78d831d28f7cd611527c45289d8377fe8`.
+- size: `18,062,506` bytes;
+- SHA-256: `196357c1fba520a6a367f18617ad89d78d831d28f7cd611527c45289d8377fe8`.
+
+## P1.3 Drawing document/history — COMPLETE
+
+Issue **#10** is closed. PR **#17** was squash-merged to `main` as `5434e128bcd668d2eba0b50c2b3479b59e13e580` after PR CI run `34627455876` passed unit tests, Android lint, Ink-boundary guard, permission allowlist and APK assembly/upload.
+
+Merged P1.3 capabilities:
+- authoritative versioned `DrawingDocument` with logical size, metadata and ordered operations;
+- operation types for child ink, erase mask and undoable Clear;
+- explicit child/teacher stroke authorship with teacher strokes rejected from child history;
+- engine-owned read-only `StateFlow<DrawingEngineState>`;
+- one Mutex-serialized mutation context;
+- operation-based Undo/Redo with no full-canvas bitmap snapshots;
+- redo invalidation after a new edit following Undo;
+- Art Lab finished strokes commit into the authoritative document engine;
+- long-sequence tests covering 500 commits → 500 undos → 500 redos plus Clear, erase, empty-history and illegal-transition cases;
+- explicit `kotlinx.coroutines:1.11.0` dependency.
+
+P1.3 CI APK:
+- artifact ID: `10275291267`;
+- size: `18,128,038` bytes;
+- SHA-256: `4c5deb3ce006dd09fae1458ae7ea5d47584002febb8376ef4576820b80f95af0`.
 
 ## Phase 1 backlog
 
@@ -91,20 +98,27 @@ Epic: **#7 — Phase 1 Art Lab / Drawing Engine 0.1**
 Execution order/dependencies:
 1. #8 — Scaffold Android project, modules and CI baseline. **COMPLETE**
 2. #9 — Low-latency DrawingSurface with AndroidX Ink adapter. **SOFTWARE MERGED; HARDWARE ACCEPTANCE PENDING**
-3. #10 — Drawing document model and undo/redo history. **ACTIVE**
-4. #11 — Atomic document persistence and recovery.
+3. #10 — Drawing document model and undo/redo history. **COMPLETE**
+4. #11 — Atomic document persistence and recovery. **ACTIVE**
 5. #12 — Deterministic teacher playback and five pace profiles.
 6. #13 — Art Lab controls and debug metrics.
 7. #14 — Tests, benchmarks and recovery stress suite.
 8. #15 — Package/verify `0.1.0-art-lab` APK milestone.
 
-Hardware-only P1.2 evidence may remain pending while P1.3 proceeds because the software/domain boundary needed by #10 is now merged and green. Milestone truth still follows the issue acceptance gates; #9 is not marked complete until hardware checks are recorded.
+Hardware-only P1.2 evidence may remain pending while later software slices proceed. Milestone truth still follows issue acceptance gates; #9 is not complete until hardware evidence is recorded.
 
 ## Immediate next action
 
-Implement **#10 / P1.3** on an isolated branch: authoritative `DrawingDocument`, ordered document operations, engine-owned state/history, undo/redo, undoable Clear, redo invalidation after a new edit, and long-sequence/property-style unit coverage. Keep AndroidX Ink types isolated from the document/history domain and keep persistence out of this slice.
+Implement **#11 / P1.4** on an isolated branch:
+- app-owned versioned document envelope;
+- serialize metadata, ordered operations, tool/brush IDs and stroke sample payloads;
+- atomic temp-write + replace/backup recovery semantics;
+- background I/O only, never input hot path;
+- 20-cycle round-trip and failure-injection tests;
+- schema/default validation;
+- explicit Art Lab save/reload integration only where renderer/document reconciliation is truthful.
 
-In parallel, post-merge `main` CI run **#17 / `34626975173`** validates the merged P1.2 commit. Physical Art Lab verification uses `docs/22_P1_2_HARDWARE_VERIFICATION.md`.
+Stable Ink 1.0 supports compact `StrokeInputBatch` stream serialization and reconstruction of completed `Stroke` objects. Keep those Ink-specific codecs inside infrastructure; the document envelope remains app-owned.
 
 ## Figma note
 
@@ -114,7 +128,7 @@ The Starter-plan MCP quota currently prevents additional automated frame generat
 
 ## Current blockers
 
-No product or architecture blocker to P1.3.
+No product or architecture blocker to P1.4.
 
 Physical-device performance gates may be `PENDING-HARDWARE` where the required device class is unavailable, but they can never be silently assumed passed.
 

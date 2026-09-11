@@ -41,6 +41,9 @@
 - Lesson Engine state machine, teaching-mode semantics, persistence, help and recovery contract locked in `docs/08_LESSON_ENGINE_SPEC.md`.
 - Coloring Engine V1 contract locked in `docs/19_COLORING_ENGINE_SPEC.md`.
 - Cross-engine ownership, atomic handoffs and UI boundaries locked in `docs/20_ENGINE_BOUNDARIES.md`.
+- Companion V1 semantic state, priority, placement, voice, accessibility and child-safety language contract locked in `docs/09_COMPANION_SPEC.md`.
+- Visual direction locked as **Premium Storybook Art Studio** in `docs/21_VISUAL_SYSTEM.md`.
+- Figma workspace created: `Kids Drawing App — Phase 0.6 Visual System` (`2lGC11EPu2tjgrpYivJ8hf`). Further MCP canvas generation is temporarily limited by the Figma Starter quota, but the implementation-level visual system is committed in Git.
 
 ## Current Phase 0 position
 
@@ -50,23 +53,25 @@
 - 0.3 UX architecture and screen inventory
 - 0.4 Teaching/content schema and starter curriculum architecture
 - 0.5 Drawing/Lesson/Coloring core engine contracts and measurable performance gates
+- 0.6 Companion behavior/voice contract and selected production-realistic visual direction
 
 ### Next
-- 0.6 Companion behavior/voice contract and production-realistic visual direction
-- 0.7 Safety/quality/release final review and Phase 1 issue preparation
+- 0.7 Safety/privacy/SDK/quality/release final review and Phase 1 issue preparation
 
 ## Immediate next work
 
-1. Finalize Companion V1 semantic state machine, animation priorities, placement and obstruction rules.
-2. Lock narration/voice behavior and fallback strategy using a ₹0/offline-capable critical path.
-3. Define visual product principles and design-system foundations.
-4. Produce/select one production-realistic visual direction for onboarding, Home and lesson workspace.
-5. Complete Phase 0 safety/privacy/permission/SDK review.
-6. Prepare Phase 1 Art Lab implementation issues and acceptance gates.
+1. Re-review child privacy/safety against current Google Play Families / Android policy requirements.
+2. Lock application permission policy and third-party SDK allowlist rules.
+3. Lock Parent Gate behavior for settings/export/external actions.
+4. Reconcile test strategy, performance gates and milestone Definition of Done.
+5. Define pre-public-release compliance gate separately from engineering Alpha gates.
+6. Prepare Phase 1 Art Lab implementation issues, CI plan and first APK Definition of Done.
+7. Build the three Figma reference frames when the free Figma MCP call window permits; this is a visual-validation task, not an engine blocker.
 
 ## Current blockers
 
-None.
+- No engineering blocker.
+- Figma Starter MCP call quota currently prevents additional automated canvas generation; design workspace and visual-system spec are already established.
 
 ## Continuation rule
 

@@ -18,11 +18,12 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DrawingDocumentBinaryCodecTest {
+    private val codec = DrawingDocumentBinaryCodec(JvmStrokePayloadCodec)
+
     @Test
     fun mixedOperationDocumentRoundTripsWithOwnedMetadata() {
         val original = sampleDocument()
         val decoded = roundTrip(original)
-
         assertDocumentEquivalent(original, decoded)
     }
 
@@ -30,11 +31,7 @@ class DrawingDocumentBinaryCodecTest {
     fun twentyEncodeDecodeCyclesDoNotDriftOperationSemantics() {
         val original = sampleDocument()
         var current = original
-
-        repeat(20) {
-            current = roundTrip(current)
-        }
-
+        repeat(20) { current = roundTrip(current) }
         assertDocumentEquivalent(original, current)
     }
 
@@ -42,7 +39,6 @@ class DrawingDocumentBinaryCodecTest {
     fun optionalMetadataDefaultsRemainAbsent() {
         val original = sampleDocument().copy(metadata = DrawingDocumentMetadata())
         val decoded = roundTrip(original)
-
         assertNull(decoded.metadata.lessonId)
         assertNull(decoded.metadata.lessonRevision)
     }
@@ -54,7 +50,7 @@ class DrawingDocumentBinaryCodecTest {
         bytes[bodyIndex] = (bytes[bodyIndex].toInt() xor 0x5A).toByte()
 
         assertThrows(IllegalArgumentException::class.java) {
-            DrawingDocumentBinaryCodec.decode(ByteArrayInputStream(bytes))
+            codec.decode(ByteArrayInputStream(bytes))
         }
     }
 
@@ -64,15 +60,15 @@ class DrawingDocumentBinaryCodecTest {
         bytes[7] = 2
 
         assertThrows(IllegalArgumentException::class.java) {
-            DrawingDocumentBinaryCodec.decode(ByteArrayInputStream(bytes))
+            codec.decode(ByteArrayInputStream(bytes))
         }
     }
 
     private fun roundTrip(document: DrawingDocument): DrawingDocument =
-        DrawingDocumentBinaryCodec.decode(ByteArrayInputStream(encode(document)))
+        codec.decode(ByteArrayInputStream(encode(document)))
 
     private fun encode(document: DrawingDocument): ByteArray = ByteArrayOutputStream().use { output ->
-        DrawingDocumentBinaryCodec.encode(document, output)
+        codec.encode(document, output)
         output.toByteArray()
     }
 

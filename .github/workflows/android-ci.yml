@@ -47,8 +47,8 @@ jobs:
       - name: Verify Drawing Engine Ink boundary
         run: bash scripts/verify-ink-boundary.sh
 
-      - name: Unit tests, lint, and debug APK
-        run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug
+      - name: Unit tests, lint, app APK, and instrumentation APK compile
+        run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest
 
       - name: Verify Art Lab APK permission allowlist
         shell: bash

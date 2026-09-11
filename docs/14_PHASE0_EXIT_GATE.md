@@ -31,16 +31,19 @@ Phase 0 ends only when the product is sufficiently specified that Phase 1 can im
 - safe exit/back behavior defined;
 - no critical dead-end flow remains unresolved in the V1 information architecture.
 
-### 0.4 Teaching & content system — IN PROGRESS
-Exit requirements:
+### 0.4 Teaching & content system — COMPLETE
 - teaching modes defined;
 - pace semantics defined;
 - Help Ladder defined;
-- lesson content metadata schema defined;
-- machine-readable lesson package/schema draft defined;
-- lesson-authoring workflow defined;
-- initial category taxonomy and skill taxonomy defined;
-- starter Art Journey curriculum outlines defined.
+- lesson metadata and machine-readable Draft 2020-12 JSON Schema defined;
+- validated sample lesson committed;
+- source vs compiled package contract defined;
+- lesson-authoring workflow defined using free tools;
+- category taxonomy and reusable skill taxonomy defined;
+- difficulty and age tagging rules defined;
+- four starter Art Journey curricula defined;
+- public V1 target catalog mapped to category/age coverage;
+- representative content set defined before mass production.
 
 ### 0.5 Core engine contracts — IN PROGRESS
 Exit requirements:
@@ -84,8 +87,8 @@ Phase 1 may begin when all of the following are true:
 - [x] Core child and parent journeys documented.
 - [x] Final screen/information architecture locked.
 - [x] Teaching modes and Help Ladder documented.
-- [ ] Lesson package/schema draft locked.
-- [ ] Initial curriculum/category/skill taxonomy locked.
+- [x] Lesson package/schema draft locked and validated with example content.
+- [x] Initial curriculum/category/skill taxonomy locked.
 - [ ] Drawing Engine 0.1 technical contract locked.
 - [ ] Drawing performance gates/reference devices defined.
 - [ ] Lesson Engine state machine locked.

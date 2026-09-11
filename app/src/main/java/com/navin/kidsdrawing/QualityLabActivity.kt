@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.hardware.display.DisplayManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Debug
 import android.os.SystemClock
 import android.view.Display
 import android.view.MotionEvent
@@ -90,12 +91,12 @@ class QualityLabActivity : ComponentActivity() {
                     inputDispatchMonitor = inputDispatchMonitor,
                     deviceSummary = deviceSummary(),
                     onResetMeasurements = ::resetMeasurementsAfterCurrentTouch,
+                    onWorkloadChanged = ::setPerformanceWorkloadState,
                 )
             }
         }
 
         jankStats = JankStats.createAndTrack(window) { frameData ->
-            // FrameData is reused by JankStats, so only primitive values cross this callback.
             framePerformanceMonitor.record(
                 frameDurationUiNanos = frameData.frameDurationUiNanos,
                 isJank = frameData.isJank,
@@ -103,7 +104,10 @@ class QualityLabActivity : ComponentActivity() {
         }
         PerformanceMetricsState.getHolderForHierarchy(window.decorView)
             .state
-            ?.putState("Workspace", "QualityLab")
+            ?.apply {
+                putState("Workspace", "QualityLab")
+                putState("Workload", "Blank")
+            }
     }
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
@@ -127,8 +131,6 @@ class QualityLabActivity : ComponentActivity() {
     }
 
     private fun resetMeasurementsAfterCurrentTouch() {
-        // Reset after the current Reset-button MotionEvent returns so that button interaction does
-        // not contaminate the first drawing sample.
         inputMeasurementArmed = false
         window.decorView.post {
             framePerformanceMonitor.reset()
@@ -137,8 +139,19 @@ class QualityLabActivity : ComponentActivity() {
         }
     }
 
+    private fun setPerformanceWorkloadState(value: String) {
+        if (!::jankStats.isInitialized) return
+        PerformanceMetricsState.getHolderForHierarchy(window.decorView)
+            .state
+            ?.putState("Workload", value)
+    }
+
     private fun deviceSummary(): String {
-        val memoryClass = getSystemService(ActivityManager::class.java)?.memoryClass
+        val activityManager = getSystemService(ActivityManager::class.java)
+        val memoryInfo = ActivityManager.MemoryInfo()
+        activityManager?.getMemoryInfo(memoryInfo)
+        val totalRamMb = if (memoryInfo.totalMem > 0L) memoryInfo.totalMem / BYTES_PER_MIB else null
+        val memoryClass = activityManager?.memoryClass
         val refreshRate = getSystemService(DisplayManager::class.java)
             ?.getDisplay(Display.DEFAULT_DISPLAY)
             ?.refreshRate
@@ -148,6 +161,7 @@ class QualityLabActivity : ComponentActivity() {
             append(Build.MODEL)
             append(" · API ")
             append(Build.VERSION.SDK_INT)
+            if (totalRamMb != null) append(" · RAM ${totalRamMb}MB")
             if (memoryClass != null) append(" · heapClass ${memoryClass}MB")
             if (refreshRate != null) append(" · ${"%.0f".format(refreshRate)}Hz")
         }
@@ -163,30 +177,39 @@ private fun QualityLabScreen(
     inputDispatchMonitor: DurationPerformanceMonitor,
     deviceSummary: String,
     onResetMeasurements: () -> Unit,
+    onWorkloadChanged: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val controller = remember { DrawingSurfaceController() }
     val documentState by documentEngine.state.collectAsState()
     val toolSettings by toolEngine.state.collectAsState()
+    val saveMonitor = remember { DurationPerformanceMonitor() }
+    val loadMonitor = remember { DurationPerformanceMonitor() }
+    val historyMonitor = remember { DurationPerformanceMonitor() }
     var surfaceMetrics by remember { mutableStateOf(DrawingSurfaceMetrics()) }
     var frameStats by remember { mutableStateOf(framePerformanceMonitor.snapshot()) }
     var inputStats by remember { mutableStateOf(inputDispatchMonitor.snapshot()) }
+    var saveStats by remember { mutableStateOf(saveMonitor.snapshot()) }
+    var loadStats by remember { mutableStateOf(loadMonitor.snapshot()) }
+    var historyStats by remember { mutableStateOf(historyMonitor.snapshot()) }
+    var memoryStats by remember { mutableStateOf(currentMemorySnapshot()) }
     var workloadStatus by remember { mutableStateOf("Blank manual workload") }
     var busy by remember { mutableStateOf(false) }
     var lastReconcileToFrameMillis by remember { mutableStateOf<Double?>(null) }
-    var lastSaveMillis by remember { mutableStateOf<Double?>(null) }
-    var lastLoadMillis by remember { mutableStateOf<Double?>(null) }
-    var lastHistory100Millis by remember { mutableStateOf<Double?>(null) }
 
     LaunchedEffect(Unit) {
         while (true) {
             delay(1_000L)
             frameStats = framePerformanceMonitor.snapshot()
             inputStats = inputDispatchMonitor.snapshot()
+            saveStats = saveMonitor.snapshot()
+            loadStats = loadMonitor.snapshot()
+            historyStats = historyMonitor.snapshot()
+            memoryStats = currentMemorySnapshot()
         }
     }
 
-    fun installDocument(label: String, producer: suspend () -> DrawingDocument) {
+    fun installDocument(label: String, stateLabel: String, producer: suspend () -> DrawingDocument) {
         if (busy) return
         scope.launch {
             busy = true
@@ -195,11 +218,88 @@ private fun QualityLabScreen(
             documentEngine.replaceDocument(document)
             framePerformanceMonitor.reset()
             frameStats = framePerformanceMonitor.snapshot()
+            onWorkloadChanged(stateLabel)
             val started = SystemClock.elapsedRealtimeNanos()
             controller.reconcileDocument(document)
             withFrameNanos { }
             lastReconcileToFrameMillis = elapsedMillisSince(started)
             workloadStatus = "$label loaded · ${document.operations.size} ops"
+            busy = false
+        }
+    }
+
+    fun runSave20() {
+        if (busy) return
+        scope.launch {
+            busy = true
+            workloadStatus = "Save×20 benchmark running…"
+            saveMonitor.reset()
+            val current = documentEngine.state.value.document
+            val benchmarkId = "${current.documentId}-save-benchmark"
+            val baseTime = System.currentTimeMillis().coerceAtLeast(current.createdAtEpochMillis + 1L)
+            repeat(BENCHMARK_SAMPLE_COUNT) { index ->
+                val candidate = current.copy(
+                    documentId = benchmarkId,
+                    modifiedAtEpochMillis = baseTime + index,
+                )
+                val started = SystemClock.elapsedRealtimeNanos()
+                store.save(candidate)
+                saveMonitor.record(SystemClock.elapsedRealtimeNanos() - started)
+            }
+            saveStats = saveMonitor.snapshot()
+            workloadStatus = "Save×20 complete"
+            busy = false
+        }
+    }
+
+    fun runLoad20() {
+        if (busy) return
+        scope.launch {
+            busy = true
+            workloadStatus = "Load→render×20 benchmark running…"
+            loadMonitor.reset()
+            val current = documentEngine.state.value.document
+            val benchmarkId = "${current.documentId}-load-benchmark"
+            val benchmarkDocument = current.copy(
+                documentId = benchmarkId,
+                modifiedAtEpochMillis = System.currentTimeMillis().coerceAtLeast(current.createdAtEpochMillis + 1L),
+            )
+            store.save(benchmarkDocument)
+            repeat(BENCHMARK_SAMPLE_COUNT) {
+                val started = SystemClock.elapsedRealtimeNanos()
+                val loaded = checkNotNull(store.load(benchmarkId))
+                documentEngine.replaceDocument(loaded.document)
+                controller.reconcileDocument(loaded.document)
+                withFrameNanos { }
+                loadMonitor.record(SystemClock.elapsedRealtimeNanos() - started)
+            }
+            loadStats = loadMonitor.snapshot()
+            workloadStatus = "Load→render×20 complete"
+            busy = false
+        }
+    }
+
+    fun runHistory20() {
+        if (busy || documentEngine.state.value.document.operations.size < BENCHMARK_SAMPLE_COUNT) return
+        scope.launch {
+            busy = true
+            workloadStatus = "Visible Undo/Redo×20 benchmark running…"
+            historyMonitor.reset()
+            repeat(BENCHMARK_SAMPLE_COUNT) {
+                val undoStarted = SystemClock.elapsedRealtimeNanos()
+                check(documentEngine.undo())
+                controller.reconcileDocument(documentEngine.state.value.document)
+                withFrameNanos { }
+                historyMonitor.record(SystemClock.elapsedRealtimeNanos() - undoStarted)
+
+                val redoStarted = SystemClock.elapsedRealtimeNanos()
+                check(documentEngine.redo())
+                controller.reconcileDocument(documentEngine.state.value.document)
+                withFrameNanos { }
+                historyMonitor.record(SystemClock.elapsedRealtimeNanos() - redoStarted)
+            }
+            historyStats = historyMonitor.snapshot()
+            workloadStatus = "Visible Undo/Redo×20 complete"
             busy = false
         }
     }
@@ -236,7 +336,7 @@ private fun QualityLabScreen(
                 Button(
                     enabled = !busy,
                     onClick = {
-                        installDocument("W2 heavy") {
+                        installDocument("W2 heavy", "W2") {
                             withContext(Dispatchers.Default) { ArtLabQualityWorkloadFactory.w2() }
                         }
                     },
@@ -244,7 +344,7 @@ private fun QualityLabScreen(
                 Button(
                     enabled = !busy,
                     onClick = {
-                        installDocument("W3 stress") {
+                        installDocument("W3 stress", "W3") {
                             withContext(Dispatchers.Default) { ArtLabQualityWorkloadFactory.w3() }
                         }
                     },
@@ -252,7 +352,7 @@ private fun QualityLabScreen(
                 OutlinedButton(
                     enabled = !busy,
                     onClick = {
-                        installDocument("Blank") {
+                        installDocument("Blank", "Blank") {
                             DrawingDocumentEngine.newDocument(documentId = QUALITY_BLANK_DOCUMENT_ID)
                         }
                     },
@@ -278,56 +378,16 @@ private fun QualityLabScreen(
                     label = "Eraser",
                     onClick = { toolEngine.selectTool(DrawingTool.ERASER) },
                 )
+                OutlinedButton(enabled = !busy, onClick = ::runSave20) {
+                    Text("Save×20", maxLines = 1)
+                }
+                OutlinedButton(enabled = !busy, onClick = ::runLoad20) {
+                    Text("Load×20", maxLines = 1)
+                }
                 OutlinedButton(
-                    enabled = !busy,
-                    onClick = {
-                        scope.launch {
-                            val started = SystemClock.elapsedRealtimeNanos()
-                            store.save(documentEngine.state.value.document)
-                            lastSaveMillis = elapsedMillisSince(started)
-                        }
-                    },
-                ) { Text("Save", maxLines = 1) }
-                OutlinedButton(
-                    enabled = !busy,
-                    onClick = {
-                        scope.launch {
-                            val current = documentEngine.state.value.document
-                            val started = SystemClock.elapsedRealtimeNanos()
-                            val loaded = store.load(current.documentId)
-                            if (loaded != null) {
-                                documentEngine.replaceDocument(loaded.document)
-                                controller.reconcileDocument(loaded.document)
-                                withFrameNanos { }
-                            }
-                            lastLoadMillis = elapsedMillisSince(started)
-                        }
-                    },
-                ) { Text("Reload", maxLines = 1) }
-                OutlinedButton(
-                    enabled = documentState.canUndo && !busy,
-                    onClick = {
-                        scope.launch {
-                            val started = SystemClock.elapsedRealtimeNanos()
-                            repeat(100) { if (!documentEngine.undo()) return@repeat }
-                            controller.reconcileDocument(documentEngine.state.value.document)
-                            withFrameNanos { }
-                            lastHistory100Millis = elapsedMillisSince(started)
-                        }
-                    },
-                ) { Text("Undo 100", maxLines = 1) }
-                OutlinedButton(
-                    enabled = documentState.canRedo && !busy,
-                    onClick = {
-                        scope.launch {
-                            val started = SystemClock.elapsedRealtimeNanos()
-                            repeat(100) { if (!documentEngine.redo()) return@repeat }
-                            controller.reconcileDocument(documentEngine.state.value.document)
-                            withFrameNanos { }
-                            lastHistory100Millis = elapsedMillisSince(started)
-                        }
-                    },
-                ) { Text("Redo 100", maxLines = 1) }
+                    enabled = !busy && documentState.document.operations.size >= BENCHMARK_SAMPLE_COUNT,
+                    onClick = ::runHistory20,
+                ) { Text("Undo/Redo×20", maxLines = 1) }
             }
 
             QualityMetricsCard(
@@ -337,10 +397,11 @@ private fun QualityLabScreen(
                 surfaceMetrics = surfaceMetrics,
                 frameStats = frameStats,
                 inputStats = inputStats,
+                saveStats = saveStats,
+                loadStats = loadStats,
+                historyStats = historyStats,
+                memoryStats = memoryStats,
                 reconcileMillis = lastReconcileToFrameMillis,
-                saveMillis = lastSaveMillis,
-                loadMillis = lastLoadMillis,
-                history100Millis = lastHistory100Millis,
             )
 
             Box(
@@ -369,13 +430,13 @@ private fun QualityLabScreen(
             }
 
             Text(
-                text = "For input proxy: tap Reset measurements, then draw continuously without touching controls. Window-dispatch timing is a conservative upper bound, not the narrower Ink-only CPU trace.",
+                text = "Input proxy: tap Reset measurements, then draw continuously without controls. Window-dispatch timing is a conservative upper bound, not the narrower Ink-only CPU trace.",
                 fontSize = 10.sp,
                 lineHeight = 13.sp,
                 color = Color(0xFF4E4A45),
             )
             Text(
-                text = "Class M: frame P95 ≤16.7ms · P99 ≤33.4ms · jank ≤3%; input P95 ≤4ms · P99 ≤8ms. Class L: frame P95 ≤25ms · P99 ≤50ms · jank ≤5%; input P95 ≤8ms · P99 ≤12ms.",
+                text = "Class M: frame P95 ≤16.7ms · P99 ≤33.4ms · jank ≤3%; input P95 ≤4ms · P99 ≤8ms; W2 save P95 ≤1000ms; load P95 ≤1500ms; undo/redo P95 ≤50ms.",
                 fontSize = 10.sp,
                 lineHeight = 13.sp,
                 color = Color(0xFF4E4A45),
@@ -392,10 +453,11 @@ private fun QualityMetricsCard(
     surfaceMetrics: DrawingSurfaceMetrics,
     frameStats: FramePerformanceSnapshot,
     inputStats: DurationPerformanceSnapshot,
+    saveStats: DurationPerformanceSnapshot,
+    loadStats: DurationPerformanceSnapshot,
+    historyStats: DurationPerformanceSnapshot,
+    memoryStats: QualityMemorySnapshot,
     reconcileMillis: Double?,
-    saveMillis: Double?,
-    loadMillis: Double?,
-    history100Millis: Double?,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -416,12 +478,20 @@ private fun QualityMetricsCard(
                 "n=${inputStats.sampleCount} p95=${inputStats.p95Millis ?: "—"}ms p99=${inputStats.p99Millis ?: "—"}ms max=${inputStats.maxMillis?.let(::format) ?: "—"}ms",
             )
             QualityLine(
-                "surface",
-                "commit=${surfaceMetrics.lastCommitLatencyMillis?.let { "${it}ms" } ?: "—"} samples=${surfaceMetrics.lastSampleCount} pressure=${surfaceMetrics.lastPressure?.let { format(it.toDouble()) } ?: "—"}",
+                "W2 bench",
+                "save20 p95=${saveStats.p95Millis ?: "—"} p99=${saveStats.p99Millis ?: "—"}ms · load20 p95=${loadStats.p95Millis ?: "—"} p99=${loadStats.p99Millis ?: "—"}ms",
             )
             QualityLine(
-                "operations",
-                "reconcile→frame=${reconcileMillis?.let(::format) ?: "—"}ms save=${saveMillis?.let(::format) ?: "—"}ms load→frame=${loadMillis?.let(::format) ?: "—"}ms undo/redo100=${history100Millis?.let(::format) ?: "—"}ms",
+                "history",
+                "n=${historyStats.sampleCount} p95=${historyStats.p95Millis ?: "—"} p99=${historyStats.p99Millis ?: "—"}ms",
+            )
+            QualityLine(
+                "surface",
+                "commit=${surfaceMetrics.lastCommitLatencyMillis?.let { "${it}ms" } ?: "—"} samples=${surfaceMetrics.lastSampleCount} reconcile→frame=${reconcileMillis?.let(::format) ?: "—"}ms",
+            )
+            QualityLine(
+                "memory",
+                "java=${format(memoryStats.javaUsedMiB)}MiB native=${format(memoryStats.nativeAllocatedMiB)}MiB",
             )
         }
     }
@@ -447,9 +517,24 @@ private fun QualityToggle(selected: Boolean, label: String, onClick: () -> Unit)
     }
 }
 
+private data class QualityMemorySnapshot(
+    val javaUsedMiB: Double,
+    val nativeAllocatedMiB: Double,
+)
+
+private fun currentMemorySnapshot(): QualityMemorySnapshot {
+    val runtime = Runtime.getRuntime()
+    return QualityMemorySnapshot(
+        javaUsedMiB = (runtime.totalMemory() - runtime.freeMemory()) / BYTES_PER_MIB.toDouble(),
+        nativeAllocatedMiB = Debug.getNativeHeapAllocatedSize() / BYTES_PER_MIB.toDouble(),
+    )
+}
+
 private fun elapsedMillisSince(startedNanos: Long): Double =
     (SystemClock.elapsedRealtimeNanos() - startedNanos) / 1_000_000.0
 
 private fun format(value: Double): String = "%.1f".format(value)
 
 private const val QUALITY_BLANK_DOCUMENT_ID = "quality-lab-manual"
+private const val BENCHMARK_SAMPLE_COUNT = 20
+private const val BYTES_PER_MIB = 1024L * 1024L

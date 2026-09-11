@@ -35,15 +35,24 @@ Specify → Build capability → Unit/performance test → Integrate into real c
 Complete:
 - 0.1 Repository & product foundation
 - 0.2 V1 product scope contract
+- 0.3 UX architecture and screen inventory
 
 Next:
-- 0.3 final UX information architecture and screen inventory
-- 0.4 machine-readable lesson/content architecture
+- 0.4 machine-readable lesson/content architecture and starter curriculum
 - 0.5 Drawing/Lesson/Coloring engine contracts
 - 0.6 companion contract and selected visual direction
 - 0.7 final Phase 0 safety/quality/release review
 
 The authoritative checklist is `docs/14_PHASE0_EXIT_GATE.md`.
+
+## UX architecture now locked
+
+- Child shell: Home / Learn / Create / Gallery.
+- Guided Drawing, Coloring and Free Draw use immersive creation workspaces with shell navigation hidden.
+- Parent Zone is a separate gated graph.
+- Safe Exit prevents system-back or close actions from silently destroying artwork.
+- Incomplete sessions surface as Continue Drawing rather than being forced on startup.
+- Canonical V1 screen IDs live in `docs/15_SCREEN_ARCHITECTURE.md`.
 
 ## V1 scope highlights
 

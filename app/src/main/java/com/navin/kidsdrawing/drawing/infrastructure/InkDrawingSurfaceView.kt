@@ -152,7 +152,7 @@ class InkDrawingSurfaceView(
             colorArgb = DEFAULT_COLOR_ARGB,
             baseSize = brushSpec.baseSize,
         )
-        pending.points += pointFromCurrentEvent(event, pointerIndex, downPoint)
+        pending.points += pointFromCurrentEvent(event, pointerIndex, downPoint, tool)
         pendingStrokes[inkStrokeId] = pending
         activeStrokeId = inkStrokeId
         activePointerId = pointerId
@@ -300,15 +300,19 @@ class InkDrawingSurfaceView(
                 y = point.y,
                 elapsedTimeMillis = event.getHistoricalEventTime(historyIndex) - event.downTime,
                 pressure = event.getHistoricalPressure(pointerIndex, historyIndex),
-                tiltRadians = event.getHistoricalAxisValue(
-                    MotionEvent.AXIS_TILT,
-                    pointerIndex,
-                    historyIndex,
+                tiltRadians = historicalStylusAxisOrNull(
+                    event = event,
+                    axis = MotionEvent.AXIS_TILT,
+                    pointerIndex = pointerIndex,
+                    historyIndex = historyIndex,
+                    tool = pending.tool,
                 ),
-                orientationRadians = event.getHistoricalAxisValue(
-                    MotionEvent.AXIS_ORIENTATION,
-                    pointerIndex,
-                    historyIndex,
+                orientationRadians = historicalStylusAxisOrNull(
+                    event = event,
+                    axis = MotionEvent.AXIS_ORIENTATION,
+                    pointerIndex = pointerIndex,
+                    historyIndex = historyIndex,
+                    tool = pending.tool,
                 ),
             )
         }
@@ -318,21 +322,52 @@ class InkDrawingSurfaceView(
             event.getY(pointerIndex),
             transform,
         )
-        pending.points += pointFromCurrentEvent(event, pointerIndex, current)
+        pending.points += pointFromCurrentEvent(event, pointerIndex, current, pending.tool)
     }
 
     private fun pointFromCurrentEvent(
         event: MotionEvent,
         pointerIndex: Int,
         point: DocumentPoint,
+        tool: PointerTool,
     ): StrokePoint = StrokePoint(
         x = point.x,
         y = point.y,
         elapsedTimeMillis = event.eventTime - event.downTime,
         pressure = event.getPressure(pointerIndex),
-        tiltRadians = event.getAxisValue(MotionEvent.AXIS_TILT, pointerIndex),
-        orientationRadians = event.getAxisValue(MotionEvent.AXIS_ORIENTATION, pointerIndex),
+        tiltRadians = stylusAxisOrNull(event, MotionEvent.AXIS_TILT, pointerIndex, tool),
+        orientationRadians = stylusAxisOrNull(
+            event,
+            MotionEvent.AXIS_ORIENTATION,
+            pointerIndex,
+            tool,
+        ),
     )
+
+    private fun stylusAxisOrNull(
+        event: MotionEvent,
+        axis: Int,
+        pointerIndex: Int,
+        tool: PointerTool,
+    ): Float? {
+        if (tool != PointerTool.STYLUS) return null
+        val range = event.device?.getMotionRange(axis, event.source) ?: return null
+        if (range.range <= 0f) return null
+        return event.getAxisValue(axis, pointerIndex)
+    }
+
+    private fun historicalStylusAxisOrNull(
+        event: MotionEvent,
+        axis: Int,
+        pointerIndex: Int,
+        historyIndex: Int,
+        tool: PointerTool,
+    ): Float? {
+        if (tool != PointerTool.STYLUS) return null
+        val range = event.device?.getMotionRange(axis, event.source) ?: return null
+        if (range.range <= 0f) return null
+        return event.getHistoricalAxisValue(axis, pointerIndex, historyIndex)
+    }
 
     private fun motionEventToDocumentMatrix(
         transform: DocumentViewportMapper.Transform,

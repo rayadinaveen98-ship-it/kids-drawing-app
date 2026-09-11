@@ -7,12 +7,14 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.security.MessageDigest
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 class AtomicDrawingDocumentStore(
     private val rootDirectory: File,
-    private val documentCodec: DrawingDocumentBinaryCodec = DrawingDocumentBinaryCodec(),
     private val faultInjector: (SaveStage) -> Unit = {},
+    private val documentCodec: DrawingDocumentBinaryCodec = DrawingDocumentBinaryCodec(),
 ) {
     enum class SaveStage {
         TEMP_SYNCED,
@@ -30,54 +32,62 @@ class AtomicDrawingDocumentStore(
         val source: LoadSource,
     )
 
+    private val ioMutex = Mutex()
+
     suspend fun save(document: DrawingDocument) = withContext(Dispatchers.IO) {
-        ensureRootDirectory()
-        val files = filesFor(document.documentId)
-        if (files.temp.exists() && !files.temp.delete()) {
-            throw IOException("Unable to remove stale temporary drawing document.")
-        }
-
-        try {
-            FileOutputStream(files.temp).use { output ->
-                documentCodec.encode(document, output)
-                output.flush()
-                output.fd.sync()
+        ioMutex.withLock {
+            ensureRootDirectory()
+            val files = filesFor(document.documentId)
+            if (files.temp.exists() && !files.temp.delete()) {
+                throw IOException("Unable to remove stale temporary drawing document.")
             }
-            faultInjector(SaveStage.TEMP_SYNCED)
 
-            if (files.target.exists()) {
-                if (files.backup.exists() && !files.backup.delete()) {
-                    throw IOException("Unable to rotate previous drawing-document backup.")
+            try {
+                FileOutputStream(files.temp).use { output ->
+                    documentCodec.encode(document, output)
+                    output.flush()
+                    output.fd.sync()
                 }
-                if (!files.target.renameTo(files.backup)) {
-                    throw IOException("Unable to move current drawing document to backup.")
-                }
-            }
-            faultInjector(SaveStage.BACKUP_READY)
+                faultInjector(SaveStage.TEMP_SYNCED)
 
-            if (!files.temp.renameTo(files.target)) {
+                if (files.target.exists()) {
+                    if (files.backup.exists() && !files.backup.delete()) {
+                        throw IOException("Unable to rotate previous drawing-document backup.")
+                    }
+                    if (!files.target.renameTo(files.backup)) {
+                        throw IOException("Unable to move current drawing document to backup.")
+                    }
+                }
+                faultInjector(SaveStage.BACKUP_READY)
+
+                if (!files.temp.renameTo(files.target)) {
+                    restoreBackupIfPrimaryMissing(files)
+                    throw IOException("Unable to promote temporary drawing document to primary.")
+                }
+                faultInjector(SaveStage.TARGET_REPLACED)
+            } catch (failure: Throwable) {
+                files.temp.delete()
                 restoreBackupIfPrimaryMissing(files)
-                throw IOException("Unable to promote temporary drawing document to primary.")
+                throw failure
             }
-            faultInjector(SaveStage.TARGET_REPLACED)
-        } catch (failure: Throwable) {
-            files.temp.delete()
-            restoreBackupIfPrimaryMissing(files)
-            throw failure
         }
     }
 
     suspend fun load(documentId: String): LoadResult? = withContext(Dispatchers.IO) {
-        ensureRootDirectory()
-        val files = filesFor(documentId)
-        decodeOrNull(files.target)?.let { return@withContext LoadResult(it, LoadSource.PRIMARY) }
-        decodeOrNull(files.backup)?.let { return@withContext LoadResult(it, LoadSource.BACKUP) }
-        null
+        ioMutex.withLock {
+            ensureRootDirectory()
+            val files = filesFor(documentId)
+            decodeOrNull(files.target)?.let { return@withLock LoadResult(it, LoadSource.PRIMARY) }
+            decodeOrNull(files.backup)?.let { return@withLock LoadResult(it, LoadSource.BACKUP) }
+            null
+        }
     }
 
     suspend fun hasRecoverableDocument(documentId: String): Boolean = withContext(Dispatchers.IO) {
-        val files = filesFor(documentId)
-        files.target.exists() || files.backup.exists()
+        ioMutex.withLock {
+            val files = filesFor(documentId)
+            files.target.exists() || files.backup.exists()
+        }
     }
 
     private fun decodeOrNull(file: File): DrawingDocument? {

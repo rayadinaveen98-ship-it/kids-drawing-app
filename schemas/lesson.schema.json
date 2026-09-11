@@ -1,0 +1,472 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kids-drawing.app/schemas/lesson.schema.json",
+  "title": "Kids Drawing Lesson Source",
+  "description": "Authoring-time schema for a structured offline lesson package.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "lessonId",
+    "revision",
+    "status",
+    "minimumContentApi",
+    "metadata",
+    "canvas",
+    "supportedModes",
+    "assets",
+    "drawing"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "lessonId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$",
+      "minLength": 3,
+      "maxLength": 120
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "review",
+        "release"
+      ]
+    },
+    "minimumContentApi": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "metadata": {
+      "$ref": "#/$defs/metadata"
+    },
+    "canvas": {
+      "$ref": "#/$defs/canvas"
+    },
+    "supportedModes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "draw_with_me",
+          "watch_then_draw",
+          "trace_and_learn"
+        ]
+      }
+    },
+    "assets": {
+      "$ref": "#/$defs/assets"
+    },
+    "drawing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "steps"
+      ],
+      "properties": {
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/drawingStep"
+          }
+        }
+      }
+    },
+    "coloring": {
+      "$ref": "#/$defs/coloring"
+    }
+  },
+  "$defs": {
+    "nonEmptyId": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:[._-][a-z0-9]+)*$",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "relativeAssetPath": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "titleKey",
+        "summaryKey",
+        "ageBands",
+        "difficulty",
+        "estimatedMinutes",
+        "categoryIds",
+        "skillIds"
+      ],
+      "properties": {
+        "titleKey": {
+          "$ref": "#/$defs/nonEmptyId"
+        },
+        "summaryKey": {
+          "$ref": "#/$defs/nonEmptyId"
+        },
+        "ageBands": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "little_artists",
+              "creative_explorers",
+              "growing_artists",
+              "young_artists"
+            ]
+          }
+        },
+        "difficulty": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "estimatedMinutes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 90
+        },
+        "categoryIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyId"
+          }
+        },
+        "skillIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyId"
+          }
+        },
+        "journeyIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyId"
+          }
+        },
+        "prerequisiteLessonIds": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:[.-][a-z0-9]+)*$"
+          }
+        },
+        "tags": {
+          "type": "array",
+          "uniqueItems": true,
+          "maxItems": 20,
+          "items": {
+            "$ref": "#/$defs/nonEmptyId"
+          }
+        }
+      }
+    },
+    "canvas": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width",
+        "height"
+      ],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 10000
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 10000
+        },
+        "backgroundRole": {
+          "type": "string",
+          "enum": [
+            "paper_light",
+            "paper_warm",
+            "paper_dark",
+            "transparent"
+          ]
+        }
+      }
+    },
+    "assets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strokeFile",
+        "thumbnail",
+        "preview",
+        "strings"
+      ],
+      "properties": {
+        "strokeFile": {
+          "$ref": "#/$defs/relativeAssetPath"
+        },
+        "thumbnail": {
+          "$ref": "#/$defs/relativeAssetPath"
+        },
+        "preview": {
+          "$ref": "#/$defs/relativeAssetPath"
+        },
+        "strings": {
+          "type": "object",
+          "minProperties": 1,
+          "propertyNames": {
+            "pattern": "^[a-z]{2}(?:-[A-Z]{2})?$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/relativeAssetPath"
+          }
+        },
+        "audio": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z]{2}(?:-[A-Z]{2})?$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/relativeAssetPath"
+          }
+        },
+        "coloringRegions": {
+          "$ref": "#/$defs/relativeAssetPath"
+        }
+      }
+    },
+    "teacherDemo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strokeRefs"
+      ],
+      "properties": {
+        "narrationKey": {
+          "$ref": "#/$defs/nonEmptyId"
+        },
+        "strokeRefs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonEmptyId"
+          }
+        },
+        "normalDurationMs": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 120000
+        },
+        "playAsGroup": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "childTurn": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "completionPolicy",
+        "allowReplay",
+        "allowSkip"
+      ],
+      "properties": {
+        "completionPolicy": {
+          "enum": [
+            "manual_done",
+            "any_stroke",
+            "authored_signal"
+          ]
+        },
+        "allowReplay": {
+          "type": "boolean"
+        },
+        "allowSkip": {
+          "type": "boolean"
+        },
+        "toolPreset": {
+          "$ref": "#/$defs/nonEmptyId"
+        },
+        "expectedStrokeRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyId"
+          }
+        }
+      }
+    },
+    "helpEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "level",
+        "kind"
+      ],
+      "properties": {
+        "level": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "kind": {
+          "enum": [
+            "gentle_hint",
+            "visual_guide",
+            "direction_anchors",
+            "trace_path",
+            "assisted_success"
+          ]
+        },
+        "narrationKey": {
+          "$ref": "#/$defs/nonEmptyId"
+        },
+        "guideRefs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/nonEmptyId"
+          }
+        }
+      }
+    },
+    "drawingStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "objectiveSkillIds",
+        "teacher",
+        "childTurn"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyId"
+        },
+        "objectiveSkillIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyId"
+          }
+        },
+        "teacher": {
+          "$ref": "#/$defs/teacherDemo"
+        },
+        "childTurn": {
+          "$ref": "#/$defs/childTurn"
+        },
+        "help": {
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "$ref": "#/$defs/helpEntry"
+          }
+        },
+        "completionNarrationKey": {
+          "$ref": "#/$defs/nonEmptyId"
+        }
+      }
+    },
+    "coloringStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "regionIds"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/nonEmptyId"
+        },
+        "regionIds": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyId"
+          }
+        },
+        "narrationKey": {
+          "$ref": "#/$defs/nonEmptyId"
+        },
+        "suggestedColorRoles": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/nonEmptyId"
+          }
+        },
+        "enforceSuggestedColors": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "coloring": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "defaultMode": {
+          "enum": [
+            "guided",
+            "self"
+          ]
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/coloringStep"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "enabled": {
+                "const": true
+              }
+            },
+            "required": [
+              "enabled"
+            ]
+          },
+          "then": {
+            "required": [
+              "defaultMode",
+              "steps"
+            ],
+            "properties": {
+              "steps": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

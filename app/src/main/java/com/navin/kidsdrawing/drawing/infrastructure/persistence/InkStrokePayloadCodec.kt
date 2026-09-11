@@ -11,18 +11,13 @@ import java.io.InputStream
 import java.io.OutputStream
 
 /**
- * Stable AndroidX Ink 1.0 codec boundary.
+ * Stable AndroidX Ink 1.0 production implementation of the app-owned payload boundary.
  *
- * The app-owned document format embeds this payload but no AndroidX Ink type crosses into the
- * document/history domain. Encoding is intended for background persistence, never the input path.
+ * Encoding is background persistence work only. AndroidX Ink types remain inside drawing
+ * infrastructure and never become the document/history API.
  */
-object InkStrokePayloadCodec {
-    data class DecodedPayload(
-        val tool: PointerTool,
-        val points: List<StrokePoint>,
-    )
-
-    fun encode(record: InkStrokeRecord, output: OutputStream) {
+object InkStrokePayloadCodec : StrokePayloadCodec {
+    override fun encode(record: InkStrokeRecord, output: OutputStream) {
         validateOptionalAxes(record.points)
         val batch = MutableStrokeInputBatch()
         record.points.forEach { point ->
@@ -40,7 +35,7 @@ object InkStrokePayloadCodec {
         StrokeInputBatchSerialization.encode(batch, output)
     }
 
-    fun decode(input: InputStream): DecodedPayload {
+    override fun decode(input: InputStream): DecodedStrokePayload {
         val batch = StrokeInputBatchSerialization.decode(input)
         require(!batch.isEmpty()) { "Persisted Ink stroke payload cannot be empty." }
         require(batch.hasPressure()) {
@@ -58,7 +53,7 @@ object InkStrokePayloadCodec {
                 orientationRadians = point.orientationRadians.takeIf { point.hasOrientation },
             )
         }
-        return DecodedPayload(
+        return DecodedStrokePayload(
             tool = batch.getToolType().toPointerTool(),
             points = points,
         )

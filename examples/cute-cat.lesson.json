@@ -1,0 +1,181 @@
+{
+  "schemaVersion": "1.0",
+  "lessonId": "animals.cute-cat",
+  "revision": 1,
+  "status": "draft",
+  "minimumContentApi": 1,
+  "metadata": {
+    "titleKey": "lesson.cute_cat.title",
+    "summaryKey": "lesson.cute_cat.summary",
+    "ageBands": [
+      "creative_explorers",
+      "growing_artists"
+    ],
+    "difficulty": 2,
+    "estimatedMinutes": 8,
+    "categoryIds": [
+      "animals.pets"
+    ],
+    "skillIds": [
+      "shape.circle",
+      "line.curve",
+      "placement.relative"
+    ],
+    "journeyIds": [
+      "journey.animal_artist"
+    ],
+    "prerequisiteLessonIds": [],
+    "tags": [
+      "cat",
+      "pet",
+      "cute"
+    ]
+  },
+  "canvas": {
+    "width": 1000,
+    "height": 1000,
+    "backgroundRole": "paper_warm"
+  },
+  "supportedModes": [
+    "draw_with_me",
+    "watch_then_draw",
+    "trace_and_learn"
+  ],
+  "assets": {
+    "strokeFile": "strokes.json",
+    "thumbnail": "images/thumbnail.webp",
+    "preview": "images/preview.webp",
+    "strings": {
+      "en": "strings/en.json"
+    },
+    "coloringRegions": "coloring/regions.svg"
+  },
+  "drawing": {
+    "steps": [
+      {
+        "id": "head",
+        "objectiveSkillIds": [
+          "shape.circle"
+        ],
+        "teacher": {
+          "narrationKey": "lesson.cute_cat.step.head.demo",
+          "strokeRefs": [
+            "stroke.head"
+          ],
+          "normalDurationMs": 2200,
+          "playAsGroup": false
+        },
+        "childTurn": {
+          "completionPolicy": "manual_done",
+          "allowReplay": true,
+          "allowSkip": false,
+          "toolPreset": "pencil.standard",
+          "expectedStrokeRefs": [
+            "guide.head"
+          ]
+        },
+        "help": [
+          {
+            "level": 1,
+            "kind": "gentle_hint",
+            "narrationKey": "lesson.cute_cat.step.head.hint"
+          },
+          {
+            "level": 2,
+            "kind": "visual_guide",
+            "guideRefs": [
+              "guide.head"
+            ]
+          },
+          {
+            "level": 4,
+            "kind": "trace_path",
+            "guideRefs": [
+              "guide.head"
+            ]
+          },
+          {
+            "level": 5,
+            "kind": "assisted_success",
+            "guideRefs": [
+              "guide.head"
+            ]
+          }
+        ],
+        "completionNarrationKey": "lesson.cute_cat.step.head.done"
+      },
+      {
+        "id": "ears",
+        "objectiveSkillIds": [
+          "shape.triangle",
+          "placement.symmetry"
+        ],
+        "teacher": {
+          "narrationKey": "lesson.cute_cat.step.ears.demo",
+          "strokeRefs": [
+            "stroke.ear_left",
+            "stroke.ear_right"
+          ],
+          "normalDurationMs": 2400,
+          "playAsGroup": true
+        },
+        "childTurn": {
+          "completionPolicy": "manual_done",
+          "allowReplay": true,
+          "allowSkip": false,
+          "toolPreset": "pencil.standard",
+          "expectedStrokeRefs": [
+            "guide.ear_left",
+            "guide.ear_right"
+          ]
+        },
+        "help": [
+          {
+            "level": 2,
+            "kind": "visual_guide",
+            "guideRefs": [
+              "guide.ear_left",
+              "guide.ear_right"
+            ]
+          },
+          {
+            "level": 3,
+            "kind": "direction_anchors",
+            "guideRefs": [
+              "anchor.ears"
+            ]
+          },
+          {
+            "level": 4,
+            "kind": "trace_path",
+            "guideRefs": [
+              "guide.ear_left",
+              "guide.ear_right"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "coloring": {
+    "enabled": true,
+    "defaultMode": "guided",
+    "steps": [
+      {
+        "id": "fur",
+        "regionIds": [
+          "region.head",
+          "region.ear_left",
+          "region.ear_right"
+        ],
+        "narrationKey": "lesson.cute_cat.color.fur",
+        "suggestedColorRoles": [
+          "warm_orange",
+          "soft_gray",
+          "creative_choice"
+        ],
+        "enforceSuggestedColors": false
+      }
+    ]
+  }
+}

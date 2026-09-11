@@ -10,81 +10,61 @@ Phase 0 ends only when the product is sufficiently specified that Phase 1 can im
 - Android-first, offline-first, custom drawing engine and ₹0 critical-path decisions are recorded.
 
 ### 0.2 V1 product scope — COMPLETE
-- Product statement and target audience defined.
-- Must Have / Should Have / Later boundaries defined.
-- Explicit non-goals defined.
-- Public V1 content target defined.
-- Scope-change rule defined.
-- Acceptance criteria exist for core Must-Have systems.
+- product statement/target audience;
+- Must/Should/Later scope;
+- non-goals;
+- content target;
+- acceptance criteria and scope-change rule.
 
 ### 0.3 UX architecture — COMPLETE
-- first-launch journey defined;
-- guided lesson journey defined;
-- stuck/help journey defined;
-- coloring journey defined;
-- Free Draw journey defined;
-- resume/recovery journey defined;
-- Gallery journey defined;
-- Parent Zone journeys defined;
-- canonical screen inventory/navigation architecture finalized;
-- age-adaptive presentation policy defined;
-- safe exit/back behavior defined;
-- no critical dead-end flow remains unresolved in the V1 information architecture.
+- child/parent journeys;
+- canonical screen IDs;
+- creation workspace rules;
+- age-adaptive presentation;
+- safe exit/resume;
+- no critical dead ends.
 
 ### 0.4 Teaching & content system — COMPLETE
-- teaching modes defined;
-- pace semantics defined;
-- Help Ladder defined;
-- lesson metadata and machine-readable Draft 2020-12 JSON Schema defined;
-- validated sample lesson committed;
-- source vs compiled package contract defined;
-- lesson-authoring workflow defined using free tools;
-- category taxonomy and reusable skill taxonomy defined;
-- difficulty and age tagging rules defined;
-- four starter Art Journey curricula defined;
-- public V1 target catalog mapped to category/age coverage;
-- representative content set defined before mass production.
+- teaching modes / pace semantics / Help Ladder;
+- validated JSON lesson schema and sample;
+- source/compiled package contract;
+- authoring workflow;
+- category/skill/difficulty/age taxonomy;
+- starter journeys and public catalog target.
 
 ### 0.5 Core engine contracts — COMPLETE
-- Drawing Engine 0.1 data/document/operation model defined;
-- stable AndroidX Ink 1.0.0 substrate recorded behind owned interfaces;
-- input/rendering architecture defined;
-- history/undo model defined;
-- deterministic virtual-clock teacher replay contract defined;
-- save/load/recovery direction defined;
-- measurable performance/reference-device gates defined;
-- Lesson Engine state machine and teaching-mode semantics defined;
-- persistence/help/pause/recovery behavior defined;
-- Coloring Engine V1 guided/self-color responsibilities defined;
-- authored fill-region and role-aware erase model defined;
-- drawing→coloring→completion atomic handoffs defined;
-- cross-engine ownership/interfaces clear enough to prevent UI logic from owning engine behavior.
+- Drawing Engine document/input/render/history/persistence/playback contract;
+- stable AndroidX Ink 1.0.0 substrate behind owned interfaces;
+- measurable performance/reference-device gates;
+- Lesson Engine state machine/recovery;
+- Coloring Engine guided/self-color contract;
+- atomic cross-engine handoffs and ownership boundaries.
 
 ### 0.6 Companion & visual system — COMPLETE
-- companion semantic state machine finalized for V1;
-- priority/interruption/rate-limit behavior defined;
-- companion placement/obstruction rules defined;
-- voice/narration behavior and offline fallback defined;
-- child-safety language and reduced-motion behavior defined;
-- visual product principles defined;
-- design-system foundations defined;
-- selected direction locked as **Premium Storybook Art Studio** for onboarding, Home, creation workspace, Gallery and Parent Zone;
-- Figma design workspace established. Automated frame generation can continue when free Figma MCP quota permits without blocking the engineering foundation.
+- companion semantic states/priorities/rate limiting;
+- placement/obstruction rules;
+- voice/offline fallback/accessibility/safety language;
+- selected visual direction: Premium Storybook Art Studio;
+- design-system foundations and Compose translation rules;
+- Figma workspace established for later visual-frame automation when free quota permits.
 
 ### 0.7 Safety, privacy, quality & release — IN PROGRESS
-Exit requirements:
-- child safety/privacy engineering baseline reviewed against current platform policy;
-- permission/third-party SDK policy defined;
-- parent-gate behavior defined;
-- test layers and Drawing Engine stress cases reconciled with milestone DoD;
-- milestone Definition of Done reviewed;
-- versioning/release sequence reviewed;
-- public-launch legal/store compliance review explicitly tracked as a later pre-release gate;
-- Phase 1 Art Lab issue set prepared.
+Completed:
+- current 2026 Google Play Families/data-practice baseline reviewed;
+- current targetSdk baseline reviewed (API 36+ for new standard Android submissions from 2026-08-31 under current policy);
+- default-deny sensitive permission policy defined;
+- third-party SDK admission policy defined;
+- Alpha analytics/crash-reporting strategy defined;
+- artwork privacy/export policy defined;
+- Parent Gate contract defined;
+- test strategy reconciled with engine/vertical-slice gates;
+- APK/AAB/version release strategy reconciled;
+- public-launch compliance re-review explicitly separated from internal Alpha completion.
+
+Remaining:
+- create concrete Phase 1 Art Lab implementation issue set and then mark Phase 0 complete.
 
 ## Phase 0 final exit checklist
-
-Phase 1 may begin when all of the following are true:
 
 - [x] Permanent GitHub source of truth established.
 - [x] Product vision and promise documented.
@@ -93,7 +73,7 @@ Phase 1 may begin when all of the following are true:
 - [x] Core child and parent journeys documented.
 - [x] Final screen/information architecture locked.
 - [x] Teaching modes and Help Ladder documented.
-- [x] Lesson package/schema draft locked and validated with example content.
+- [x] Lesson package/schema locked and validated with example content.
 - [x] Initial curriculum/category/skill taxonomy locked.
 - [x] Drawing Engine 0.1 technical contract locked.
 - [x] Drawing performance gates/reference devices defined.
@@ -102,11 +82,11 @@ Phase 1 may begin when all of the following are true:
 - [x] Companion V1 state/voice contract locked.
 - [x] Visual design direction selected.
 - [x] Child safety/privacy baseline documented.
-- [x] Test strategy documented.
-- [x] Version/release strategy documented.
+- [x] Current platform-policy/permission/SDK review locked.
+- [x] Parent-gate implementation contract locked.
+- [x] Test strategy documented/reconciled.
+- [x] Version/release strategy documented/reconciled.
 - [x] Project conventions and Definition of Done documented.
-- [ ] Current platform-policy/permission/SDK review locked.
-- [ ] Parent-gate implementation contract locked.
 - [ ] Phase 1 Art Lab implementation issue set prepared.
 
 ## Professional rule

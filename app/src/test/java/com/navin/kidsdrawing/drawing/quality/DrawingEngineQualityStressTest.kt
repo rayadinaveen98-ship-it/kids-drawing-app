@@ -79,8 +79,8 @@ class DrawingEngineQualityStressTest {
             assertTrue(engine.state.value.document.activeInkStrokes().isEmpty())
             assertTrue(engine.undo())
             assertEquals(1_000, engine.state.value.document.activeInkStrokes().size)
-            // A fresh Clear after Undo deliberately invalidates the old redo branch.
-            assertFalse(engine.state.value.canRedo)
+            assertTrue(engine.state.value.canRedo)
+            // The next fresh Clear intentionally invalidates this redo branch.
         }
 
         assertEquals(1_000, engine.state.value.document.activeInkStrokes().size)

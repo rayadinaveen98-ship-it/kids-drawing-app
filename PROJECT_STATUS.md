@@ -5,124 +5,88 @@
 **Phase:** Phase 1 — Art Lab / Drawing Engine 0.1  
 **Foundation version:** 0.0.1  
 **Target milestone:** `0.1.0-art-lab`  
-**Current test build:** `0.0.3-p1.4-test` / versionCode 3  
-**Status:** P1.1 complete; P1.2 software merged with hardware gates pending; P1.3 complete; P1.4 software merged with physical-device acceptance pending  
-**Last updated:** 2026-09-11
+**Latest physically verified test build:** `0.0.4-p1.5-test` / versionCode 4  
+**Current software task:** #13 / P1.6 — Art Lab controls + debug metrics  
+**Working branch:** `phase1/p1.6-art-lab-controls`  
+**Draft PR:** #21  
+**Last updated:** 2026-09-12
 
 ## Phase 0 — COMPLETE
 
 The full product foundation is locked in Git. Authoritative completion evidence: `docs/14_PHASE0_EXIT_GATE.md`.
 
-Highlights include product/PRD boundaries, age-adaptive UX, lesson schema/content system, Drawing/Lesson/Coloring engine contracts, cross-engine ownership rules, companion behavior, Premium Storybook Art Studio visual direction, child safety/privacy, Parent Gate, testing strategy and release strategy.
+Key locked decisions include Android-first native Kotlin + Jetpack Compose, stable AndroidX Ink 1.0.0 behind owned interfaces, offline-first architecture, no mandatory account/backend for Alpha, child-first privacy, operation-based editable artwork, deterministic teacher playback, and the Premium Storybook Art Studio visual direction.
 
-## Selected architecture highlights
-
-- Android-first native Kotlin + Jetpack Compose.
-- Stable AndroidX Ink 1.0.0 behind owned drawing-domain interfaces.
-- Offline-first; no mandatory backend/account for Alpha.
-- No ads, behavioral analytics, network dependency or sensitive permissions in Art Lab.
-- UI observes/commands engines but never owns document/history truth.
-- Editable operation-based artwork; previews are derivative only.
-- Deterministic five-speed teacher playback is the next core capability.
-- Public V1 content target: 30–40 lessons; hard quality floor: 24.
-- Visual direction: **Premium Storybook Art Studio**.
-
-## P1.1 Android scaffold — COMPLETE
-
-Issue **#8** closed. Reproducible baseline:
-- package: `com.navin.kidsdrawing`;
-- AGP 9.4.0;
-- Gradle 9.6.1 committed wrapper;
-- JDK 17;
-- compileSdk/targetSdk 36;
-- minSdk 23;
-- Compose BOM 2026.06.00;
-- AndroidX Ink 1.0.0 stable.
-
-CI validates wrapper/JSON, enforces Ink architecture boundaries and permission allowlist, runs unit tests + lint, and assembles/uploads APKs.
-
-## P1.2 DrawingSurface — SOFTWARE MERGED / HARDWARE GATES PENDING
-
-Issue **#9** intentionally remains open. PR **#16** merged to `main` as `00c851d73fd47fd5d5d6f1c88b44e51df80fab86`.
-
-Capabilities: low-latency Ink authoring/rendering, owned 1000×1000 document-space records, finger/stylus metadata, motion prediction, cancellation/multitouch hardening, live Art Lab metrics and CI-enforced Ink isolation.
-
-Physical finger/stylus feel, repeated hardware input, resize/rotation and stylus-specific behavior are not inferred from CI and remain pending.
-
-## P1.3 Drawing document/history — COMPLETE
-
-Issue **#10** closed. PR **#17** merged as `5434e128bcd668d2eba0b50c2b3479b59e13e580`.
-
-Capabilities: authoritative `DrawingDocument`, operation-based child ink/erase/Clear history, child-vs-teacher authorship, Mutex-serialized mutation, StateFlow state, Undo/Redo without canvas snapshots, redo invalidation and 500× undo/redo stress tests.
-
-## P1.4 Atomic persistence/recovery — SOFTWARE MERGED / PHYSICAL ACCEPTANCE PENDING
-
-Issue **#11** remains open only for physical-device acceptance. PR **#18** was squash-merged to `main` as `e92a5dc010864428fbd89c5cdb1abd38a02f3814` after exact head `83e436798b74bece7af430411f588aa04c052110` passed CI run **#42** (`34631056947`).
-
-Merged capabilities:
-- app-owned versioned + checksummed document envelope;
-- stable Ink 1.0 stroke payload serialization behind an owned codec interface;
-- atomic temp write → fsync → primary/backup rotation → promote semantics;
-- corrupt-primary fallback to last known-good backup;
-- corrupt-document startup tolerance;
-- serialized background file I/O;
-- stale delayed autosaves cannot overwrite newer snapshots;
-- 20-cycle save/load tests and interrupted-write failure injection;
-- engine `replaceDocument()` that clears stale redo history;
-- renderer rehydration from owned persisted stroke records;
-- startup restore before drawing becomes interactive;
-- debounced autosave plus `onStop` safety save;
-- explicit Art Lab **Save / Reload / Undo / Redo** controls;
-- Undo/Redo/Reload reconcile visible dry Ink rendering from authoritative document state.
-
-### P1.4 physical test APK
-
-- version: `0.0.3-p1.4-test`;
-- versionCode: `3`;
-- CI artifact ID: `10276705066`;
-- artifact ZIP digest: `sha256:d84fdf7eb84e1bd44959287ccde736aafa5200de974243e37a05a6e09c2b387b`;
-- extracted APK size: `18,160,820` bytes;
-- extracted APK SHA-256: `628d7ed6ed5c33405b88d5f04df0d586ce03de400e3aad069d8136ca96c40228`.
-
-Physical acceptance still required:
-- repeated finger drawing feel;
-- Save → Reload visible geometry restoration;
-- Undo/Redo visual correctness;
-- background/reopen and force-close/reopen persistence;
-- stylus-specific behavior when compatible hardware is available.
-
-## Phase 1 backlog
+## Phase 1 progression
 
 Epic: **#7 — Phase 1 Art Lab / Drawing Engine 0.1**
 
-1. #8 — Scaffold Android project/modules/CI. **COMPLETE**
-2. #9 — Low-latency DrawingSurface + Ink adapter. **SOFTWARE MERGED; HARDWARE PENDING**
-3. #10 — Drawing document + Undo/Redo. **COMPLETE**
-4. #11 — Atomic persistence/recovery. **SOFTWARE MERGED; PHYSICAL ACCEPTANCE PENDING**
-5. #12 — Deterministic teacher playback + five pace profiles. **NEXT SOFTWARE SLICE**
-6. #13 — Art Lab controls/debug metrics.
-7. #14 — Tests/benchmarks/recovery stress suite.
-8. #15 — Package/verify `0.1.0-art-lab` APK milestone.
+1. #8 — P1.1 Android scaffold/modules/CI — **COMPLETE**
+2. #9 — P1.2 low-latency DrawingSurface + Ink adapter — **COMPLETE**
+3. #10 — P1.3 Drawing document + Undo/Redo — **COMPLETE**
+4. #11 — P1.4 atomic persistence/recovery — **COMPLETE**
+5. #12 — P1.5 deterministic teacher playback + five pace profiles — **COMPLETE**
+6. #13 — P1.6 Art Lab controls + debug metrics — **ACTIVE**
+7. #14 — P1.7 tests/benchmarks/recovery stress — **NEXT**
+8. #15 — P1.8 package/verify `0.1.0-art-lab` — **PENDING**
 
-Hardware-only acceptance for #9/#11 may remain pending while later software work proceeds; it may never be silently marked passed.
+## P1.5 — COMPLETE
+
+PR **#20** squash-merged to `main` as `7767fdcbf8454358954c6cbc0187f0933b97099e` after exact head `394454d8082db5c65188df6efddc6bbc37b12eec` passed CI run **#53** (`34634192081`) and real-device verification.
+
+Capabilities:
+- product-owned deterministic teacher playback engine;
+- five locked pace profiles: 0.40× / 0.70× / 1.00× / 1.50× / 2.00×;
+- Play / Pause / Resume / Replay;
+- mid-stroke pace changes without resetting source position;
+- typed playback lifecycle;
+- partial-stroke interpolation from canonical source timestamps;
+- separate teacher overlay that never enters child document/history;
+- replay/source immutability tests and chunked-frame determinism tests;
+- canonical Art Lab house demo;
+- narrow-phone responsive control fix from #19.
+
+### P1.5 physically verified APK
+
+- version: `0.0.4-p1.5-test`;
+- versionCode: `4`;
+- CI artifact ID: `10276798814`;
+- artifact ZIP digest: `sha256:59f830dea25cb3d0e7ecf2a1abda983b82129f93a113101a4337001d2af6a4df`;
+- extracted APK size: `18,193,581` bytes;
+- extracted APK SHA-256: `03b0fcba4c3610898605ecdad2f1635f6090a2eca7cdd14383ccf9ce24a4708c`;
+- physical result: user reported the build working fine on real Android hardware.
+
+## P1.6 — ACTIVE
+
+Issue **#13**, branch `phase1/p1.6-art-lab-controls`, draft PR **#21**.
+
+Required outcome: one internal engineering console that exposes every Drawing Engine 0.1 capability without hidden developer steps:
+- New/blank document;
+- Pencil / Eraser;
+- color + width controls;
+- Undo / Redo / Clear;
+- Save / Reload;
+- teacher test source load/capture;
+- five pace controls;
+- Play / Pause / Resume / Replay;
+- debug metrics overlay;
+- phone/tablet-usable layout.
+
+Current implementation direction keeps tool state in a product-owned engine, uses authored erase-mask operations instead of destructive/white ink, and exposes truthful history/viewport/playback diagnostics.
+
+## Architecture invariants
+
+- UI never owns artwork/history truth.
+- Teacher/trace overlays never become child artwork.
+- Persistence owns editable operation data, not screenshots.
+- AndroidX Ink types stay behind drawing infrastructure boundaries.
+- Core drawing/playback remains offline.
+- No ads, behavioral analytics, network dependency or sensitive permissions in Art Lab.
+- CI must be green before a milestone is treated as shippable.
 
 ## Immediate next action
 
-Begin **#12 / P1.5 deterministic teacher playback** on an isolated branch while the user physically verifies the P1.4 APK.
-
-Playback must use the owned document/stroke representation, a deterministic virtual clock and the five locked pace profiles. Teacher playback stays visually separate from child artwork and must not mutate child document history.
-
-## Figma note
-
-Figma workspace exists: `Kids Drawing App — Phase 0.6 Visual System`, file key `2lGC11EPu2tjgrpYivJ8hf`.
-
-Starter-plan MCP quota currently prevents further automated frame generation. `docs/21_VISUAL_SYSTEM.md` remains the implementation source of truth; this does not block Art Lab engineering.
-
-## Current blockers
-
-No software blocker to P1.5.
-
-Physical-device gates for P1.2/P1.4 are pending user/device evidence and must remain explicitly marked as such.
+Finish **#13 / P1.6**, produce a physical-test APK, verify Pencil/Eraser/color/width/Clear/New/debug/teacher-source controls on device, then merge and advance to **#14 / P1.7 stress + performance evidence**.
 
 ## Continuation rule
 

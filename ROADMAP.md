@@ -2,7 +2,7 @@
 
 ## Phase 0 — Product Foundation
 
-**Current state:** 0.1 and 0.2 complete; remaining specification/design work in progress.
+**Current state:** 0.1, 0.2 and 0.3 complete; teaching/content architecture is next.
 
 ### 0.1 Repository & Product Foundation — COMPLETE
 - GitHub source of truth
@@ -20,14 +20,17 @@
 - scope-change rule
 - Phase 0 exit gate
 
-### 0.3 UX Architecture — NEXT
-- final screen inventory
-- navigation architecture
-- lesson workspace structure
-- age-adaptive presentation rules
-- recovery/error flows
+### 0.3 UX Architecture — COMPLETE
+- stable child shell
+- canonical screen inventory and screen IDs
+- immersive creation workspaces
+- Parent Zone navigation graph
+- safe back/exit rules
+- resume/recovery contract
+- age-adaptive presentation policy
+- no-dead-end rules
 
-### 0.4 Teaching & Content Architecture
+### 0.4 Teaching & Content Architecture — NEXT
 - machine-readable lesson schema
 - authoring workflow
 - category taxonomy

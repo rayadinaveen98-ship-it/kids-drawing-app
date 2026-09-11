@@ -23,10 +23,13 @@ import java.util.zip.CRC32
 /**
  * App-owned, checksummed Art Lab document envelope.
  *
- * The envelope owns schema/versioning and operation ordering. AndroidX Ink serialization is used
- * only for an AddInkStroke's compact input payload, behind [InkStrokePayloadCodec].
+ * The envelope owns schema/versioning and operation ordering. Production embeds AndroidX Ink's
+ * stable input-batch payload through [InkStrokePayloadCodec], while tests can inject a host-safe
+ * codec without changing envelope or store behavior.
  */
-object DrawingDocumentBinaryCodec {
+class DrawingDocumentBinaryCodec(
+    private val strokePayloadCodec: StrokePayloadCodec = InkStrokePayloadCodec,
+) {
     fun encode(document: DrawingDocument, output: OutputStream) {
         val bodyBytes = ByteArrayOutputStream().use { bodyBuffer ->
             val body = DataOutputStream(bodyBuffer)
@@ -171,10 +174,10 @@ object DrawingDocumentBinaryCodec {
         data.writeByte(authorRoleTag(stroke.authorRole))
 
         val payload = ByteArrayOutputStream().use { buffer ->
-            InkStrokePayloadCodec.encode(stroke, buffer)
+            strokePayloadCodec.encode(stroke, buffer)
             buffer.toByteArray()
         }
-        require(payload.size in 1..MAX_STROKE_PAYLOAD_BYTES) { "Invalid Ink payload size." }
+        require(payload.size in 1..MAX_STROKE_PAYLOAD_BYTES) { "Invalid stroke payload size." }
         data.writeInt(payload.size)
         data.write(payload)
     }
@@ -189,13 +192,13 @@ object DrawingDocumentBinaryCodec {
         val authorRole = authorRoleFromTag(data.readUnsignedByte())
         val payloadLength = data.readInt()
         require(payloadLength in 1..MAX_STROKE_PAYLOAD_BYTES) {
-            "Invalid Ink payload length: $payloadLength"
+            "Invalid stroke payload length: $payloadLength"
         }
         val payloadBytes = ByteArray(payloadLength)
         data.readFully(payloadBytes)
-        val decoded = InkStrokePayloadCodec.decode(ByteArrayInputStream(payloadBytes))
-        require(toInkCompatibleTool(storedTool) == decoded.tool) {
-            "Ink payload tool type does not match stroke metadata."
+        val decoded = strokePayloadCodec.decode(ByteArrayInputStream(payloadBytes))
+        require(toPayloadCompatibleTool(storedTool) == decoded.tool) {
+            "Stroke payload tool type does not match stroke metadata."
         }
 
         return InkStrokeRecord(
@@ -324,19 +327,21 @@ object DrawingDocumentBinaryCodec {
         else -> error("Unknown stroke author tag: $tag")
     }
 
-    private fun toInkCompatibleTool(tool: PointerTool): PointerTool = when (tool) {
+    private fun toPayloadCompatibleTool(tool: PointerTool): PointerTool = when (tool) {
         PointerTool.STYLUS_ERASER -> PointerTool.STYLUS
         else -> tool
     }
 
-    private const val MAGIC = 0x4B444131 // KDA1
-    private const val ENVELOPE_VERSION = 1
-    private const val OP_ADD_INK = 1
-    private const val OP_ADD_ERASE_MASK = 2
-    private const val OP_CLEAR = 3
-    private const val MAX_BODY_BYTES = 64 * 1024 * 1024
-    private const val MAX_STROKE_PAYLOAD_BYTES = 16 * 1024 * 1024
-    private const val MAX_STRING_BYTES = 1024 * 1024
-    private const val MAX_OPERATIONS = 100_000
-    private const val MAX_POINTS_PER_MASK = 1_000_000
+    private companion object {
+        const val MAGIC = 0x4B444131 // KDA1
+        const val ENVELOPE_VERSION = 1
+        const val OP_ADD_INK = 1
+        const val OP_ADD_ERASE_MASK = 2
+        const val OP_CLEAR = 3
+        const val MAX_BODY_BYTES = 64 * 1024 * 1024
+        const val MAX_STROKE_PAYLOAD_BYTES = 16 * 1024 * 1024
+        const val MAX_STRING_BYTES = 1024 * 1024
+        const val MAX_OPERATIONS = 100_000
+        const val MAX_POINTS_PER_MASK = 1_000_000
+    }
 }

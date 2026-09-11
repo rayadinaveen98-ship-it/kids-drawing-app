@@ -41,6 +41,26 @@ class AtomicDrawingDocumentStoreTest {
     }
 
     @Test
+    fun delayedOlderAutosaveCannotReplaceNewerSavedDocument() = withTempDirectory { root ->
+        runBlocking {
+            val store = store(root)
+            val newer = documentWithStrokeCount(2)
+            val stale = documentWithStrokeCount(1)
+
+            store.save(newer)
+            store.save(stale)
+
+            val loaded = store.load(newer.documentId)
+            assertNotNull(loaded)
+            assertEquals(
+                listOf("stroke-0", "stroke-1"),
+                loaded!!.document.activeInkStrokes().map { it.strokeId },
+            )
+            assertEquals(newer.modifiedAtEpochMillis, loaded.document.modifiedAtEpochMillis)
+        }
+    }
+
+    @Test
     fun failureAfterBackupRotationCannotDestroyLastKnownGoodDocument() = withTempDirectory { root ->
         val original = documentWithStrokeCount(1)
         val updated = documentWithStrokeCount(2)

@@ -13,7 +13,6 @@
 - Core product promise: **Draw together with a teacher who never runs out of patience.**
 - Android-first platform direction.
 - Kotlin + Jetpack Compose application stack.
-- Custom native drawing engine direction.
 - Offline-first core experience.
 - No mandatory account/backend for Alpha and early V1.
 - Core age target: approximately 4–12 years with four age-adaptive experience bands.
@@ -36,6 +35,12 @@
 - Category, skill, difficulty and age-band taxonomies locked.
 - Four starter Art Journeys defined: First Shapes to Pictures, Animal Artist, Space Artist, Character Creator.
 - Public target catalog mapped to 36 guided lessons with representative-content validation before mass production.
+- Drawing Engine 0.1 implementation contract locked in `docs/07_DRAWING_ENGINE_SPEC.md`.
+- Stable AndroidX Ink 1.0.0 selected as the low-level inking substrate behind owned engine interfaces; see ADR-003/ADR-007.
+- Drawing performance/reference-device gates locked in `docs/18_DRAWING_PERFORMANCE_GATES.md`.
+- Lesson Engine state machine, teaching-mode semantics, persistence, help and recovery contract locked in `docs/08_LESSON_ENGINE_SPEC.md`.
+- Coloring Engine V1 contract locked in `docs/19_COLORING_ENGINE_SPEC.md`.
+- Cross-engine ownership, atomic handoffs and UI boundaries locked in `docs/20_ENGINE_BOUNDARIES.md`.
 
 ## Current Phase 0 position
 
@@ -44,22 +49,20 @@
 - 0.2 V1 product scope
 - 0.3 UX architecture and screen inventory
 - 0.4 Teaching/content schema and starter curriculum architecture
+- 0.5 Drawing/Lesson/Coloring core engine contracts and measurable performance gates
 
 ### Next
-- 0.5 Drawing/Lesson/Coloring engine contracts and measurable performance gates
-- 0.6 Companion contract and production-realistic visual direction
-- 0.7 Safety/quality/release review completion
+- 0.6 Companion behavior/voice contract and production-realistic visual direction
+- 0.7 Safety/quality/release final review and Phase 1 issue preparation
 
 ## Immediate next work
 
-1. Expand Drawing Engine 0.1 into an implementation-level contract: document/stroke model, coordinate system, input pipeline, renderer, history, replay and persistence.
-2. Define measurable responsiveness/performance/reference-device gates.
-3. Define Lesson Engine state machine and engine-to-UI event contract.
-4. Define Coloring Engine V1 contract and region/fill behavior.
-5. Lock inter-engine boundaries so UI cannot own core engine behavior.
-6. Finalize Companion V1 behavior/voice contract.
-7. Select the visual direction/design-system foundation.
-8. Complete Phase 0 safety/quality/release review and prepare Phase 1 Art Lab issues.
+1. Finalize Companion V1 semantic state machine, animation priorities, placement and obstruction rules.
+2. Lock narration/voice behavior and fallback strategy using a ₹0/offline-capable critical path.
+3. Define visual product principles and design-system foundations.
+4. Produce/select one production-realistic visual direction for onboarding, Home and lesson workspace.
+5. Complete Phase 0 safety/privacy/permission/SDK review.
+6. Prepare Phase 1 Art Lab implementation issues and acceptance gates.
 
 ## Current blockers
 

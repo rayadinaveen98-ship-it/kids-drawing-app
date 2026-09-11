@@ -27,20 +27,25 @@
 - Child privacy and minimal-data architecture.
 - Professional development model: engine capability → independent tests → real vertical slice → lock → expand.
 - GitHub is the permanent source of truth and handoff mechanism.
-- PRD advanced to **v0.2** with Must Have / Should Have / Later scope, explicit non-goals and acceptance criteria.
-- Public V1 content target defined: 30–40 guided lessons, with a hard release floor of 24 high-quality complete lessons.
-- Core child journeys documented: onboarding, guided lesson, help, coloring, Free Draw, resume/recovery and Gallery.
-- Core parent journeys documented: settings, export and safety/privacy understanding.
+- PRD v0.2 locked with Must Have / Should Have / Later scope, explicit non-goals and acceptance criteria.
+- Public V1 content target: 30–40 guided lessons, with a hard release floor of 24 high-quality complete lessons.
+- Core child and parent journeys documented.
 - Phase 0 exit gate documented in `docs/14_PHASE0_EXIT_GATE.md`.
+- V1 information architecture locked in `docs/15_SCREEN_ARCHITECTURE.md`.
+- Stable child shell: Home / Learn / Create / Gallery.
+- Creation workspaces are immersive and hide shell navigation.
+- Parent Zone is a separate gated navigation graph.
+- Safe exit/back, resume/recovery, age-adaptive presentation and no-dead-end rules are defined.
+- Canonical V1 screen IDs established for implementation and UI testing.
 
 ## Current Phase 0 position
 
 ### Complete
 - 0.1 Repository & product foundation
 - 0.2 V1 product scope
+- 0.3 UX architecture and screen inventory
 
-### In progress / next
-- 0.3 Final UX information architecture and screen inventory
+### Next
 - 0.4 Teaching/content schema and starter curriculum architecture
 - 0.5 Drawing/Lesson/Coloring engine contracts and measurable performance gates
 - 0.6 Companion contract and production-realistic visual direction
@@ -48,15 +53,16 @@
 
 ## Immediate next work
 
-1. Finalize V1 screen inventory and navigation architecture.
-2. Define the machine-readable lesson package/schema.
-3. Lock category + skill taxonomy and starter Art Journeys.
-4. Expand Drawing Engine 0.1 into an implementation-level contract, including document/history/replay models and performance gates.
-5. Define Lesson Engine state machine.
-6. Define Coloring Engine V1 contract.
-7. Finalize Companion V1 behavior/voice contract.
-8. Select the visual direction/design-system foundation.
-9. Complete Phase 0 review and prepare Phase 1 Art Lab issues.
+1. Define the machine-readable lesson package/schema.
+2. Lock category + skill taxonomy.
+3. Define the lesson-authoring workflow.
+4. Draft starter Art Journey curricula.
+5. Expand Drawing Engine 0.1 into an implementation-level contract, including document/history/replay models and performance gates.
+6. Define Lesson Engine state machine.
+7. Define Coloring Engine V1 contract.
+8. Finalize Companion V1 behavior/voice contract.
+9. Select the visual direction/design-system foundation.
+10. Complete Phase 0 review and prepare Phase 1 Art Lab issues.
 
 ## Current blockers
 

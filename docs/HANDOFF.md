@@ -24,11 +24,13 @@ An Android-first children's drawing and art-learning application. The product be
 8. Story Drawing and creative-expression features later.
 9. Offline-first and privacy-conscious.
 
-## Current development philosophy
+## Development philosophy
 
-Do not build all engines in isolation and do not build the complete polished app first. Use a core-engine + vertical-slice approach:
+Use a core-engine + vertical-slice approach:
 
 Specify → Build capability → Unit/performance test → Integrate into real child flow → Test → lock milestone → expand.
+
+Do not build all engines in isolation and do not build the polished full app first.
 
 ## Current Phase 0 state
 
@@ -36,16 +38,16 @@ Complete:
 - 0.1 Repository & product foundation
 - 0.2 V1 product scope contract
 - 0.3 UX architecture and screen inventory
+- 0.4 lesson/content architecture and starter curriculum
 
 Next:
-- 0.4 machine-readable lesson/content architecture and starter curriculum
-- 0.5 Drawing/Lesson/Coloring engine contracts
+- 0.5 Drawing/Lesson/Coloring engine contracts and performance gates
 - 0.6 companion contract and selected visual direction
 - 0.7 final Phase 0 safety/quality/release review
 
 The authoritative checklist is `docs/14_PHASE0_EXIT_GATE.md`.
 
-## UX architecture now locked
+## UX architecture locked
 
 - Child shell: Home / Learn / Create / Gallery.
 - Guided Drawing, Coloring and Free Draw use immersive creation workspaces with shell navigation hidden.
@@ -54,13 +56,15 @@ The authoritative checklist is `docs/14_PHASE0_EXIT_GATE.md`.
 - Incomplete sessions surface as Continue Drawing rather than being forced on startup.
 - Canonical V1 screen IDs live in `docs/15_SCREEN_ARCHITECTURE.md`.
 
-## V1 scope highlights
+## Content architecture locked
 
-- Primary ages: approximately 4–12 in four adaptive experience bands.
-- Public V1 content target: 30–40 guided lessons; hard release floor 24 high-quality complete lessons.
-- Must Have: onboarding/local profile, personalized Home, structured guided drawing, five paces, Help Ladder, coloring, Free Draw, companion, Gallery, Parent Zone, offline persistence.
-- Should Have: Match My Speed, Draw From Memory, gentle achievements, downloadable packs, basic parent insights and optional supportive stroke similarity.
-- Explicitly not early V1: ads, public social systems, mandatory account, strict drawing scores, unrestricted AI chat, advanced pro editing workflows.
+- Draft 2020-12 machine-readable schema: `schemas/lesson.schema.json`.
+- Validated reference lesson: `examples/cute-cat.lesson.json`.
+- Source/compiled package and authoring contract: `docs/16_LESSON_PACKAGE_AND_AUTHORING.md`.
+- Taxonomy/curriculum: `docs/17_TAXONOMY_AND_STARTER_CURRICULUM.md`.
+- Four starter journeys: First Shapes to Pictures, Animal Artist, Space Artist, Character Creator.
+- Public target: 36 guided lessons; hard release floor 24 high-quality complete lessons.
+- Mass content production waits until a representative set proves the schema and engines.
 
 ## Immediate target after Phase 0
 

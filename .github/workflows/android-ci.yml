@@ -6,8 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+# TEMPORARY bootstrap permission: once the generated Gradle wrapper is committed,
+# this workflow returns to contents: read.
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: android-ci-${{ github.ref }}
@@ -46,8 +48,31 @@ jobs:
           python -m json.tool schemas/lesson.schema.json > /dev/null
           python -m json.tool examples/cute-cat.lesson.json > /dev/null
 
-      - name: Generate Gradle wrapper
+      - name: Generate official Gradle wrapper
         run: gradle wrapper --gradle-version 9.6.1 --distribution-type bin
+
+      - name: Commit wrapper to main if not already tracked
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          WRAPPER_PATHS=(
+            gradlew
+            gradlew.bat
+            gradle/wrapper/gradle-wrapper.jar
+            gradle/wrapper/gradle-wrapper.properties
+          )
+
+          if [[ -z "$(git status --porcelain -- "${WRAPPER_PATHS[@]}")" ]]; then
+            echo "Official Gradle wrapper is already committed and unchanged."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "${WRAPPER_PATHS[@]}"
+          git commit -m "build: commit Gradle 9.6.1 wrapper"
+          git push origin HEAD:main
 
       - name: Unit tests, lint, and debug APK
         run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug
@@ -82,17 +107,5 @@ jobs:
         with:
           name: kids-drawing-art-lab-debug
           path: app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
-          retention-days: 14
-
-      - name: Upload generated Gradle wrapper
-        uses: actions/upload-artifact@v4
-        with:
-          name: gradle-wrapper-9.6.1
-          path: |
-            gradlew
-            gradlew.bat
-            gradle/wrapper/gradle-wrapper.jar
-            gradle/wrapper/gradle-wrapper.properties
           if-no-files-found: error
           retention-days: 14

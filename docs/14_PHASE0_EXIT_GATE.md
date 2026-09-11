@@ -17,8 +17,7 @@ Phase 0 ends only when the product is sufficiently specified that Phase 1 can im
 - Scope-change rule defined.
 - Acceptance criteria exist for core Must-Have systems.
 
-### 0.3 UX architecture — IN PROGRESS
-Exit requirements:
+### 0.3 UX architecture — COMPLETE
 - first-launch journey defined;
 - guided lesson journey defined;
 - stuck/help journey defined;
@@ -27,9 +26,10 @@ Exit requirements:
 - resume/recovery journey defined;
 - Gallery journey defined;
 - Parent Zone journeys defined;
-- screen inventory/navigation architecture finalized;
-- age-adaptive presentation policy finalized;
-- no critical dead-end flow remains unresolved.
+- canonical screen inventory/navigation architecture finalized;
+- age-adaptive presentation policy defined;
+- safe exit/back behavior defined;
+- no critical dead-end flow remains unresolved in the V1 information architecture.
 
 ### 0.4 Teaching & content system — IN PROGRESS
 Exit requirements:
@@ -82,7 +82,7 @@ Phase 1 may begin when all of the following are true:
 - [x] V1 Must / Should / Later scope documented.
 - [x] Explicit V1 non-goals documented.
 - [x] Core child and parent journeys documented.
-- [ ] Final screen/information architecture locked.
+- [x] Final screen/information architecture locked.
 - [x] Teaching modes and Help Ladder documented.
 - [ ] Lesson package/schema draft locked.
 - [ ] Initial curriculum/category/skill taxonomy locked.

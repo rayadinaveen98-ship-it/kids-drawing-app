@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 data class TeacherPlaybackSessionState(
     val sequenceId: String? = null,
+    val selectedPace: TeachingPace = TeachingPace.NORMAL,
     val frame: TeacherPlaybackFrame? = null,
 ) {
     val isLoaded: Boolean get() = frame != null
@@ -20,7 +21,9 @@ class TeacherPlaybackSession(
 ) {
     private var selectedPace: TeachingPace = initialPace
     private var engine: TeacherPlaybackEngine? = null
-    private val _state = MutableStateFlow(TeacherPlaybackSessionState())
+    private val _state = MutableStateFlow(
+        TeacherPlaybackSessionState(selectedPace = initialPace),
+    )
     val state: StateFlow<TeacherPlaybackSessionState> = _state.asStateFlow()
 
     fun load(sequence: TeacherStrokeSequence): TeacherPlaybackSessionState {
@@ -56,6 +59,7 @@ class TeacherPlaybackSession(
         if (frame != null) selectedPace = frame.pace
         val state = TeacherPlaybackSessionState(
             sequenceId = frame?.sequenceId,
+            selectedPace = selectedPace,
             frame = frame,
         )
         _state.value = state

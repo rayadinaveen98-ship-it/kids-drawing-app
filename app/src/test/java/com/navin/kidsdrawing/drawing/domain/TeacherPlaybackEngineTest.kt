@@ -74,6 +74,34 @@ class TeacherPlaybackEngineTest {
     }
 
     @Test
+    fun inactiveAndCancelledPlaybackExposeNoTeacherOverlay() {
+        val engine = TeacherPlaybackEngine(sequence())
+        assertEquals(TeacherPlaybackStatus.IDLE, engine.frame.status)
+        assertTrue(engine.frame.visibleStrokes.isEmpty())
+
+        engine.play()
+        assertTrue(engine.advanceBy(400L).visibleStrokes.isNotEmpty())
+        val cancelled = engine.cancel()
+
+        assertEquals(TeacherPlaybackStatus.CANCELLED, cancelled.status)
+        assertTrue(cancelled.visibleStrokes.isEmpty())
+    }
+
+    @Test
+    fun frameChunkingProducesSameCanonicalPosition() {
+        val singleAdvance = TeacherPlaybackEngine(sequence()).apply { play() }
+        val chunkedAdvance = TeacherPlaybackEngine(sequence()).apply { play() }
+
+        val single = singleAdvance.advanceBy(1_000L)
+        repeat(10) { chunkedAdvance.advanceBy(100L) }
+        val chunked = chunkedAdvance.frame
+
+        assertEquals(single.sourceTimeMillis, chunked.sourceTimeMillis, 0.0)
+        assertEquals(single.visibleStrokes, chunked.visibleStrokes)
+        assertEquals(single.progress, chunked.progress, 0.0001f)
+    }
+
+    @Test
     fun lifecycleEventsAreTypedAndOrdered() {
         val events = mutableListOf<TeacherPlaybackEvent>()
         val sequence = sequence()
@@ -93,16 +121,26 @@ class TeacherPlaybackEngineTest {
     }
 
     @Test
-    fun teacherSourceNeverEntersChildDocumentHistory() {
+    fun teacherPlaybackNeverMutatesChildDocumentHistory() {
         val sequence = sequence()
-        val childDocument = DrawingDocumentEngine.newDocument(
-            documentId = "child-doc",
-            nowEpochMillis = 1_000L,
+        val childEngine = DrawingDocumentEngine(
+            initialDocument = DrawingDocumentEngine.newDocument(
+                documentId = "child-doc",
+                nowEpochMillis = 1_000L,
+            ),
         )
+        val teacherEngine = TeacherPlaybackEngine(sequence)
 
-        assertTrue(childDocument.operations.isEmpty())
+        teacherEngine.play()
+        teacherEngine.advanceBy(sequence.sourceDurationMillis + 1L)
+        teacherEngine.replay()
+        teacherEngine.advanceBy(600L)
+        teacherEngine.pause()
+
+        assertTrue(childEngine.state.value.document.operations.isEmpty())
+        assertFalse(childEngine.state.value.canUndo)
+        assertFalse(childEngine.state.value.canRedo)
         assertTrue(sequence.strokes.all { it.stroke.authorRole == StrokeAuthorRole.TEACHER_GENERATED })
-        assertFalse(sequence.strokes.any { it.stroke.authorRole == StrokeAuthorRole.CHILD })
     }
 
     private fun sequence(): TeacherStrokeSequence = TeacherStrokeSequence(

@@ -12,25 +12,13 @@ An Android-first children's drawing and art-learning application. The product be
 
 **Draw together with a teacher who never runs out of patience.**
 
-## Primary product differentiators
-
-1. Live draw-along teaching rather than passive videos.
-2. Child-controlled teaching pace.
-3. Adaptive Help Ladder: Independent → Hint → Guide → Direction/Anchors → Trace → Assisted Success.
-4. Drawing seamlessly continues into coloring.
-5. Expressive companion participates throughout the lesson.
-6. Age-adaptive UI and curriculum.
-7. Serious Free Draw Studio that grows with the child.
-8. Story Drawing and creative-expression features later.
-9. Offline-first and privacy-conscious.
-
 ## Development philosophy
 
 Use a core-engine + vertical-slice approach:
 
 Specify → Build capability → Unit/performance test → Integrate into real child flow → Test → lock milestone → expand.
 
-Do not build all engines in isolation and do not build the polished full app first.
+Git is authoritative when chat and repository state disagree.
 
 ## Current Phase 0 state
 
@@ -40,71 +28,102 @@ Complete:
 - 0.3 UX architecture and screen inventory
 - 0.4 lesson/content architecture and starter curriculum
 - 0.5 Drawing/Lesson/Coloring core engine contracts and performance gates
+- 0.6 companion behavior/voice and selected visual system
 
-Next:
-- 0.6 companion behavior/voice contract and selected visual direction
-- 0.7 final Phase 0 safety/quality/release review + Phase 1 issue set
+Active:
+- 0.7 final safety/privacy/quality/release review + Phase 1 issue preparation
 
-The authoritative checklist is `docs/14_PHASE0_EXIT_GATE.md`.
+Authoritative checklist: `docs/14_PHASE0_EXIT_GATE.md`.
 
-## UX architecture locked
+## UX architecture
 
 - Child shell: Home / Learn / Create / Gallery.
 - Guided Drawing, Coloring and Free Draw use immersive creation workspaces with shell navigation hidden.
 - Parent Zone is a separate gated graph.
 - Safe Exit prevents system-back or close actions from silently destroying artwork.
 - Incomplete sessions surface as Continue Drawing rather than being forced on startup.
-- Canonical V1 screen IDs live in `docs/15_SCREEN_ARCHITECTURE.md`.
+- Canonical V1 screen IDs: `docs/15_SCREEN_ARCHITECTURE.md`.
 
-## Content architecture locked
+## Content architecture
 
-- Draft 2020-12 machine-readable schema: `schemas/lesson.schema.json`.
+- Schema: `schemas/lesson.schema.json`.
 - Validated reference lesson: `examples/cute-cat.lesson.json`.
-- Source/compiled package and authoring contract: `docs/16_LESSON_PACKAGE_AND_AUTHORING.md`.
+- Authoring/package contract: `docs/16_LESSON_PACKAGE_AND_AUTHORING.md`.
 - Taxonomy/curriculum: `docs/17_TAXONOMY_AND_STARTER_CURRICULUM.md`.
-- Four starter journeys: First Shapes to Pictures, Animal Artist, Space Artist, Character Creator.
 - Public target: 36 guided lessons; hard release floor 24 high-quality complete lessons.
-- Mass content production waits until a representative set proves the schema and engines.
+- Mass content production waits until representative lessons prove schema/engines.
 
-## Core engine contracts locked
+## Core engine contracts
 
-- Drawing Engine 0.1: `docs/07_DRAWING_ENGINE_SPEC.md`.
-- Drawing quality/performance gates: `docs/18_DRAWING_PERFORMANCE_GATES.md`.
-- Lesson Engine V1: `docs/08_LESSON_ENGINE_SPEC.md`.
-- Coloring Engine V1: `docs/19_COLORING_ENGINE_SPEC.md`.
+- Drawing Engine: `docs/07_DRAWING_ENGINE_SPEC.md`.
+- Performance gates: `docs/18_DRAWING_PERFORMANCE_GATES.md`.
+- Lesson Engine: `docs/08_LESSON_ENGINE_SPEC.md`.
+- Coloring Engine: `docs/19_COLORING_ENGINE_SPEC.md`.
 - Cross-engine ownership/handoffs: `docs/20_ENGINE_BOUNDARIES.md`.
-- Stable AndroidX Ink 1.0.0 is the low-level inking substrate behind our owned drawing-domain interfaces; see ADR-003 and ADR-007.
+- Stable AndroidX Ink 1.0.0 is the low-level inking substrate behind owned drawing-domain interfaces; see ADR-003 and ADR-007.
 
-Important engine rules:
+Critical engine rules:
 - UI does not own lesson/coloring sequencing or artwork history.
 - teacher/trace overlays never become child artwork.
-- drawing→coloring handoff occurs only after durable child-document state exists.
+- drawing→coloring handoff occurs only after durable document state exists.
 - coloring uses the same editable artwork document, not a flattened screenshot.
-- region fill is authored/deterministic rather than relying on fragile flood-fill over arbitrary anti-aliased line art.
 - failures in narration, companion, coloring metadata or preview generation must not destroy child artwork.
+
+## Companion / visual system
+
+- Companion contract: `docs/09_COMPANION_SPEC.md`.
+- Selected direction: **Premium Storybook Art Studio**.
+- Visual system: `docs/21_VISUAL_SYSTEM.md`.
+- Figma workspace: `Kids Drawing App — Phase 0.6 Visual System`, file key `2lGC11EPu2tjgrpYivJ8hf`.
+- Figma Starter MCP quota currently blocks further automated frame generation; this is not an engineering blocker.
+
+Companion principles:
+- quiet is valid;
+- no shame/pressure;
+- canvas always wins;
+- semantic product events drive reactions;
+- voice/animation never block core lesson state;
+- older children receive a more mature, lower-chatter presentation.
+
+## Safety/privacy/release baseline
+
+- Current review: `docs/22_SAFETY_PRIVACY_RELEASE_REVIEW.md`.
+- Parent Gate: `docs/23_PARENT_GATE_SPEC.md`.
+- Test strategy: `docs/11_TEST_STRATEGY.md`.
+- Release strategy: `docs/12_RELEASE_STRATEGY.md`.
+
+Current product defaults:
+- no ads;
+- no mandatory child account;
+- no behavioral analytics for Alpha;
+- no third-party crash SDK required for Phase 1;
+- local/private artwork by default;
+- no location, contacts, phone, camera, microphone, Bluetooth, broad storage or AD_ID permissions in V1 without new explicit review;
+- every third-party runtime SDK requires a child-directed/privacy/manifest review;
+- first Play-bound build targets at least API 36 under the current 2026 requirement, rechecked at release time.
 
 ## Immediate target after Phase 0
 
-`Art Lab 0.1`: an internal engineering screen proving low-latency drawing, structured stroke capture, save/load and deterministic multi-speed playback.
+`0.1.0-art-lab`: installable internal APK proving low-latency drawing, structured stroke capture, undo/redo, save/load and deterministic five-speed teacher playback.
 
 ## Never lose these constraints
 
-- Required software/service spend should remain ₹0 for the development path whenever a professional free option exists.
-- Core drawing/lesson use must not depend on internet access.
-- Do not introduce cloud AI into the critical path early.
-- No public child social features.
-- No behavioral ads.
-- Do not expose complex tools to younger children simply because the engine supports them.
-- Important decisions belong in Git, not only chat.
+- required software/service spend remains ₹0 on the critical development path where a professional free option exists;
+- core drawing/lesson use works offline;
+- no cloud AI dependency in the early critical path;
+- no public child social features;
+- no behavioral ads;
+- do not expose complex tools to younger children simply because the engine supports them;
+- important decisions belong in Git, not only chat.
 
 ## Resume protocol
 
-At the start of any new chat or development session, inspect in this order:
+At the start of any new chat or development session inspect:
 1. `PROJECT_STATUS.md`
 2. this file
 3. `docs/14_PHASE0_EXIT_GATE.md`
 4. `ROADMAP.md`
 5. open GitHub issues and recent commits
-6. the specification for the next active workstream
+6. the specification for the active workstream
 
 When chat memory and repository state disagree, Git is authoritative.

@@ -59,7 +59,7 @@ object InkStrokePayloadCodec {
             )
         }
         return DecodedPayload(
-            tool = batch.toolType.toPointerTool(),
+            tool = batch.getToolType().toPointerTool(),
             points = points,
         )
     }

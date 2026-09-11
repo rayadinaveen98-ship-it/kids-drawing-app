@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.ink.rendering)
     implementation(libs.ink.storage)
     implementation(libs.ink.strokes)
+    implementation(libs.input.motionprediction)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)

@@ -44,6 +44,9 @@ jobs:
           python -m json.tool schemas/lesson.schema.json > /dev/null
           python -m json.tool examples/cute-cat.lesson.json > /dev/null
 
+      - name: Verify Drawing Engine Ink boundary
+        run: bash scripts/verify-ink-boundary.sh
+
       - name: Unit tests, lint, and debug APK
         run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug
 

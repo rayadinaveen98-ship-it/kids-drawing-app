@@ -8,23 +8,27 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.navin.kidsdrawing.drawing.domain.DrawingSurfaceMetrics
+import com.navin.kidsdrawing.drawing.ui.DrawingSurface
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,6 +48,8 @@ private fun ArtLabTheme(content: @Composable () -> Unit) {
 
 @Composable
 private fun ArtLabLauncher() {
+    var metrics by remember { mutableStateOf(DrawingSurfaceMetrics()) }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Paper50,
@@ -51,48 +57,55 @@ private fun ArtLabLauncher() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 28.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+                .padding(horizontal = 24.dp, vertical = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Text(
                 text = "Kids Drawing · Art Lab",
                 color = Ink900,
-                fontSize = 30.sp,
+                fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "Internal engineering workspace for Drawing Engine 0.1. Production child UI starts after the core engine is proven.",
+                text = "P1.2 low-latency engine surface · finger/stylus test canvas",
                 color = Ink700,
-                fontSize = 17.sp,
-                lineHeight = 24.sp,
+                fontSize = 15.sp,
             )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                StatusChip("Phase 1")
-                StatusChip("0.1.0 target")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                StatusChip("Ink 1.0")
+                StatusChip("1000 × 1000 doc")
                 StatusChip("Offline")
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                MetricChip("strokes", metrics.committedStrokeCount.toString())
+                MetricChip("samples", metrics.lastSampleCount.toString())
+                MetricChip("pressure", metrics.lastPressure?.let { "%.2f".format(it) } ?: "—")
+                MetricChip(
+                    "handoff",
+                    metrics.lastCommitLatencyMillis?.let { "${it}ms" } ?: "—",
+                )
+            }
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .background(Color.White, RoundedCornerShape(24.dp)),
-                contentAlignment = Alignment.Center,
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Color.White),
             ) {
-                Text(
-                    text = "DrawingSurface lands in P1.2 · Issue #9",
-                    color = Ink700,
-                    fontSize = 16.sp,
+                DrawingSurface(
+                    modifier = Modifier.fillMaxSize(),
+                    onMetricsChanged = { metrics = it },
                 )
             }
 
             Text(
-                text = "Scaffold goal: clean build → CI → debug APK → engine implementation.",
+                text = "Draw repeatedly. Secondary pointers are ignored; stylus pressure is captured. Resize/rotation keeps committed geometry in logical document coordinates.",
                 color = Ink700,
-                fontSize = 14.sp,
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
             )
         }
     }
@@ -106,10 +119,26 @@ private fun StatusChip(text: String) {
     ) {
         Text(
             text = text,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
             color = Studio600,
             fontWeight = FontWeight.SemiBold,
-            fontSize = 13.sp,
+            fontSize = 12.sp,
+        )
+    }
+}
+
+@Composable
+private fun MetricChip(label: String, value: String) {
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = Color.White,
+    ) {
+        Text(
+            text = "$label: $value",
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+            color = Ink700,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
         )
     }
 }

@@ -23,20 +23,19 @@
 - Drawing followed by optional guided/self coloring.
 - Companion is a real state-driven teaching participant, not decorative mascot art.
 - Free Draw Studio is a first-class product area.
-- Structured lesson packages, not hard-coded lesson screens.
 - Child privacy and minimal-data architecture.
 - Professional development model: engine capability → independent tests → real vertical slice → lock → expand.
 - GitHub is the permanent source of truth and handoff mechanism.
 - PRD v0.2 locked with Must Have / Should Have / Later scope, explicit non-goals and acceptance criteria.
 - Public V1 content target: 30–40 guided lessons, with a hard release floor of 24 high-quality complete lessons.
 - Core child and parent journeys documented.
-- Phase 0 exit gate documented in `docs/14_PHASE0_EXIT_GATE.md`.
-- V1 information architecture locked in `docs/15_SCREEN_ARCHITECTURE.md`.
-- Stable child shell: Home / Learn / Create / Gallery.
-- Creation workspaces are immersive and hide shell navigation.
-- Parent Zone is a separate gated navigation graph.
-- Safe exit/back, resume/recovery, age-adaptive presentation and no-dead-end rules are defined.
-- Canonical V1 screen IDs established for implementation and UI testing.
+- V1 information architecture and stable screen IDs locked.
+- Machine-readable Draft 2020-12 lesson schema committed at `schemas/lesson.schema.json`.
+- `examples/cute-cat.lesson.json` validated successfully against the lesson schema before commit.
+- Source/compiled lesson package contract and ₹0 authoring workflow locked.
+- Category, skill, difficulty and age-band taxonomies locked.
+- Four starter Art Journeys defined: First Shapes to Pictures, Animal Artist, Space Artist, Character Creator.
+- Public target catalog mapped to 36 guided lessons with representative-content validation before mass production.
 
 ## Current Phase 0 position
 
@@ -44,25 +43,23 @@
 - 0.1 Repository & product foundation
 - 0.2 V1 product scope
 - 0.3 UX architecture and screen inventory
+- 0.4 Teaching/content schema and starter curriculum architecture
 
 ### Next
-- 0.4 Teaching/content schema and starter curriculum architecture
 - 0.5 Drawing/Lesson/Coloring engine contracts and measurable performance gates
 - 0.6 Companion contract and production-realistic visual direction
 - 0.7 Safety/quality/release review completion
 
 ## Immediate next work
 
-1. Define the machine-readable lesson package/schema.
-2. Lock category + skill taxonomy.
-3. Define the lesson-authoring workflow.
-4. Draft starter Art Journey curricula.
-5. Expand Drawing Engine 0.1 into an implementation-level contract, including document/history/replay models and performance gates.
-6. Define Lesson Engine state machine.
-7. Define Coloring Engine V1 contract.
-8. Finalize Companion V1 behavior/voice contract.
-9. Select the visual direction/design-system foundation.
-10. Complete Phase 0 review and prepare Phase 1 Art Lab issues.
+1. Expand Drawing Engine 0.1 into an implementation-level contract: document/stroke model, coordinate system, input pipeline, renderer, history, replay and persistence.
+2. Define measurable responsiveness/performance/reference-device gates.
+3. Define Lesson Engine state machine and engine-to-UI event contract.
+4. Define Coloring Engine V1 contract and region/fill behavior.
+5. Lock inter-engine boundaries so UI cannot own core engine behavior.
+6. Finalize Companion V1 behavior/voice contract.
+7. Select the visual direction/design-system foundation.
+8. Complete Phase 0 safety/quality/release review and prepare Phase 1 Art Lab issues.
 
 ## Current blockers
 

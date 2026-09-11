@@ -52,16 +52,30 @@ jobs:
       - name: Unit tests, lint, and debug APK
         run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug
 
-      - name: Verify Art Lab APK requests no Android permissions
+      - name: Verify Art Lab APK permission allowlist
         shell: bash
         run: |
+          set -euo pipefail
           APK="app/build/outputs/apk/debug/app-debug.apk"
+          PACKAGE="com.navin.kidsdrawing"
+          ALLOWED_PERMISSION="${PACKAGE}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+
           OUTPUT=$("$ANDROID_HOME/build-tools/36.0.0/aapt2" dump permissions "$APK")
           echo "$OUTPUT"
-          if echo "$OUTPUT" | grep -q "uses-permission"; then
-            echo "Unexpected Android permission detected in Art Lab APK."
-            exit 1
-          fi
+
+          mapfile -t REQUESTED_PERMISSIONS < <(
+            echo "$OUTPUT" |
+              sed -n "s/^uses-permission: name='\([^']*\)'.*/\1/p"
+          )
+
+          for permission in "${REQUESTED_PERMISSIONS[@]}"; do
+            if [[ "$permission" != "$ALLOWED_PERMISSION" ]]; then
+              echo "Unexpected Android permission detected in Art Lab APK: $permission"
+              exit 1
+            fi
+          done
+
+          echo "Permission allowlist passed. No network, location, microphone, storage, contacts, advertising ID, or other external Android permission is requested."
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4

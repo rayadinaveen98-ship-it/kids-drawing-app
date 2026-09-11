@@ -6,11 +6,13 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.weight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.lifecycleScope
@@ -150,12 +153,7 @@ private fun ArtLabLauncher(
                 fontSize = 15.sp,
             )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                StatusChip("Ink 1.0")
-                StatusChip("1000 × 1000 doc")
-                StatusChip("Offline")
-                StatusChip(persistenceStatus)
-            }
+            ResponsiveStatusSection(persistenceStatus)
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 MetricChip("surface", metrics.committedStrokeCount.toString())
@@ -171,75 +169,58 @@ private fun ArtLabLauncher(
                 MetricChip("redo", if (documentState.canRedo) "yes" else "no")
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(
-                    enabled = recoveryComplete && documentState.canUndo,
-                    onClick = {
-                        scope.launch {
-                            if (documentEngine.undo()) {
-                                val document = documentEngine.state.value.document
-                                surfaceController.reconcileDocument(document)
-                                queueAutosave(document)
-                                persistenceStatus = "Undo · autosave queued"
+            ResponsiveActionSection(
+                recoveryComplete = recoveryComplete,
+                canUndo = documentState.canUndo,
+                canRedo = documentState.canRedo,
+                onUndo = {
+                    scope.launch {
+                        if (documentEngine.undo()) {
+                            val document = documentEngine.state.value.document
+                            surfaceController.reconcileDocument(document)
+                            queueAutosave(document)
+                            persistenceStatus = "Undo · autosave queued"
+                        }
+                    }
+                },
+                onRedo = {
+                    scope.launch {
+                        if (documentEngine.redo()) {
+                            val document = documentEngine.state.value.document
+                            surfaceController.reconcileDocument(document)
+                            queueAutosave(document)
+                            persistenceStatus = "Redo · autosave queued"
+                        }
+                    }
+                },
+                onSave = {
+                    scope.launch {
+                        autosaveJob?.cancelAndJoin()
+                        val result = runCatching {
+                            documentStore.save(documentEngine.state.value.document)
+                        }
+                        persistenceStatus = if (result.isSuccess) "Saved now" else "Save failed"
+                    }
+                },
+                onReload = {
+                    scope.launch {
+                        autosaveJob?.cancelAndJoin()
+                        val restored = runCatching {
+                            documentStore.load(ART_LAB_DOCUMENT_ID)
+                        }.getOrNull()
+                        if (restored == null) {
+                            persistenceStatus = "No valid saved artwork found"
+                        } else {
+                            documentEngine.replaceDocument(restored.document)
+                            surfaceController.reconcileDocument(restored.document)
+                            persistenceStatus = when (restored.source) {
+                                AtomicDrawingDocumentStore.LoadSource.PRIMARY -> "Reloaded saved artwork"
+                                AtomicDrawingDocumentStore.LoadSource.BACKUP -> "Reloaded backup artwork"
                             }
                         }
-                    },
-                ) {
-                    Text("Undo")
-                }
-                OutlinedButton(
-                    enabled = recoveryComplete && documentState.canRedo,
-                    onClick = {
-                        scope.launch {
-                            if (documentEngine.redo()) {
-                                val document = documentEngine.state.value.document
-                                surfaceController.reconcileDocument(document)
-                                queueAutosave(document)
-                                persistenceStatus = "Redo · autosave queued"
-                            }
-                        }
-                    },
-                ) {
-                    Text("Redo")
-                }
-                Button(
-                    enabled = recoveryComplete,
-                    onClick = {
-                        scope.launch {
-                            autosaveJob?.cancelAndJoin()
-                            val result = runCatching {
-                                documentStore.save(documentEngine.state.value.document)
-                            }
-                            persistenceStatus = if (result.isSuccess) "Saved now" else "Save failed"
-                        }
-                    },
-                ) {
-                    Text("Save")
-                }
-                Button(
-                    enabled = recoveryComplete,
-                    onClick = {
-                        scope.launch {
-                            autosaveJob?.cancelAndJoin()
-                            val restored = runCatching {
-                                documentStore.load(ART_LAB_DOCUMENT_ID)
-                            }.getOrNull()
-                            if (restored == null) {
-                                persistenceStatus = "No valid saved artwork found"
-                            } else {
-                                documentEngine.replaceDocument(restored.document)
-                                surfaceController.reconcileDocument(restored.document)
-                                persistenceStatus = when (restored.source) {
-                                    AtomicDrawingDocumentStore.LoadSource.PRIMARY -> "Reloaded saved artwork"
-                                    AtomicDrawingDocumentStore.LoadSource.BACKUP -> "Reloaded backup artwork"
-                                }
-                            }
-                        }
-                    },
-                ) {
-                    Text("Reload")
-                }
-            }
+                    }
+                },
+            )
 
             Box(
                 modifier = Modifier
@@ -281,8 +262,109 @@ private fun ArtLabLauncher(
 }
 
 @Composable
-private fun StatusChip(text: String) {
+private fun ResponsiveStatusSection(persistenceStatus: String) {
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        if (maxWidth < 520.dp) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    StatusChip("Ink 1.0", Modifier.weight(1f))
+                    StatusChip("1000 × 1000 doc", Modifier.weight(1.5f))
+                    StatusChip("Offline", Modifier.weight(1f))
+                }
+                StatusChip(
+                    text = persistenceStatus,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                StatusChip("Ink 1.0")
+                StatusChip("1000 × 1000 doc")
+                StatusChip("Offline")
+                StatusChip(persistenceStatus)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ResponsiveActionSection(
+    recoveryComplete: Boolean,
+    canUndo: Boolean,
+    canRedo: Boolean,
+    onUndo: () -> Unit,
+    onRedo: () -> Unit,
+    onSave: () -> Unit,
+    onReload: () -> Unit,
+) {
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        if (maxWidth < 520.dp) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedButton(
+                        modifier = Modifier.weight(1f),
+                        enabled = recoveryComplete && canUndo,
+                        onClick = onUndo,
+                    ) { Text("Undo", maxLines = 1) }
+                    OutlinedButton(
+                        modifier = Modifier.weight(1f),
+                        enabled = recoveryComplete && canRedo,
+                        onClick = onRedo,
+                    ) { Text("Redo", maxLines = 1) }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        enabled = recoveryComplete,
+                        onClick = onSave,
+                    ) { Text("Save", maxLines = 1) }
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        enabled = recoveryComplete,
+                        onClick = onReload,
+                    ) { Text("Reload", maxLines = 1) }
+                }
+            }
+        } else {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(
+                    enabled = recoveryComplete && canUndo,
+                    onClick = onUndo,
+                ) { Text("Undo", maxLines = 1) }
+                OutlinedButton(
+                    enabled = recoveryComplete && canRedo,
+                    onClick = onRedo,
+                ) { Text("Redo", maxLines = 1) }
+                Button(enabled = recoveryComplete, onClick = onSave) {
+                    Text("Save", maxLines = 1)
+                }
+                Button(enabled = recoveryComplete, onClick = onReload) {
+                    Text("Reload", maxLines = 1)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatusChip(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
     Surface(
+        modifier = modifier,
         shape = RoundedCornerShape(16.dp),
         color = Studio100,
     ) {
@@ -292,6 +374,8 @@ private fun StatusChip(text: String) {
             color = Studio600,
             fontWeight = FontWeight.SemiBold,
             fontSize = 12.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

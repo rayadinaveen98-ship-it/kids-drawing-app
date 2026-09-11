@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Matrix
+import android.os.Build
 import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.View
@@ -39,7 +40,7 @@ class InkDrawingSurfaceView(
     private val coordinateMapper = DocumentViewportMapper(documentSize)
     private val committedInkView = CommittedInkView(context, documentSize)
     private val inProgressStrokesView = InProgressStrokesView(context)
-    private val motionPredictor = MotionEventPredictor.newInstance(this)
+    private var motionPredictor = MotionEventPredictor.newInstance(this)
     private val pendingStrokes = mutableMapOf<InProgressStrokeId, PendingStroke>()
 
     private var viewportTransform: DocumentViewportMapper.Transform? = null
@@ -85,6 +86,8 @@ class InkDrawingSurfaceView(
             pendingStrokes.clear()
             activeStrokeId = null
             activePointerId = null
+            // The old predictor saw an incomplete stream. Reset it before accepting a new gesture.
+            motionPredictor = MotionEventPredictor.newInstance(this)
         }
 
         viewportTransform = coordinateMapper.transformFor(w.toFloat(), h.toFloat())
@@ -102,9 +105,8 @@ class InkDrawingSurfaceView(
             MotionEvent.ACTION_MOVE -> updateStroke(event)
             MotionEvent.ACTION_UP -> finishStroke(event)
             MotionEvent.ACTION_CANCEL -> cancelStroke(event)
-            MotionEvent.ACTION_POINTER_DOWN,
-            MotionEvent.ACTION_POINTER_UP,
-            -> handleAdditionalPointer(event)
+            MotionEvent.ACTION_POINTER_DOWN -> handleAdditionalPointer(event)
+            MotionEvent.ACTION_POINTER_UP -> handlePointerUp(event)
             else -> activeStrokeId != null
         }
     }
@@ -117,8 +119,12 @@ class InkDrawingSurfaceView(
 
         val pointerIndex = event.actionIndex
         val pointerId = event.getPointerId(pointerIndex)
-        val tool = pointerTool(event.getToolType(pointerIndex))
-        if (!isDrawableTool(event.getToolType(pointerIndex))) return false
+        val toolType = event.getToolType(pointerIndex)
+        val tool = pointerTool(toolType)
+
+        // Inverted stylus is intentionally not treated as black ink. Eraser semantics belong to
+        // the owned erase-operation slice, not this low-level pen/finger authoring milestone.
+        if (!isDrawableTool(toolType)) return false
 
         val downPoint = coordinateMapper.viewportToDocumentOrNull(
             event.getX(pointerIndex),
@@ -141,7 +147,6 @@ class InkDrawingSurfaceView(
 
         val pending = PendingStroke(
             strokeId = UUID.randomUUID().toString(),
-            pointerId = pointerId,
             tool = tool,
             brushPresetId = brushSpec.presetId,
             colorArgb = DEFAULT_COLOR_ARGB,
@@ -224,6 +229,32 @@ class InkDrawingSurfaceView(
         runCatching { motionPredictor.record(event) }
         return true
     }
+
+    private fun handlePointerUp(event: MotionEvent): Boolean {
+        val currentStroke = activeStrokeId ?: return false
+        val activePointer = activePointerId ?: return false
+        val liftedPointer = event.getPointerId(event.actionIndex)
+
+        if (liftedPointer != activePointer) {
+            // A secondary pointer/palm left the screen. The primary drawing stroke remains valid.
+            runCatching { motionPredictor.record(event) }
+            return true
+        }
+
+        return if (isCanceledPointerUp(event)) {
+            // Android 13+ marks rejected palm/accidental pointer-up events with FLAG_CANCELED.
+            cancelStroke(event)
+        } else {
+            // Once multitouch has occurred, the primary drawing pointer can finish as POINTER_UP
+            // rather than ACTION_UP. Finish the Ink stroke against that exact pointer id.
+            check(pendingStrokes.containsKey(currentStroke))
+            finishStroke(event)
+        }
+    }
+
+    private fun isCanceledPointerUp(event: MotionEvent): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            (event.flags and MotionEvent.FLAG_CANCELED) != 0
 
     private fun handOffFinishedStrokes(strokes: Map<InProgressStrokeId, Stroke>) {
         if (strokes.isEmpty()) return
@@ -325,7 +356,7 @@ class InkDrawingSurfaceView(
     }
 
     private fun brushFor(tool: PointerTool): ResolvedBrush {
-        val isStylus = tool == PointerTool.STYLUS || tool == PointerTool.STYLUS_ERASER
+        val isStylus = tool == PointerTool.STYLUS
         val baseSize = if (isStylus) STYLUS_BASE_SIZE else FINGER_BASE_SIZE
         val family = if (isStylus) {
             StockBrushes.pressurePen(StockBrushes.PressurePenVersion.V1)
@@ -355,7 +386,6 @@ class InkDrawingSurfaceView(
     private fun isDrawableTool(toolType: Int): Boolean = when (toolType) {
         MotionEvent.TOOL_TYPE_FINGER,
         MotionEvent.TOOL_TYPE_STYLUS,
-        MotionEvent.TOOL_TYPE_ERASER,
         -> true
         else -> false
     }
@@ -373,7 +403,6 @@ class InkDrawingSurfaceView(
 
     private data class PendingStroke(
         val strokeId: String,
-        val pointerId: Int,
         val tool: PointerTool,
         val brushPresetId: String,
         val colorArgb: Int,

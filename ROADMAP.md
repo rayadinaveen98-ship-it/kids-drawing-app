@@ -2,7 +2,7 @@
 
 ## Phase 0 — Product Foundation
 
-**Current state:** 0.1 through 0.4 complete; core engine contracts are next.
+**Current state:** 0.1 through 0.5 complete; companion/visual system is next.
 
 ### 0.1 Repository & Product Foundation — COMPLETE
 - GitHub source of truth
@@ -41,15 +41,18 @@
 - four starter Art Journeys
 - public V1 catalog allocation and representative-content gate
 
-### 0.5 Core Engine Contracts — NEXT
+### 0.5 Core Engine Contracts — COMPLETE
 - Drawing Engine 0.1 implementation contract
+- stable AndroidX Ink 1.0.0 substrate behind owned engine interfaces
 - performance/reference-device gates
 - Lesson Engine state machine
 - Coloring Engine V1 contract
-- explicit inter-engine and UI boundaries
+- explicit inter-engine/UI ownership and atomic handoff rules
 
-### 0.6 Companion & Visual System
-- companion V1 state/voice contract
+### 0.6 Companion & Visual System — NEXT
+- companion V1 semantic state/priority contract
+- companion placement/obstruction rules
+- voice/narration behavior and offline fallback
 - design-system foundations
 - production-realistic visual direction for onboarding, Home and lesson workspace
 
@@ -93,7 +96,7 @@ Onboarding → recommendation → companion intro → guided drawing → assista
 
 ## Phase 4 — Coloring Engine
 
-Guided/self coloring, fills, brushes, palette logic and age-appropriate teaching.
+Implement and validate the already-defined V1 guided/self coloring contract: authored fills, freehand color, palette logic, persistence and age-appropriate teaching.
 
 ## Phase 5 — Companion Engine
 

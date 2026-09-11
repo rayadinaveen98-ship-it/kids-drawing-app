@@ -11,6 +11,7 @@ import kotlinx.coroutines.withContext
 
 class AtomicDrawingDocumentStore(
     private val rootDirectory: File,
+    private val documentCodec: DrawingDocumentBinaryCodec = DrawingDocumentBinaryCodec(),
     private val faultInjector: (SaveStage) -> Unit = {},
 ) {
     enum class SaveStage {
@@ -38,7 +39,7 @@ class AtomicDrawingDocumentStore(
 
         try {
             FileOutputStream(files.temp).use { output ->
-                DrawingDocumentBinaryCodec.encode(document, output)
+                documentCodec.encode(document, output)
                 output.flush()
                 output.fd.sync()
             }
@@ -82,7 +83,7 @@ class AtomicDrawingDocumentStore(
     private fun decodeOrNull(file: File): DrawingDocument? {
         if (!file.isFile) return null
         return runCatching {
-            FileInputStream(file).use(DrawingDocumentBinaryCodec::decode)
+            FileInputStream(file).use(documentCodec::decode)
         }.getOrNull()
     }
 

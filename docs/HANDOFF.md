@@ -39,11 +39,11 @@ Complete:
 - 0.2 V1 product scope contract
 - 0.3 UX architecture and screen inventory
 - 0.4 lesson/content architecture and starter curriculum
+- 0.5 Drawing/Lesson/Coloring core engine contracts and performance gates
 
 Next:
-- 0.5 Drawing/Lesson/Coloring engine contracts and performance gates
-- 0.6 companion contract and selected visual direction
-- 0.7 final Phase 0 safety/quality/release review
+- 0.6 companion behavior/voice contract and selected visual direction
+- 0.7 final Phase 0 safety/quality/release review + Phase 1 issue set
 
 The authoritative checklist is `docs/14_PHASE0_EXIT_GATE.md`.
 
@@ -65,6 +65,23 @@ The authoritative checklist is `docs/14_PHASE0_EXIT_GATE.md`.
 - Four starter journeys: First Shapes to Pictures, Animal Artist, Space Artist, Character Creator.
 - Public target: 36 guided lessons; hard release floor 24 high-quality complete lessons.
 - Mass content production waits until a representative set proves the schema and engines.
+
+## Core engine contracts locked
+
+- Drawing Engine 0.1: `docs/07_DRAWING_ENGINE_SPEC.md`.
+- Drawing quality/performance gates: `docs/18_DRAWING_PERFORMANCE_GATES.md`.
+- Lesson Engine V1: `docs/08_LESSON_ENGINE_SPEC.md`.
+- Coloring Engine V1: `docs/19_COLORING_ENGINE_SPEC.md`.
+- Cross-engine ownership/handoffs: `docs/20_ENGINE_BOUNDARIES.md`.
+- Stable AndroidX Ink 1.0.0 is the low-level inking substrate behind our owned drawing-domain interfaces; see ADR-003 and ADR-007.
+
+Important engine rules:
+- UI does not own lesson/coloring sequencing or artwork history.
+- teacher/trace overlays never become child artwork.
+- drawing→coloring handoff occurs only after durable child-document state exists.
+- coloring uses the same editable artwork document, not a flattened screenshot.
+- region fill is authored/deterministic rather than relying on fragile flood-fill over arbitrary anti-aliased line art.
+- failures in narration, companion, coloring metadata or preview generation must not destroy child artwork.
 
 ## Immediate target after Phase 0
 

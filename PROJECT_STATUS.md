@@ -5,7 +5,7 @@
 **Phase:** Phase 1 — Art Lab / Drawing Engine 0.1  
 **Foundation version:** 0.0.1  
 **Target milestone:** `0.1.0-art-lab`  
-**Status:** Phase 0 complete; Phase 1 ready to implement  
+**Status:** Phase 0 complete; P1.1 Android scaffold implemented and under final CI verification  
 **Last updated:** 2026-09-11
 
 ## Phase 0 — COMPLETE
@@ -39,6 +39,41 @@ Authoritative Phase 0 completion evidence: `docs/14_PHASE0_EXIT_GATE.md`.
 - public V1 content target 30–40 lessons; hard quality floor 24.
 - visual direction: **Premium Storybook Art Studio**.
 
+## Phase 1 Android scaffold baseline
+
+P1.1 issue: **#8 — Scaffold Android project, modules and CI baseline**.
+
+Selected reproducible baseline:
+- namespace/application ID: `com.navin.kidsdrawing`;
+- AGP: `9.4.0`;
+- Gradle: `9.6.1`;
+- JDK: `17`;
+- compileSdk: `36`;
+- targetSdk: `36`;
+- minSdk: `23`;
+- versionCode: `2`;
+- versionName: `0.0.2-dev`;
+- Compose BOM: `2026.06.00`;
+- AndroidX Ink: `1.0.0` stable.
+
+### minSdk rationale
+
+`minSdk 23` is the initial Art Lab device-support assumption. It keeps Phase 1 aligned with the current AndroidX baseline while preserving broad Android device coverage for an India-first kids product. This remains an assumption to validate against real target-device distribution and physical-device performance before public V1; it is not a permanent product-policy promise.
+
+### CI baseline
+
+GitHub Actions currently performs:
+- clean Android SDK/JDK/Gradle provisioning without repository secrets;
+- lesson schema/sample JSON parsing;
+- official Gradle wrapper generation;
+- debug unit tests;
+- Android lint;
+- debug APK assembly;
+- merged APK permission inspection with an explicit allowlist;
+- APK and generated wrapper artifact upload after all gates pass.
+
+The only permitted merged-manifest permission in the Phase 1 scaffold is the AndroidX-generated app-internal `com.navin.kidsdrawing.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`. Any additional Android permission fails CI.
+
 ## Phase 1 backlog
 
 Epic: **#7 — Phase 1 Art Lab / Drawing Engine 0.1**
@@ -57,7 +92,7 @@ Some implementation tasks may overlap after their prerequisites are stable, but 
 
 ## Immediate next action
 
-Start **#8 P1.1**. Establish the first real Android source tree/toolchain/CI, pick and document minSdk/versionCode, use target/compile SDK compatible with the current API 36+ Play baseline, add stable AndroidX Ink 1.0.0, and produce the first buildable debug APK baseline.
+Finish the final P1.1 CI gate for **#8**. Once the workflow is fully green and the debug APK/wrapper artifacts are confirmed, close #8 and begin **#9 P1.2 — Low-latency DrawingSurface with AndroidX Ink adapter**.
 
 ## Figma note
 
@@ -67,7 +102,9 @@ The Starter-plan MCP quota currently prevents additional automated frame generat
 
 ## Current blockers
 
-No engineering blocker to starting #8.
+No product or architecture blocker.
+
+P1.1 is waiting only on the final CI permission-allowlist verification and artifact confirmation.
 
 Physical-device performance gates may later be marked `PENDING-HARDWARE` where a required device class is not available, but they cannot be silently assumed passed.
 

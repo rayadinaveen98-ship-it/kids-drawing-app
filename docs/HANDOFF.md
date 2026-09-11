@@ -8,11 +8,15 @@ This file exists so a new conversation, developer, or agent can resume without r
 
 An Android-first children's drawing and art-learning application. The product behaves like an exceptionally patient personal art teacher. Content, UI complexity, guidance, and tools adapt to age and demonstrated ability.
 
+## Product promise
+
+**Draw together with a teacher who never runs out of patience.**
+
 ## Primary product differentiators
 
 1. Live draw-along teaching rather than passive videos.
 2. Child-controlled teaching pace.
-3. Adaptive Help Ladder: Independent → Hint → Guide → Trace → Assisted Success.
+3. Adaptive Help Ladder: Independent → Hint → Guide → Direction/Anchors → Trace → Assisted Success.
 4. Drawing seamlessly continues into coloring.
 5. Expressive companion participates throughout the lesson.
 6. Age-adaptive UI and curriculum.
@@ -26,9 +30,32 @@ Do not build all engines in isolation and do not build the complete polished app
 
 Specify → Build capability → Unit/performance test → Integrate into real child flow → Test → lock milestone → expand.
 
+## Current Phase 0 state
+
+Complete:
+- 0.1 Repository & product foundation
+- 0.2 V1 product scope contract
+
+Next:
+- 0.3 final UX information architecture and screen inventory
+- 0.4 machine-readable lesson/content architecture
+- 0.5 Drawing/Lesson/Coloring engine contracts
+- 0.6 companion contract and selected visual direction
+- 0.7 final Phase 0 safety/quality/release review
+
+The authoritative checklist is `docs/14_PHASE0_EXIT_GATE.md`.
+
+## V1 scope highlights
+
+- Primary ages: approximately 4–12 in four adaptive experience bands.
+- Public V1 content target: 30–40 guided lessons; hard release floor 24 high-quality complete lessons.
+- Must Have: onboarding/local profile, personalized Home, structured guided drawing, five paces, Help Ladder, coloring, Free Draw, companion, Gallery, Parent Zone, offline persistence.
+- Should Have: Match My Speed, Draw From Memory, gentle achievements, downloadable packs, basic parent insights and optional supportive stroke similarity.
+- Explicitly not early V1: ads, public social systems, mandatory account, strict drawing scores, unrestricted AI chat, advanced pro editing workflows.
+
 ## Immediate target after Phase 0
 
-`Art Lab 0.1`: an internal engineering screen proving low-latency drawing, stroke recording and deterministic multi-speed stroke playback.
+`Art Lab 0.1`: an internal engineering screen proving low-latency drawing, structured stroke capture, save/load and deterministic multi-speed playback.
 
 ## Never lose these constraints
 
@@ -38,7 +65,16 @@ Specify → Build capability → Unit/performance test → Integrate into real c
 - No public child social features.
 - No behavioral ads.
 - Do not expose complex tools to younger children simply because the engine supports them.
+- Important decisions belong in Git, not only chat.
 
 ## Resume protocol
 
-At the start of any new chat or development session, inspect `PROJECT_STATUS.md`, this handoff, `ROADMAP.md`, recent commits, and open issues before making product or engineering changes. Git is authoritative when chat memory and repository state disagree.
+At the start of any new chat or development session, inspect in this order:
+1. `PROJECT_STATUS.md`
+2. this file
+3. `docs/14_PHASE0_EXIT_GATE.md`
+4. `ROADMAP.md`
+5. open GitHub issues and recent commits
+6. the specification for the next active workstream
+
+When chat memory and repository state disagree, Git is authoritative.

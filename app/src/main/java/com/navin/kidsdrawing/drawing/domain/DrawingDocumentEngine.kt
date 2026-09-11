@@ -70,6 +70,18 @@ class DrawingDocumentEngine(
         operation
     }
 
+    /**
+     * Replaces the current editable document with a decoded/recovered document.
+     *
+     * This is intentionally an engine mutation rather than a StateFlow assignment so a reload
+     * cannot race with a live edit. A persisted document is authoritative on restore; any redo
+     * branch belonging to the previous in-memory timeline must be discarded.
+     */
+    suspend fun replaceDocument(document: DrawingDocument) = mutationMutex.withLock {
+        redoStack.clear()
+        publishDocument(document)
+    }
+
     suspend fun undo(): Boolean = mutationMutex.withLock {
         val current = _state.value.document
         val last = current.operations.lastOrNull() ?: return@withLock false

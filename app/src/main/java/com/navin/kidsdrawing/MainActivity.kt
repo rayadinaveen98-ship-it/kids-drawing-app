@@ -481,7 +481,11 @@ private fun TeacherControlPanel(
                     onClick = onPlayPause,
                 ) {
                     Text(
-                        text = if (status == TeacherPlaybackStatus.PLAYING) "Pause" else "Play",
+                        text = when (status) {
+                            TeacherPlaybackStatus.PLAYING -> "Pause"
+                            TeacherPlaybackStatus.PAUSED -> "Resume"
+                            else -> "Play"
+                        },
                         maxLines = 1,
                     )
                 }

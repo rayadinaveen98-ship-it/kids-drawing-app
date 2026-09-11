@@ -4,6 +4,10 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Matrix
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 import android.os.Build
 import android.os.SystemClock
 import android.view.MotionEvent
@@ -18,11 +22,15 @@ import androidx.ink.rendering.android.canvas.CanvasStrokeRenderer
 import androidx.ink.rendering.android.view.ViewStrokeRenderer
 import androidx.ink.strokes.Stroke
 import androidx.input.motionprediction.MotionEventPredictor
+import com.navin.kidsdrawing.drawing.domain.DocumentOperation
 import com.navin.kidsdrawing.drawing.domain.DocumentPoint
 import com.navin.kidsdrawing.drawing.domain.DocumentSize
 import com.navin.kidsdrawing.drawing.domain.DocumentViewportMapper
 import com.navin.kidsdrawing.drawing.domain.DrawingDocument
 import com.navin.kidsdrawing.drawing.domain.DrawingSurfaceMetrics
+import com.navin.kidsdrawing.drawing.domain.DrawingTool
+import com.navin.kidsdrawing.drawing.domain.DrawingToolSettings
+import com.navin.kidsdrawing.drawing.domain.EraseMaskRecord
 import com.navin.kidsdrawing.drawing.domain.InkStrokeRecord
 import com.navin.kidsdrawing.drawing.domain.PointerTool
 import com.navin.kidsdrawing.drawing.domain.StrokePoint
@@ -31,7 +39,7 @@ import java.util.UUID
 /**
  * AndroidX Ink is intentionally contained in this infrastructure adapter.
  *
- * The rest of the app receives product-owned [InkStrokeRecord] values in stable logical document
+ * The rest of the app receives product-owned stroke/mask records in stable logical document
  * coordinates. No persistence or database work occurs on this input/rendering hot path.
  */
 class InkDrawingSurfaceView(
@@ -49,7 +57,23 @@ class InkDrawingSurfaceView(
     private var activePointerId: Int? = null
     private var metrics = DrawingSurfaceMetrics()
 
+    var drawingToolSettings: DrawingToolSettings = DrawingToolSettings()
+        set(value) {
+            if (field == value) return
+            if (activeStrokeId != null) cancelTransientInput()
+            field = value
+            publishMetrics(
+                metrics.copy(
+                    selectedDrawingTool = value.tool,
+                    selectedColorArgb = value.colorArgb,
+                    selectedWidth = value.width,
+                    activeTool = null,
+                ),
+            )
+        }
+
     var onStrokeCommitted: (InkStrokeRecord) -> Unit = {}
+    var onEraseMaskCommitted: (EraseMaskRecord) -> Unit = {}
     var onMetricsChanged: (DrawingSurfaceMetrics) -> Unit = {}
 
     init {
@@ -95,14 +119,27 @@ class InkDrawingSurfaceView(
         viewportTransform = coordinateMapper.transformFor(w.toFloat(), h.toFloat())
         committedInkView.viewportTransform = viewportTransform
         committedInkView.invalidate()
-        publishMetrics(metrics.copy(activeTool = null))
+        val transform = viewportTransform
+        publishMetrics(
+            metrics.copy(
+                activeTool = null,
+                viewportWidthPx = w,
+                viewportHeightPx = h,
+                documentToViewportScale = transform?.scale,
+                documentOffsetXPx = transform?.offsetX,
+                documentOffsetYPx = transform?.offsetY,
+                selectedDrawingTool = drawingToolSettings.tool,
+                selectedColorArgb = drawingToolSettings.colorArgb,
+                selectedWidth = drawingToolSettings.width,
+            ),
+        )
     }
 
     /**
-     * Reprojects the authoritative editable document into the dry-stroke renderer.
+     * Reprojects the authoritative editable document into the committed renderer.
      *
-     * This is used only at stable editing boundaries such as Reload/Undo/Redo/process restore.
-     * Live stroke handoff remains incremental and does not rebuild prior geometry.
+     * This is used at stable editing boundaries such as Reload/Undo/Redo/Clear/erase/process
+     * restore. Live pencil handoff remains incremental and does not rebuild prior geometry.
      */
     fun reconcileDocument(document: DrawingDocument) {
         require(document.logicalSize == documentSize) {
@@ -110,18 +147,24 @@ class InkDrawingSurfaceView(
         }
         cancelTransientInput()
 
-        val records = document.activeInkStrokes()
-        val rebuilt = records.map { record ->
-            record.strokeId to InkStrokeRehydrator.rehydrate(record)
-        }
-        committedInkView.replaceStrokes(rebuilt)
+        val activeOperations = document.activeOperations()
+        committedInkView.replaceDocumentOperations(activeOperations)
         committedInkView.invalidate()
+
+        val inkCount = activeOperations.count { it is DocumentOperation.AddInkStroke }
+        val eraseCount = activeOperations.count { it is DocumentOperation.AddEraseMask }
+        val lastPoints = when (val last = activeOperations.lastOrNull()) {
+            is DocumentOperation.AddInkStroke -> last.stroke.points
+            is DocumentOperation.AddEraseMask -> last.mask.points
+            else -> emptyList()
+        }
         publishMetrics(
             metrics.copy(
-                committedStrokeCount = records.size,
-                lastSampleCount = records.lastOrNull()?.points?.size ?: 0,
+                committedStrokeCount = inkCount,
+                committedEraseMaskCount = eraseCount,
+                lastSampleCount = lastPoints.size,
                 lastCommitLatencyMillis = null,
-                lastPressure = records.lastOrNull()?.points?.lastOrNull()?.pressure,
+                lastPressure = lastPoints.lastOrNull()?.pressure,
                 activeTool = null,
             ),
         )
@@ -151,10 +194,8 @@ class InkDrawingSurfaceView(
         val pointerIndex = event.actionIndex
         val pointerId = event.getPointerId(pointerIndex)
         val toolType = event.getToolType(pointerIndex)
-        val tool = pointerTool(toolType)
+        val pointerTool = pointerTool(toolType)
 
-        // Inverted stylus is intentionally not treated as black ink. Eraser semantics belong to
-        // the owned erase-operation slice, not this low-level pen/finger authoring milestone.
         if (!isDrawableTool(toolType)) return false
 
         val downPoint = coordinateMapper.viewportToDocumentOrNull(
@@ -166,7 +207,8 @@ class InkDrawingSurfaceView(
         motionPredictor.record(event)
         requestUnbufferedDispatch(event)
 
-        val brushSpec = brushFor(tool)
+        val toolSettings = effectiveToolSettings(pointerTool)
+        val brushSpec = brushFor(pointerTool, toolSettings)
         val motionEventToDocument = motionEventToDocumentMatrix(transform)
         val inkStrokeId = inProgressStrokesView.startStroke(
             event = event,
@@ -177,17 +219,26 @@ class InkDrawingSurfaceView(
         )
 
         val pending = PendingStroke(
-            strokeId = UUID.randomUUID().toString(),
-            tool = tool,
+            recordId = UUID.randomUUID().toString(),
+            pointerTool = pointerTool,
+            drawingTool = toolSettings.tool,
             brushPresetId = brushSpec.presetId,
-            colorArgb = DEFAULT_COLOR_ARGB,
+            colorArgb = toolSettings.colorArgb,
             baseSize = brushSpec.baseSize,
         )
-        pending.points += pointFromCurrentEvent(event, pointerIndex, downPoint, tool)
+        pending.points += pointFromCurrentEvent(event, pointerIndex, downPoint, pointerTool)
         pendingStrokes[inkStrokeId] = pending
         activeStrokeId = inkStrokeId
         activePointerId = pointerId
-        publishMetrics(metrics.copy(activeTool = tool, lastPressure = event.getPressure(pointerIndex)))
+        publishMetrics(
+            metrics.copy(
+                activeTool = pointerTool,
+                lastPressure = event.getPressure(pointerIndex),
+                selectedDrawingTool = toolSettings.tool,
+                selectedColorArgb = toolSettings.colorArgb,
+                selectedWidth = toolSettings.width,
+            ),
+        )
         return true
     }
 
@@ -278,17 +329,13 @@ class InkDrawingSurfaceView(
         val liftedPointer = event.getPointerId(event.actionIndex)
 
         if (liftedPointer != activePointer) {
-            // A secondary pointer/palm left the screen. The primary drawing stroke remains valid.
             runCatching { motionPredictor.record(event) }
             return true
         }
 
         return if (isCanceledPointerUp(event)) {
-            // Android 13+ marks rejected palm/accidental pointer-up events with FLAG_CANCELED.
             cancelStroke(event)
         } else {
-            // Once multitouch has occurred, the primary drawing pointer can finish as POINTER_UP
-            // rather than ACTION_UP. Finish the Ink stroke against that exact pointer id.
             check(pendingStrokes.containsKey(currentStroke))
             finishStroke(event)
         }
@@ -303,23 +350,38 @@ class InkDrawingSurfaceView(
 
         for ((inkId, stroke) in strokes) {
             val pending = pendingStrokes.remove(inkId) ?: continue
-            val record = pending.toRecord()
-            committedInkView.addStroke(record.strokeId, stroke)
             val latency = pending.finishRequestedAtUptimeMillis?.let {
                 (SystemClock.uptimeMillis() - it).coerceAtLeast(0L)
             }
 
-            metrics = metrics.copy(
-                committedStrokeCount = metrics.committedStrokeCount + 1,
-                lastSampleCount = record.points.size,
-                lastCommitLatencyMillis = latency,
-                lastPressure = record.points.lastOrNull()?.pressure,
-            )
-            onStrokeCommitted(record)
+            when (pending.drawingTool) {
+                DrawingTool.PENCIL -> {
+                    val record = pending.toInkRecord()
+                    committedInkView.addInkStroke(record.strokeId, stroke)
+                    metrics = metrics.copy(
+                        committedStrokeCount = metrics.committedStrokeCount + 1,
+                        lastSampleCount = record.points.size,
+                        lastCommitLatencyMillis = latency,
+                        lastPressure = record.points.lastOrNull()?.pressure,
+                    )
+                    onStrokeCommitted(record)
+                }
+
+                DrawingTool.ERASER -> {
+                    val mask = pending.toEraseMask()
+                    committedInkView.addEraseMask(mask)
+                    metrics = metrics.copy(
+                        committedEraseMaskCount = metrics.committedEraseMaskCount + 1,
+                        lastSampleCount = mask.points.size,
+                        lastCommitLatencyMillis = latency,
+                        lastPressure = mask.points.lastOrNull()?.pressure,
+                    )
+                    onEraseMaskCommitted(mask)
+                }
+            }
         }
 
-        // AndroidX Ink requires committed rendering + invalidation and wet-stroke removal in the
-        // same UI run loop to prevent a gap/double-draw flicker during handoff.
+        // Committed projection + wet-stroke removal occur in the same UI loop to avoid a gap.
         committedInkView.invalidate()
         inProgressStrokesView.removeFinishedStrokes(strokes.keys)
         publishMetrics(metrics.copy(activeTool = null))
@@ -347,14 +409,14 @@ class InkDrawingSurfaceView(
                     axis = MotionEvent.AXIS_TILT,
                     pointerIndex = pointerIndex,
                     historyIndex = historyIndex,
-                    tool = pending.tool,
+                    tool = pending.pointerTool,
                 ),
                 orientationRadians = historicalStylusAxisOrNull(
                     event = event,
                     axis = MotionEvent.AXIS_ORIENTATION,
                     pointerIndex = pointerIndex,
                     historyIndex = historyIndex,
-                    tool = pending.tool,
+                    tool = pending.pointerTool,
                 ),
             )
         }
@@ -364,7 +426,7 @@ class InkDrawingSurfaceView(
             event.getY(pointerIndex),
             transform,
         )
-        pending.points += pointFromCurrentEvent(event, pointerIndex, current, pending.tool)
+        pending.points += pointFromCurrentEvent(event, pointerIndex, current, pending.pointerTool)
     }
 
     private fun pointFromCurrentEvent(
@@ -392,7 +454,7 @@ class InkDrawingSurfaceView(
         pointerIndex: Int,
         tool: PointerTool,
     ): Float? {
-        if (tool != PointerTool.STYLUS) return null
+        if (tool != PointerTool.STYLUS && tool != PointerTool.STYLUS_ERASER) return null
         val range = event.device?.getMotionRange(axis, event.source) ?: return null
         if (range.range <= 0f) return null
         return event.getAxisValue(axis, pointerIndex)
@@ -405,7 +467,7 @@ class InkDrawingSurfaceView(
         historyIndex: Int,
         tool: PointerTool,
     ): Float? {
-        if (tool != PointerTool.STYLUS) return null
+        if (tool != PointerTool.STYLUS && tool != PointerTool.STYLUS_ERASER) return null
         val range = event.device?.getMotionRange(axis, event.source) ?: return null
         if (range.range <= 0f) return null
         return event.getHistoricalAxisValue(axis, pointerIndex, historyIndex)
@@ -432,22 +494,44 @@ class InkDrawingSurfaceView(
         }
     }
 
-    private fun brushFor(tool: PointerTool): ResolvedBrush {
-        val isStylus = tool == PointerTool.STYLUS
-        val baseSize = if (isStylus) STYLUS_BASE_SIZE else FINGER_BASE_SIZE
-        val family = if (isStylus) {
+    private fun effectiveToolSettings(pointerTool: PointerTool): DrawingToolSettings {
+        val selected = drawingToolSettings
+        if (pointerTool != PointerTool.STYLUS_ERASER) return selected
+        return selected.copy(
+            tool = DrawingTool.ERASER,
+            width = maxOf(selected.width, DrawingToolSettings.DEFAULT_ERASER_WIDTH),
+        )
+    }
+
+    private fun brushFor(
+        pointerTool: PointerTool,
+        settings: DrawingToolSettings,
+    ): ResolvedBrush {
+        if (settings.tool == DrawingTool.ERASER) {
+            return ResolvedBrush(
+                presetId = "eraser.standard",
+                baseSize = settings.width,
+                brush = Brush.createWithColorIntArgb(
+                    family = StockBrushes.marker(StockBrushes.MarkerVersion.V1),
+                    colorIntArgb = ERASER_PREVIEW_COLOR_ARGB,
+                    size = settings.width,
+                    epsilon = BRUSH_EPSILON,
+                ),
+            )
+        }
+
+        val family = if (pointerTool == PointerTool.STYLUS) {
             StockBrushes.pressurePen(StockBrushes.PressurePenVersion.V1)
         } else {
             StockBrushes.marker(StockBrushes.MarkerVersion.V1)
         }
-        val presetId = if (isStylus) "pencil.standard" else "marker.standard"
         return ResolvedBrush(
-            presetId = presetId,
-            baseSize = baseSize,
+            presetId = "pencil.standard",
+            baseSize = settings.width,
             brush = Brush.createWithColorIntArgb(
                 family = family,
-                colorIntArgb = DEFAULT_COLOR_ARGB,
-                size = baseSize,
+                colorIntArgb = settings.colorArgb,
+                size = settings.width,
                 epsilon = BRUSH_EPSILON,
             ),
         )
@@ -463,6 +547,7 @@ class InkDrawingSurfaceView(
     private fun isDrawableTool(toolType: Int): Boolean = when (toolType) {
         MotionEvent.TOOL_TYPE_FINGER,
         MotionEvent.TOOL_TYPE_STYLUS,
+        MotionEvent.TOOL_TYPE_ERASER,
         -> true
         else -> false
     }
@@ -479,21 +564,28 @@ class InkDrawingSurfaceView(
     )
 
     private data class PendingStroke(
-        val strokeId: String,
-        val tool: PointerTool,
+        val recordId: String,
+        val pointerTool: PointerTool,
+        val drawingTool: DrawingTool,
         val brushPresetId: String,
         val colorArgb: Int,
         val baseSize: Float,
         val points: MutableList<StrokePoint> = mutableListOf(),
         var finishRequestedAtUptimeMillis: Long? = null,
     ) {
-        fun toRecord(): InkStrokeRecord = InkStrokeRecord(
-            strokeId = strokeId,
+        fun toInkRecord(): InkStrokeRecord = InkStrokeRecord(
+            strokeId = recordId,
             brushPresetId = brushPresetId,
             colorArgb = colorArgb,
             opacity = 1f,
             baseSize = baseSize,
-            tool = tool,
+            tool = pointerTool,
+            points = points.toList(),
+        )
+
+        fun toEraseMask(): EraseMaskRecord = EraseMaskRecord(
+            maskId = recordId,
+            baseSize = baseSize,
             points = points.toList(),
         )
     }
@@ -502,43 +594,81 @@ class InkDrawingSurfaceView(
         context: Context,
         private val documentSize: DocumentSize,
     ) : View(context) {
-        private val strokes = mutableListOf<RenderedStroke>()
+        private val operations = mutableListOf<RenderedOperation>()
         private val renderer = ViewStrokeRenderer(CanvasStrokeRenderer.create(), this)
+        private val erasePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeCap = Paint.Cap.ROUND
+            strokeJoin = Paint.Join.ROUND
+            xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+        }
 
         var viewportTransform: DocumentViewportMapper.Transform? = null
 
-        fun addStroke(strokeId: String, stroke: Stroke) {
-            strokes += RenderedStroke(strokeId, stroke)
+        fun addInkStroke(strokeId: String, stroke: Stroke) {
+            operations += RenderedOperation.Ink(strokeId, stroke)
         }
 
-        fun replaceStrokes(rebuilt: List<Pair<String, Stroke>>) {
-            strokes.clear()
-            strokes += rebuilt.map { (strokeId, stroke) -> RenderedStroke(strokeId, stroke) }
+        fun addEraseMask(mask: EraseMaskRecord) {
+            operations += RenderedOperation.Erase(mask)
+        }
+
+        fun replaceDocumentOperations(documentOperations: List<DocumentOperation>) {
+            operations.clear()
+            documentOperations.forEach { operation ->
+                when (operation) {
+                    is DocumentOperation.AddInkStroke -> operations += RenderedOperation.Ink(
+                        strokeId = operation.stroke.strokeId,
+                        stroke = InkStrokeRehydrator.rehydrate(operation.stroke),
+                    )
+                    is DocumentOperation.AddEraseMask -> operations += RenderedOperation.Erase(operation.mask)
+                    is DocumentOperation.ClearDocument -> operations.clear()
+                }
+            }
         }
 
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
             val transform = viewportTransform ?: return
+            val layer = canvas.saveLayer(0f, 0f, width.toFloat(), height.toFloat(), null)
             renderer.drawWithStrokes(canvas) { scope ->
                 val saveCount = canvas.save()
                 canvas.translate(transform.offsetX, transform.offsetY)
                 canvas.scale(transform.scale, transform.scale)
                 canvas.clipRect(0f, 0f, documentSize.width, documentSize.height)
-                strokes.forEach { scope.drawStroke(it.stroke) }
+                operations.forEach { operation ->
+                    when (operation) {
+                        is RenderedOperation.Ink -> scope.drawStroke(operation.stroke)
+                        is RenderedOperation.Erase -> drawEraseMask(canvas, operation.mask)
+                    }
+                }
                 canvas.restoreToCount(saveCount)
             }
+            canvas.restoreToCount(layer)
         }
 
-        private data class RenderedStroke(
-            val strokeId: String,
-            val stroke: Stroke,
-        )
+        private fun drawEraseMask(canvas: Canvas, mask: EraseMaskRecord) {
+            erasePaint.strokeWidth = mask.baseSize
+            val points = mask.points
+            if (points.size == 1) {
+                canvas.drawCircle(points.first().x, points.first().y, mask.baseSize / 2f, erasePaint)
+                return
+            }
+            val path = Path().apply {
+                moveTo(points.first().x, points.first().y)
+                points.drop(1).forEach { point -> lineTo(point.x, point.y) }
+            }
+            canvas.drawPath(path, erasePaint)
+        }
+
+        private sealed interface RenderedOperation {
+            data class Ink(val strokeId: String, val stroke: Stroke) : RenderedOperation
+            data class Erase(val mask: EraseMaskRecord) : RenderedOperation
+        }
     }
 
     private companion object {
-        private const val DEFAULT_COLOR_ARGB: Int = -0xDBDCDF // 0xFF242321
-        private const val FINGER_BASE_SIZE = 14f
-        private const val STYLUS_BASE_SIZE = 10f
+        private const val ERASER_PREVIEW_COLOR_ARGB: Int = -0x1 // 0xFFFFFFFF
         private const val BRUSH_EPSILON = 0.5f
     }
 }

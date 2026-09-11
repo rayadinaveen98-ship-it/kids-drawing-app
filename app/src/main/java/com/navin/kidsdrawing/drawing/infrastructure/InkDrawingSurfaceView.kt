@@ -75,6 +75,12 @@ class InkDrawingSurfaceView(
         post { inProgressStrokesView.eagerInit() }
     }
 
+    /**
+     * The child views are renderers only. This parent owns the complete gesture stream so input
+     * cannot depend on a child view declining/accepting dispatch differently across Ink versions.
+     */
+    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean = true
+
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         if (w <= 0 || h <= 0) return

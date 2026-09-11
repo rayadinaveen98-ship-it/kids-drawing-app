@@ -4,6 +4,7 @@ kotlin = "2.4.20"
 composeBom = "2026.06.00"
 activityCompose = "1.13.0"
 lifecycle = "2.10.0"
+coroutines = "1.11.0"
 ink = "1.0.0"
 inputMotionPrediction = "1.0.0"
 junit = "4.13.2"
@@ -18,6 +19,7 @@ compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview"
 compose-material3 = { module = "androidx.compose.material3:material3" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 
 ink-authoring = { module = "androidx.ink:ink-authoring", version.ref = "ink" }
 ink-brush = { module = "androidx.ink:ink-brush", version.ref = "ink" }

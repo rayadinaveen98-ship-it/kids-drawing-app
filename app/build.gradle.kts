@@ -50,6 +50,7 @@ dependencies {
 
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.runtime.ktx)
+    implementation(libs.kotlinx.coroutines.core)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)

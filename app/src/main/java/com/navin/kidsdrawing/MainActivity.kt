@@ -16,9 +16,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,8 +29,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.navin.kidsdrawing.drawing.domain.DrawingDocumentEngine
 import com.navin.kidsdrawing.drawing.domain.DrawingSurfaceMetrics
 import com.navin.kidsdrawing.drawing.ui.DrawingSurface
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,6 +53,15 @@ private fun ArtLabTheme(content: @Composable () -> Unit) {
 @Composable
 private fun ArtLabLauncher() {
     var metrics by remember { mutableStateOf(DrawingSurfaceMetrics()) }
+    val scope = rememberCoroutineScope()
+    val documentEngine = remember {
+        DrawingDocumentEngine(
+            initialDocument = DrawingDocumentEngine.newDocument(
+                documentId = "art-lab-session",
+            ),
+        )
+    }
+    val documentState by documentEngine.state.collectAsState()
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -67,7 +80,7 @@ private fun ArtLabLauncher() {
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                text = "P1.2 low-latency engine surface · finger/stylus test canvas",
+                text = "P1.3 document/history engine · low-latency Ink surface",
                 color = Ink700,
                 fontSize = 15.sp,
             )
@@ -79,13 +92,17 @@ private fun ArtLabLauncher() {
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                MetricChip("strokes", metrics.committedStrokeCount.toString())
+                MetricChip("surface", metrics.committedStrokeCount.toString())
+                MetricChip("doc ops", documentState.document.operations.size.toString())
                 MetricChip("samples", metrics.lastSampleCount.toString())
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 MetricChip("pressure", metrics.lastPressure?.let { "%.2f".format(it) } ?: "—")
                 MetricChip(
                     "handoff",
                     metrics.lastCommitLatencyMillis?.let { "${it}ms" } ?: "—",
                 )
+                MetricChip("redo", if (documentState.canRedo) "yes" else "no")
             }
 
             Box(
@@ -97,12 +114,17 @@ private fun ArtLabLauncher() {
             ) {
                 DrawingSurface(
                     modifier = Modifier.fillMaxSize(),
+                    onStrokeCommitted = { stroke ->
+                        scope.launch {
+                            documentEngine.commitChildStroke(stroke)
+                        }
+                    },
                     onMetricsChanged = { metrics = it },
                 )
             }
 
             Text(
-                text = "Draw repeatedly. Secondary pointers are ignored; stylus pressure is captured. Resize/rotation keeps committed geometry in logical document coordinates.",
+                text = "Each finished surface stroke is now committed as an owned document operation. Undo/Redo rendering controls land only after the document→renderer reconciliation path is explicit.",
                 color = Ink700,
                 fontSize = 13.sp,
                 lineHeight = 18.sp,

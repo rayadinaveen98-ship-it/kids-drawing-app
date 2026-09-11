@@ -50,6 +50,7 @@ data class InkStrokeRecord(
     val baseSize: Float,
     val tool: PointerTool,
     val points: List<StrokePoint>,
+    val authorRole: StrokeAuthorRole = StrokeAuthorRole.CHILD,
 ) {
     init {
         require(strokeId.isNotBlank()) { "strokeId cannot be blank." }

@@ -11,6 +11,9 @@ data class DrawingEngineState(
     val document: DrawingDocument,
     val canUndo: Boolean,
     val canRedo: Boolean,
+    val historyCursor: Int,
+    val historyDepth: Int,
+    val redoDepth: Int,
 )
 
 /**
@@ -31,6 +34,9 @@ class DrawingDocumentEngine(
             document = initialDocument,
             canUndo = initialDocument.operations.isNotEmpty(),
             canRedo = false,
+            historyCursor = initialDocument.operations.size,
+            historyDepth = initialDocument.operations.size,
+            redoDepth = 0,
         ),
     )
 
@@ -120,10 +126,14 @@ class DrawingDocumentEngine(
     }
 
     private fun publishDocument(document: DrawingDocument) {
+        val cursor = document.operations.size
         _state.value = DrawingEngineState(
             document = document,
-            canUndo = document.operations.isNotEmpty(),
+            canUndo = cursor > 0,
             canRedo = redoStack.isNotEmpty(),
+            historyCursor = cursor,
+            historyDepth = cursor + redoStack.size,
+            redoDepth = redoStack.size,
         )
     }
 

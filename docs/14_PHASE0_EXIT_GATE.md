@@ -45,17 +45,20 @@ Phase 0 ends only when the product is sufficiently specified that Phase 1 can im
 - public V1 target catalog mapped to category/age coverage;
 - representative content set defined before mass production.
 
-### 0.5 Core engine contracts — IN PROGRESS
-Exit requirements:
-- Drawing Engine 0.1 data model defined;
+### 0.5 Core engine contracts — COMPLETE
+- Drawing Engine 0.1 data/document/operation model defined;
+- stable AndroidX Ink 1.0.0 substrate recorded behind owned interfaces;
 - input/rendering architecture defined;
 - history/undo model defined;
-- deterministic replay contract defined;
-- save/load document format direction defined;
+- deterministic virtual-clock teacher replay contract defined;
+- save/load/recovery direction defined;
 - measurable performance/reference-device gates defined;
-- Lesson Engine state machine defined;
-- Coloring Engine V1 responsibilities defined;
-- engine boundaries/interfaces clear enough to prevent UI logic from owning engine behavior.
+- Lesson Engine state machine and teaching-mode semantics defined;
+- persistence/help/pause/recovery behavior defined;
+- Coloring Engine V1 guided/self-color responsibilities defined;
+- authored fill-region and role-aware erase model defined;
+- drawing→coloring→completion atomic handoffs defined;
+- cross-engine ownership/interfaces clear enough to prevent UI logic from owning engine behavior.
 
 ### 0.6 Companion & visual system — IN PROGRESS
 Exit requirements:
@@ -89,10 +92,10 @@ Phase 1 may begin when all of the following are true:
 - [x] Teaching modes and Help Ladder documented.
 - [x] Lesson package/schema draft locked and validated with example content.
 - [x] Initial curriculum/category/skill taxonomy locked.
-- [ ] Drawing Engine 0.1 technical contract locked.
-- [ ] Drawing performance gates/reference devices defined.
-- [ ] Lesson Engine state machine locked.
-- [ ] Coloring Engine V1 contract documented.
+- [x] Drawing Engine 0.1 technical contract locked.
+- [x] Drawing performance gates/reference devices defined.
+- [x] Lesson Engine state machine locked.
+- [x] Coloring Engine V1 contract documented.
 - [ ] Companion V1 state/voice contract locked.
 - [ ] Visual design direction selected.
 - [x] Child safety/privacy baseline documented.

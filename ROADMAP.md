@@ -2,7 +2,7 @@
 
 ## Phase 0 — Product Foundation
 
-**Current state:** 0.1, 0.2 and 0.3 complete; teaching/content architecture is next.
+**Current state:** 0.1 through 0.4 complete; core engine contracts are next.
 
 ### 0.1 Repository & Product Foundation — COMPLETE
 - GitHub source of truth
@@ -30,18 +30,23 @@
 - age-adaptive presentation policy
 - no-dead-end rules
 
-### 0.4 Teaching & Content Architecture — NEXT
-- machine-readable lesson schema
+### 0.4 Teaching & Content Architecture — COMPLETE
+- validated machine-readable lesson schema
+- sample lesson
+- source/compiled package contract
 - authoring workflow
 - category taxonomy
-- skill taxonomy
-- starter Art Journey curricula
+- reusable skill taxonomy
+- difficulty/age tagging
+- four starter Art Journeys
+- public V1 catalog allocation and representative-content gate
 
-### 0.5 Core Engine Contracts
+### 0.5 Core Engine Contracts — NEXT
 - Drawing Engine 0.1 implementation contract
 - performance/reference-device gates
 - Lesson Engine state machine
 - Coloring Engine V1 contract
+- explicit inter-engine and UI boundaries
 
 ### 0.6 Companion & Visual System
 - companion V1 state/voice contract

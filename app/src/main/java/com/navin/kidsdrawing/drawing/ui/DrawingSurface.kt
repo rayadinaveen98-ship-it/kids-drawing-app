@@ -24,6 +24,7 @@ class DrawingSurfaceController {
     }
 
     internal fun attach(surface: InkDrawingSurfaceView) {
+        if (attachedSurface === surface) return
         attachedSurface = surface
         pendingDocument?.let(surface::reconcileDocument)
     }
@@ -54,7 +55,6 @@ fun DrawingSurface(
         update = { surface ->
             surface.onStrokeCommitted = onStrokeCommitted
             surface.onMetricsChanged = onMetricsChanged
-            controller?.attach(surface)
         },
     )
 }

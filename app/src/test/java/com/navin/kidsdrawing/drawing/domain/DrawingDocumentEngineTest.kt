@@ -81,6 +81,37 @@ class DrawingDocumentEngineTest {
     }
 
     @Test
+    fun replaceDocumentMakesRecoveredTimelineAuthoritativeAndClearsRedo() = runBlocking {
+        val engine = fixture().engine
+        engine.commitChildStroke(stroke(1))
+        engine.commitChildStroke(stroke(2))
+        assertTrue(engine.undo())
+        assertTrue(engine.state.value.canRedo)
+
+        val recovered = DrawingDocumentEngine.newDocument(
+            documentId = "recovered-document",
+            nowEpochMillis = 5_000L,
+        ).copy(
+            modifiedAtEpochMillis = 5_100L,
+            operations = listOf(
+                DocumentOperation.AddInkStroke(
+                    operationId = "recovered-op",
+                    createdAtEpochMillis = 5_050L,
+                    stroke = stroke(42),
+                ),
+            ),
+        )
+
+        engine.replaceDocument(recovered)
+
+        assertEquals("recovered-document", engine.state.value.document.documentId)
+        assertEquals(listOf("stroke-42"), engine.state.value.document.activeInkStrokes().map { it.strokeId })
+        assertTrue(engine.state.value.canUndo)
+        assertFalse(engine.state.value.canRedo)
+        assertFalse(engine.redo())
+    }
+
+    @Test
     fun teacherGeneratedStrokeCannotEnterChildHistory() = runBlocking {
         val engine = fixture().engine
         val teacherStroke = stroke(7).copy(authorRole = StrokeAuthorRole.TEACHER_GENERATED)

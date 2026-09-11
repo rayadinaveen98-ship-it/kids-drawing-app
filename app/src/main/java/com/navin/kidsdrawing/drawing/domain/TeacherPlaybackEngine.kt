@@ -99,7 +99,11 @@ class TeacherPlaybackEngine(
         get() = buildFrame()
 
     fun play(): TeacherPlaybackFrame {
-        if (status == TeacherPlaybackStatus.COMPLETED || status == TeacherPlaybackStatus.CANCELLED || status == TeacherPlaybackStatus.FAILED) {
+        if (
+            status == TeacherPlaybackStatus.COMPLETED ||
+            status == TeacherPlaybackStatus.CANCELLED ||
+            status == TeacherPlaybackStatus.FAILED
+        ) {
             resetInternal()
         }
         if (status == TeacherPlaybackStatus.IDLE) {
@@ -174,8 +178,22 @@ class TeacherPlaybackEngine(
     }
 
     private fun buildFrame(): TeacherPlaybackFrame {
-        val visible = sequence.strokes.mapNotNull { source ->
-            visibleStrokeAt(source, sourceTimeMillis)
+        val overlayVisible = when (status) {
+            TeacherPlaybackStatus.PLAYING,
+            TeacherPlaybackStatus.PAUSED,
+            TeacherPlaybackStatus.COMPLETED,
+            -> true
+            TeacherPlaybackStatus.IDLE,
+            TeacherPlaybackStatus.CANCELLED,
+            TeacherPlaybackStatus.FAILED,
+            -> false
+        }
+        val visible = if (overlayVisible) {
+            sequence.strokes.mapNotNull { source ->
+                visibleStrokeAt(source, sourceTimeMillis)
+            }
+        } else {
+            emptyList()
         }
         val completed = sequence.strokes.count { sourceTimeMillis >= it.endTimeMillis }
         val progress = if (sequence.sourceDurationMillis == 0L) {

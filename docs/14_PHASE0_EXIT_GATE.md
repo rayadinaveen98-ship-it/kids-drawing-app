@@ -1,5 +1,7 @@
 # 14 — Phase 0 Exit Gate
 
+**Phase 0 status: COMPLETE — 2026-09-11**
+
 Phase 0 ends only when the product is sufficiently specified that Phase 1 can implement Art Lab / Drawing Engine 0.1 without inventing fundamental product decisions during coding.
 
 ## Phase 0 workstreams
@@ -46,10 +48,9 @@ Phase 0 ends only when the product is sufficiently specified that Phase 1 can im
 - voice/offline fallback/accessibility/safety language;
 - selected visual direction: Premium Storybook Art Studio;
 - design-system foundations and Compose translation rules;
-- Figma workspace established for later visual-frame automation when free quota permits.
+- Figma workspace established for visual-frame work when free quota permits.
 
-### 0.7 Safety, privacy, quality & release — IN PROGRESS
-Completed:
+### 0.7 Safety, privacy, quality & release — COMPLETE
 - current 2026 Google Play Families/data-practice baseline reviewed;
 - current targetSdk baseline reviewed (API 36+ for new standard Android submissions from 2026-08-31 under current policy);
 - default-deny sensitive permission policy defined;
@@ -59,10 +60,8 @@ Completed:
 - Parent Gate contract defined;
 - test strategy reconciled with engine/vertical-slice gates;
 - APK/AAB/version release strategy reconciled;
-- public-launch compliance re-review explicitly separated from internal Alpha completion.
-
-Remaining:
-- create concrete Phase 1 Art Lab implementation issue set and then mark Phase 0 complete.
+- public-launch compliance re-review explicitly separated from internal Alpha completion;
+- Phase 1 implementation backlog created in GitHub: Epic #7 and P1.1–P1.8 (#8–#15).
 
 ## Phase 0 final exit checklist
 
@@ -87,7 +86,24 @@ Remaining:
 - [x] Test strategy documented/reconciled.
 - [x] Version/release strategy documented/reconciled.
 - [x] Project conventions and Definition of Done documented.
-- [ ] Phase 1 Art Lab implementation issue set prepared.
+- [x] Phase 1 Art Lab implementation issue set prepared.
+
+## Phase 1 handoff
+
+Active milestone: **`0.1.0-art-lab`**
+
+GitHub tracking:
+- Epic #7 — Phase 1 Art Lab / Drawing Engine 0.1
+- #8 — Android project/modules/CI scaffold
+- #9 — low-latency DrawingSurface + Ink adapter
+- #10 — document model + undo/redo history
+- #11 — atomic persistence/recovery
+- #12 — deterministic teacher playback + five pace profiles
+- #13 — Art Lab UI + debug metrics
+- #14 — tests/benchmarks/recovery stress
+- #15 — milestone APK packaging/release evidence
+
+Phase 1 begins with #8. Work should proceed according to dependencies rather than jumping directly to polished UI.
 
 ## Professional rule
 

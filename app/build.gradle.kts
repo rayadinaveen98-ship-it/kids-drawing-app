@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
+    implementation(libs.metrics.performance)
 
     // Stable low-level inking substrate. Product/domain interfaces must wrap these APIs.
     implementation(libs.ink.authoring)

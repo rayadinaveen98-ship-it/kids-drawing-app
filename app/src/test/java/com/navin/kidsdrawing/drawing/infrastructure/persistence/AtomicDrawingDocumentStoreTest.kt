@@ -6,6 +6,7 @@ import com.navin.kidsdrawing.drawing.domain.DrawingDocumentEngine
 import com.navin.kidsdrawing.drawing.domain.InkStrokeRecord
 import com.navin.kidsdrawing.drawing.domain.PointerTool
 import com.navin.kidsdrawing.drawing.domain.StrokePoint
+import java.io.File
 import java.io.IOException
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
@@ -16,10 +17,12 @@ import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class AtomicDrawingDocumentStoreTest {
+    private val testCodec = DrawingDocumentBinaryCodec(JvmStrokePayloadCodec)
+
     @Test
     fun twentySaveLoadCyclesPreserveEditableOperationOrder() = withTempDirectory { root ->
         runBlocking {
-            val store = AtomicDrawingDocumentStore(root)
+            val store = store(root)
             var document = documentWithStrokeCount(4)
 
             repeat(20) {
@@ -41,9 +44,9 @@ class AtomicDrawingDocumentStoreTest {
     fun failureAfterBackupRotationCannotDestroyLastKnownGoodDocument() = withTempDirectory { root ->
         val original = documentWithStrokeCount(1)
         val updated = documentWithStrokeCount(2)
-        runBlocking { AtomicDrawingDocumentStore(root).save(original) }
+        runBlocking { store(root).save(original) }
 
-        val failingStore = AtomicDrawingDocumentStore(root) { stage ->
+        val failingStore = store(root) { stage ->
             if (stage == AtomicDrawingDocumentStore.SaveStage.BACKUP_READY) {
                 throw IOException("Injected failure after backup rotation.")
             }
@@ -53,14 +56,14 @@ class AtomicDrawingDocumentStoreTest {
             runBlocking { failingStore.save(updated) }
         }
 
-        val recovered = runBlocking { AtomicDrawingDocumentStore(root).load(original.documentId) }
+        val recovered = runBlocking { store(root).load(original.documentId) }
         assertNotNull(recovered)
         assertEquals(listOf("stroke-0"), recovered!!.document.activeInkStrokes().map { it.strokeId })
     }
 
     @Test
     fun corruptPrimaryLoadsPreviousKnownGoodBackup() = withTempDirectory { root ->
-        val store = AtomicDrawingDocumentStore(root)
+        val store = store(root)
         val first = documentWithStrokeCount(1)
         val second = documentWithStrokeCount(2)
 
@@ -80,7 +83,7 @@ class AtomicDrawingDocumentStoreTest {
 
     @Test
     fun corruptOnlyCopyReturnsRecoverableMissInsteadOfCrashing() = withTempDirectory { root ->
-        val store = AtomicDrawingDocumentStore(root)
+        val store = store(root)
         val document = documentWithStrokeCount(1)
         runBlocking { store.save(document) }
 
@@ -89,6 +92,15 @@ class AtomicDrawingDocumentStoreTest {
 
         assertNull(runBlocking { store.load(document.documentId) })
     }
+
+    private fun store(
+        root: File,
+        faultInjector: (AtomicDrawingDocumentStore.SaveStage) -> Unit = {},
+    ) = AtomicDrawingDocumentStore(
+        rootDirectory = root,
+        documentCodec = testCodec,
+        faultInjector = faultInjector,
+    )
 
     private fun documentWithStrokeCount(count: Int): DrawingDocument {
         val base = DrawingDocumentEngine.newDocument(
@@ -120,8 +132,8 @@ class AtomicDrawingDocumentStoreTest {
         ),
     )
 
-    private fun withTempDirectory(block: (java.io.File) -> Unit) {
-        val root = java.io.File(
+    private fun withTempDirectory(block: (File) -> Unit) {
+        val root = File(
             System.getProperty("java.io.tmpdir"),
             "kids-drawing-store-${UUID.randomUUID()}",
         )

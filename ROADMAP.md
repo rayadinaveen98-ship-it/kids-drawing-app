@@ -1,8 +1,8 @@
 # Product Roadmap
 
-## Phase 0 — Product Foundation
+## Phase 0 — Product Foundation — COMPLETE
 
-**Current state:** 0.1 through 0.5 complete; companion/visual system is next.
+All Phase 0 workstreams are locked in Git. Completion evidence: `docs/14_PHASE0_EXIT_GATE.md`.
 
 ### 0.1 Repository & Product Foundation — COMPLETE
 - GitHub source of truth
@@ -18,7 +18,6 @@
 - V1 content target
 - child + parent core journeys
 - scope-change rule
-- Phase 0 exit gate
 
 ### 0.3 UX Architecture — COMPLETE
 - stable child shell
@@ -28,66 +27,78 @@
 - safe back/exit rules
 - resume/recovery contract
 - age-adaptive presentation policy
-- no-dead-end rules
 
 ### 0.4 Teaching & Content Architecture — COMPLETE
-- validated machine-readable lesson schema
-- sample lesson
-- source/compiled package contract
-- authoring workflow
-- category taxonomy
-- reusable skill taxonomy
-- difficulty/age tagging
+- validated machine-readable lesson schema and sample
+- package/authoring workflow
+- category/skill/difficulty/age taxonomy
 - four starter Art Journeys
-- public V1 catalog allocation and representative-content gate
+- public V1 catalog allocation
 
 ### 0.5 Core Engine Contracts — COMPLETE
-- Drawing Engine 0.1 implementation contract
-- stable AndroidX Ink 1.0.0 substrate behind owned engine interfaces
+- Drawing Engine 0.1 contract
+- stable AndroidX Ink 1.0.0 substrate behind owned interfaces
 - performance/reference-device gates
 - Lesson Engine state machine
 - Coloring Engine V1 contract
-- explicit inter-engine/UI ownership and atomic handoff rules
+- cross-engine ownership and atomic handoffs
 
-### 0.6 Companion & Visual System — NEXT
-- companion V1 semantic state/priority contract
-- companion placement/obstruction rules
-- voice/narration behavior and offline fallback
-- design-system foundations
-- production-realistic visual direction for onboarding, Home and lesson workspace
+### 0.6 Companion & Visual System — COMPLETE
+- companion behavior/priority/rate-limit/placement contract
+- voice/offline fallback/accessibility/safety language
+- selected direction: Premium Storybook Art Studio
+- design-system and Compose token direction
+- Figma workspace established; automated frame generation can resume when free Starter MCP quota permits
 
-### 0.7 Safety / Quality / Release Review
-- privacy/permission/SDK review
-- complete test gates
-- release/Definition-of-Done review
-- Phase 1 issue preparation
-
-### Phase 0 exit condition
-See `docs/14_PHASE0_EXIT_GATE.md`. Phase 1 begins only when unchecked critical exit items are resolved in Git.
+### 0.7 Safety / Quality / Release Review — COMPLETE
+- current 2026 Play/Families baseline
+- permission and third-party SDK admission rules
+- analytics/crash-reporting Alpha policy
+- Parent Gate/export policy
+- reconciled test/quality gates
+- APK/AAB/versioning strategy
+- Phase 1 Art Lab issue set prepared
 
 ---
 
-## Phase 1 — Art Lab / Drawing Engine 0.1
+## Phase 1 — Art Lab / Drawing Engine 0.1 — ACTIVE
 
-Prove:
+**Milestone:** `0.1.0-art-lab`  
+**GitHub Epic:** #7
+
+Implementation backlog:
+1. #8 — scaffold Android project/modules/CI
+2. #9 — low-latency DrawingSurface + Ink adapter
+3. #10 — document model + undo/redo history
+4. #11 — atomic persistence/recovery
+5. #12 — deterministic teacher playback + five pace profiles
+6. #13 — Art Lab controls + debug metrics
+7. #14 — tests/benchmarks/recovery stress
+8. #15 — package/verify milestone APK
+
+### Phase 1 proof target
 - low-latency finger drawing;
-- pencil/brush abstraction;
-- eraser;
-- color and width;
-- undo/redo;
-- stroke data model;
-- save/load;
-- deterministic replay;
-- 5 playback speeds;
-- pause/resume playback;
+- basic stylus support;
+- Pencil/Eraser/color/width;
+- operation-based undo/redo and undoable clear;
+- structured editable document;
+- save/load/recovery;
+- deterministic teacher playback;
+- Extra Slow / Slow / Normal / Fast / Very Fast;
+- playback pause/resume/replay/mid-play pace change;
 - lifecycle persistence;
-- basic stylus support.
+- debug metrics;
+- automated tests and physical-device quality evidence;
+- installable APK tied to known Git commit/tag and release evidence.
 
-Deliverable: an installable internal APK containing Art Lab 0.1 and automated Drawing Engine tests.
+### Deliverable
+An installable `0.1.0-art-lab` internal APK and Drawing Engine quality evidence. No polished production child UI is required in this phase.
+
+---
 
 ## Phase 2 — Lesson Engine 0.1
 
-Prove structured lesson playback, wait-for-child steps, replay, speed switching, narration hooks, help-state hooks and lesson restoration.
+Prove structured lesson execution, child-turn boundaries, all three teaching modes, replay, speed switching, Help Ladder hooks, narration hooks and session restoration.
 
 ## Phase 3 — First Vertical Slice
 
@@ -96,15 +107,15 @@ Onboarding → recommendation → companion intro → guided drawing → assista
 
 ## Phase 4 — Coloring Engine
 
-Implement and validate the already-defined V1 guided/self coloring contract: authored fills, freehand color, palette logic, persistence and age-appropriate teaching.
+Implement and validate the defined V1 guided/self-color contract with authored fills, freehand color, persistence and age-appropriate teaching.
 
 ## Phase 5 — Companion Engine
 
-State-driven animation/expression/voice system integrated with lesson events.
+Productionize state-driven animation/expression/voice integrated with lesson events.
 
 ## Phase 6 — Content System & Library
 
-Age/difficulty/category/skill metadata, lesson packs, journeys, offline content management and authoring pipeline.
+Age/difficulty/category/skill metadata, lesson packs, journeys, offline content management and authoring tooling.
 
 ## Phase 7 — Adaptive Learning
 
@@ -116,8 +127,8 @@ Age-progressive professional drawing tools.
 
 ## Phase 9 — Product Beta
 
-Expanded content, Parent Zone, accessibility, device hardening, performance work and release readiness.
+Expanded content, Parent Zone, accessibility, device hardening, performance and release readiness.
 
 ## Phase 10 — V1.0
 
-Public production release only when product quality, safety/privacy requirements, content quality and release gates are met.
+Public release only when product quality, safety/privacy requirements, content quality and then-current store/release gates are met.

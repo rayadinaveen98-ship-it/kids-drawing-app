@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.Display
+import android.view.MotionEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -49,6 +50,8 @@ import com.navin.kidsdrawing.drawing.domain.DrawingTool
 import com.navin.kidsdrawing.drawing.domain.DrawingToolEngine
 import com.navin.kidsdrawing.drawing.infrastructure.persistence.AtomicDrawingDocumentStore
 import com.navin.kidsdrawing.drawing.quality.ArtLabQualityWorkloadFactory
+import com.navin.kidsdrawing.drawing.quality.DurationPerformanceMonitor
+import com.navin.kidsdrawing.drawing.quality.DurationPerformanceSnapshot
 import com.navin.kidsdrawing.drawing.quality.FramePerformanceMonitor
 import com.navin.kidsdrawing.drawing.quality.FramePerformanceSnapshot
 import com.navin.kidsdrawing.drawing.ui.DrawingSurface
@@ -62,6 +65,8 @@ import kotlinx.coroutines.withContext
 /** Internal physical-device quality harness. Not a production child-facing screen. */
 class QualityLabActivity : ComponentActivity() {
     private val framePerformanceMonitor = FramePerformanceMonitor()
+    private val inputDispatchMonitor = DurationPerformanceMonitor()
+    @Volatile private var inputMeasurementArmed = false
     private lateinit var jankStats: JankStats
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,7 +87,9 @@ class QualityLabActivity : ComponentActivity() {
                     toolEngine = toolEngine,
                     store = store,
                     framePerformanceMonitor = framePerformanceMonitor,
+                    inputDispatchMonitor = inputDispatchMonitor,
                     deviceSummary = deviceSummary(),
+                    onResetMeasurements = ::resetMeasurementsAfterCurrentTouch,
                 )
             }
         }
@@ -99,6 +106,16 @@ class QualityLabActivity : ComponentActivity() {
             ?.putState("Workspace", "QualityLab")
     }
 
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (!inputMeasurementArmed) return super.dispatchTouchEvent(event)
+        val started = SystemClock.elapsedRealtimeNanos()
+        return try {
+            super.dispatchTouchEvent(event)
+        } finally {
+            inputDispatchMonitor.record(SystemClock.elapsedRealtimeNanos() - started)
+        }
+    }
+
     override fun onStart() {
         super.onStart()
         if (::jankStats.isInitialized) jankStats.isTrackingEnabled = true
@@ -107,6 +124,17 @@ class QualityLabActivity : ComponentActivity() {
     override fun onStop() {
         if (::jankStats.isInitialized) jankStats.isTrackingEnabled = false
         super.onStop()
+    }
+
+    private fun resetMeasurementsAfterCurrentTouch() {
+        // Reset after the current Reset-button MotionEvent returns so that button interaction does
+        // not contaminate the first drawing sample.
+        inputMeasurementArmed = false
+        window.decorView.post {
+            framePerformanceMonitor.reset()
+            inputDispatchMonitor.reset()
+            inputMeasurementArmed = true
+        }
     }
 
     private fun deviceSummary(): String {
@@ -132,7 +160,9 @@ private fun QualityLabScreen(
     toolEngine: DrawingToolEngine,
     store: AtomicDrawingDocumentStore,
     framePerformanceMonitor: FramePerformanceMonitor,
+    inputDispatchMonitor: DurationPerformanceMonitor,
     deviceSummary: String,
+    onResetMeasurements: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val controller = remember { DrawingSurfaceController() }
@@ -140,6 +170,7 @@ private fun QualityLabScreen(
     val toolSettings by toolEngine.state.collectAsState()
     var surfaceMetrics by remember { mutableStateOf(DrawingSurfaceMetrics()) }
     var frameStats by remember { mutableStateOf(framePerformanceMonitor.snapshot()) }
+    var inputStats by remember { mutableStateOf(inputDispatchMonitor.snapshot()) }
     var workloadStatus by remember { mutableStateOf("Blank manual workload") }
     var busy by remember { mutableStateOf(false) }
     var lastReconcileToFrameMillis by remember { mutableStateOf<Double?>(null) }
@@ -151,6 +182,7 @@ private fun QualityLabScreen(
         while (true) {
             delay(1_000L)
             frameStats = framePerformanceMonitor.snapshot()
+            inputStats = inputDispatchMonitor.snapshot()
         }
     }
 
@@ -225,12 +257,9 @@ private fun QualityLabScreen(
                         }
                     },
                 ) { Text("Blank", maxLines = 1) }
-                OutlinedButton(
-                    onClick = {
-                        framePerformanceMonitor.reset()
-                        frameStats = framePerformanceMonitor.snapshot()
-                    },
-                ) { Text("Reset frames", maxLines = 1) }
+                OutlinedButton(onClick = onResetMeasurements) {
+                    Text("Reset measurements", maxLines = 1)
+                }
             }
 
             Row(
@@ -307,6 +336,7 @@ private fun QualityLabScreen(
                 activeInk = documentState.document.activeInkStrokes().size,
                 surfaceMetrics = surfaceMetrics,
                 frameStats = frameStats,
+                inputStats = inputStats,
                 reconcileMillis = lastReconcileToFrameMillis,
                 saveMillis = lastSaveMillis,
                 loadMillis = lastLoadMillis,
@@ -339,7 +369,13 @@ private fun QualityLabScreen(
             }
 
             Text(
-                text = "Class M frame gate: P95 ≤16.7ms · P99 ≤33.4ms · jank ≤3%. Class L: P95 ≤25ms · P99 ≤50ms · jank ≤5%. Classify the physical device before recording PASS/FAIL.",
+                text = "For input proxy: tap Reset measurements, then draw continuously without touching controls. Window-dispatch timing is a conservative upper bound, not the narrower Ink-only CPU trace.",
+                fontSize = 10.sp,
+                lineHeight = 13.sp,
+                color = Color(0xFF4E4A45),
+            )
+            Text(
+                text = "Class M: frame P95 ≤16.7ms · P99 ≤33.4ms · jank ≤3%; input P95 ≤4ms · P99 ≤8ms. Class L: frame P95 ≤25ms · P99 ≤50ms · jank ≤5%; input P95 ≤8ms · P99 ≤12ms.",
                 fontSize = 10.sp,
                 lineHeight = 13.sp,
                 color = Color(0xFF4E4A45),
@@ -355,6 +391,7 @@ private fun QualityMetricsCard(
     activeInk: Int,
     surfaceMetrics: DrawingSurfaceMetrics,
     frameStats: FramePerformanceSnapshot,
+    inputStats: DurationPerformanceSnapshot,
     reconcileMillis: Double?,
     saveMillis: Double?,
     loadMillis: Double?,
@@ -373,6 +410,10 @@ private fun QualityMetricsCard(
             QualityLine(
                 "frames",
                 "n=${frameStats.frameCount} jank=${frameStats.jankFrameCount} (${format(frameStats.jankRatePercent)}%) p95=${frameStats.p95UiMillis ?: "—"}ms p99=${frameStats.p99UiMillis ?: "—"}ms max=${frameStats.maxUiMillis?.let(::format) ?: "—"}ms",
+            )
+            QualityLine(
+                "input upper",
+                "n=${inputStats.sampleCount} p95=${inputStats.p95Millis ?: "—"}ms p99=${inputStats.p99Millis ?: "—"}ms max=${inputStats.maxMillis?.let(::format) ?: "—"}ms",
             )
             QualityLine(
                 "surface",

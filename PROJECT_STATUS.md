@@ -1,51 +1,62 @@
 # Project Status
 
 **Working project:** Kids Drawing App  
+**Authoritative repository:** `rayadinaveen98-ship-it/kids-drawing-app`  
 **Phase:** Phase 0 — Product Foundation  
 **Foundation version:** 0.0.1  
-**Status:** In progress — GitHub source of truth established  
+**Status:** In progress  
 **Last updated:** 2026-09-11
 
 ## Completed / locked
 
 - Product positioned as a personal art teacher + creative studio, not merely a coloring app.
+- Core product promise: **Draw together with a teacher who never runs out of patience.**
 - Android-first platform direction.
 - Kotlin + Jetpack Compose application stack.
 - Custom native drawing engine direction.
 - Offline-first core experience.
 - No mandatory account/backend for Alpha and early V1.
-- Core age target: approximately 4–12 years, with age-adaptive experiences.
+- Core age target: approximately 4–12 years with four age-adaptive experience bands.
 - Guided modes: Draw With Me, Watch Then Draw, Trace & Learn.
-- Teaching paces: Extra Slow, Slow, Normal, Fast, Very Fast, plus future Adaptive/Match My Speed.
+- Teaching paces: Extra Slow, Slow, Normal, Fast, Very Fast; Adaptive/Match My Speed remains Should Have.
+- Adaptive Help Ladder defined: Independent → Hint → Guide → Direction/Anchors → Trace → Assisted Success.
 - Drawing followed by optional guided/self coloring.
-- Companion is a real teaching participant driven by product state, not decorative mascot art.
+- Companion is a real state-driven teaching participant, not decorative mascot art.
 - Free Draw Studio is a first-class product area.
 - Structured lesson packages, not hard-coded lesson screens.
 - Child privacy and minimal-data architecture.
 - Professional development model: engine capability → independent tests → real vertical slice → lock → expand.
-- GitHub repository `rayadinaveen98-ship-it/kids-drawing-app` is the permanent source of truth.
+- GitHub is the permanent source of truth and handoff mechanism.
+- PRD advanced to **v0.2** with Must Have / Should Have / Later scope, explicit non-goals and acceptance criteria.
+- Public V1 content target defined: 30–40 guided lessons, with a hard release floor of 24 high-quality complete lessons.
+- Core child journeys documented: onboarding, guided lesson, help, coloring, Free Draw, resume/recovery and Gallery.
+- Core parent journeys documented: settings, export and safety/privacy understanding.
+- Phase 0 exit gate documented in `docs/14_PHASE0_EXIT_GATE.md`.
 
-## Currently defining
+## Current Phase 0 position
 
-- Complete V1 PRD and feature hierarchy.
-- Phase 0 exit criteria.
-- UX information architecture.
-- Teaching/assistance model.
-- Content taxonomy and lesson schema.
-- Drawing engine contract.
-- Companion behavior contract.
-- Quality gates and test strategy.
+### Complete
+- 0.1 Repository & product foundation
+- 0.2 V1 product scope
 
-## Next work
+### In progress / next
+- 0.3 Final UX information architecture and screen inventory
+- 0.4 Teaching/content schema and starter curriculum architecture
+- 0.5 Drawing/Lesson/Coloring engine contracts and measurable performance gates
+- 0.6 Companion contract and production-realistic visual direction
+- 0.7 Safety/quality/release review completion
 
-1. Finish PRD V0.1.
-2. Lock Must / Should / Later feature boundaries.
-3. Define UX architecture and key child journeys.
-4. Define lesson/content specification.
-5. Define Drawing Engine 0.1 specification and performance gates.
-6. Define visual design principles and companion direction.
-7. Finish Phase 0 review.
-8. Begin Art Lab 0.1 technical spike.
+## Immediate next work
+
+1. Finalize V1 screen inventory and navigation architecture.
+2. Define the machine-readable lesson package/schema.
+3. Lock category + skill taxonomy and starter Art Journeys.
+4. Expand Drawing Engine 0.1 into an implementation-level contract, including document/history/replay models and performance gates.
+5. Define Lesson Engine state machine.
+6. Define Coloring Engine V1 contract.
+7. Finalize Companion V1 behavior/voice contract.
+8. Select the visual direction/design-system foundation.
+9. Complete Phase 0 review and prepare Phase 1 Art Lab issues.
 
 ## Current blockers
 
@@ -53,9 +64,12 @@ None.
 
 ## Continuation rule
 
-A new chat should first inspect, in order:
+A new chat or developer session should inspect, in order:
 1. `PROJECT_STATUS.md`
 2. `docs/HANDOFF.md`
-3. `ROADMAP.md`
-4. recent Git history / open issues
-5. the specification relevant to the next task
+3. `docs/14_PHASE0_EXIT_GATE.md`
+4. `ROADMAP.md`
+5. recent Git history and open issues
+6. the specification relevant to the next task
+
+When chat memory and repository state disagree, Git is authoritative.

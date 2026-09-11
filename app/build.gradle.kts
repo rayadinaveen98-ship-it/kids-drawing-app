@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.framebynavin.kidsdrawing"
+    namespace = "com.navin.kidsdrawing"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.framebynavin.kidsdrawing"
+        applicationId = "com.navin.kidsdrawing"
         minSdk = 23
         targetSdk = 36
         versionCode = 2

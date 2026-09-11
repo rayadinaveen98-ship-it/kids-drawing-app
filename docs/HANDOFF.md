@@ -20,20 +20,26 @@ Specify → Build capability → Unit/performance test → Integrate into real c
 
 Git is authoritative when chat and repository state disagree.
 
-## Current Phase 0 state
+## Current project state
 
-Complete:
-- 0.1 Repository & product foundation
-- 0.2 V1 product scope contract
-- 0.3 UX architecture and screen inventory
-- 0.4 lesson/content architecture and starter curriculum
-- 0.5 Drawing/Lesson/Coloring core engine contracts and performance gates
-- 0.6 companion behavior/voice and selected visual system
+**Phase 0 — COMPLETE.** All foundational exit criteria are checked in `docs/14_PHASE0_EXIT_GATE.md`.
 
-Active:
-- 0.7 final safety/privacy/quality/release review + Phase 1 issue preparation
+**Phase 1 — ACTIVE / ready for implementation.**
 
-Authoritative checklist: `docs/14_PHASE0_EXIT_GATE.md`.
+Target milestone: `0.1.0-art-lab`.
+
+GitHub:
+- Epic #7 — Phase 1 Art Lab / Drawing Engine 0.1
+- #8 P1.1 scaffold Android project/modules/CI
+- #9 P1.2 low-latency DrawingSurface + Ink adapter
+- #10 P1.3 document/history
+- #11 P1.4 persistence/recovery
+- #12 P1.5 deterministic playback/5 paces
+- #13 P1.6 Art Lab/debug metrics
+- #14 P1.7 tests/benchmarks/stress
+- #15 P1.8 APK/release packaging
+
+**Next executable task: #8.**
 
 ## UX architecture
 
@@ -51,7 +57,6 @@ Authoritative checklist: `docs/14_PHASE0_EXIT_GATE.md`.
 - Authoring/package contract: `docs/16_LESSON_PACKAGE_AND_AUTHORING.md`.
 - Taxonomy/curriculum: `docs/17_TAXONOMY_AND_STARTER_CURRICULUM.md`.
 - Public target: 36 guided lessons; hard release floor 24 high-quality complete lessons.
-- Mass content production waits until representative lessons prove schema/engines.
 
 ## Core engine contracts
 
@@ -75,15 +80,7 @@ Critical engine rules:
 - Selected direction: **Premium Storybook Art Studio**.
 - Visual system: `docs/21_VISUAL_SYSTEM.md`.
 - Figma workspace: `Kids Drawing App — Phase 0.6 Visual System`, file key `2lGC11EPu2tjgrpYivJ8hf`.
-- Figma Starter MCP quota currently blocks further automated frame generation; this is not an engineering blocker.
-
-Companion principles:
-- quiet is valid;
-- no shame/pressure;
-- canvas always wins;
-- semantic product events drive reactions;
-- voice/animation never block core lesson state;
-- older children receive a more mature, lower-chatter presentation.
+- Figma Starter MCP quota currently blocks further automated frame generation; this does not block Art Lab engineering.
 
 ## Safety/privacy/release baseline
 
@@ -92,38 +89,39 @@ Companion principles:
 - Test strategy: `docs/11_TEST_STRATEGY.md`.
 - Release strategy: `docs/12_RELEASE_STRATEGY.md`.
 
-Current product defaults:
+Defaults:
 - no ads;
 - no mandatory child account;
 - no behavioral analytics for Alpha;
 - no third-party crash SDK required for Phase 1;
 - local/private artwork by default;
 - no location, contacts, phone, camera, microphone, Bluetooth, broad storage or AD_ID permissions in V1 without new explicit review;
-- every third-party runtime SDK requires a child-directed/privacy/manifest review;
-- first Play-bound build targets at least API 36 under the current 2026 requirement, rechecked at release time.
+- every third-party runtime SDK requires child-directed/privacy/manifest review;
+- first Play-bound build targets at least API 36 under the current 2026 baseline, rechecked at release time.
 
-## Immediate target after Phase 0
+## Phase 1 outcome
 
-`0.1.0-art-lab`: installable internal APK proving low-latency drawing, structured stroke capture, undo/redo, save/load and deterministic five-speed teacher playback.
+`0.1.0-art-lab`: installable internal APK proving low-latency drawing, structured stroke capture, undo/redo, save/load and deterministic five-speed teacher playback, with tests and performance evidence.
+
+Art Lab is an internal engineering surface, not the polished production children's UI.
 
 ## Never lose these constraints
 
-- required software/service spend remains ₹0 on the critical development path where a professional free option exists;
+- required software/service spend remains ₹0 on the critical path where a professional free option exists;
 - core drawing/lesson use works offline;
-- no cloud AI dependency in the early critical path;
+- no cloud AI dependency in early critical path;
 - no public child social features;
 - no behavioral ads;
-- do not expose complex tools to younger children simply because the engine supports them;
 - important decisions belong in Git, not only chat.
 
 ## Resume protocol
 
-At the start of any new chat or development session inspect:
+At the start of any new chat/development session inspect:
 1. `PROJECT_STATUS.md`
 2. this file
 3. `docs/14_PHASE0_EXIT_GATE.md`
 4. `ROADMAP.md`
-5. open GitHub issues and recent commits
-6. the specification for the active workstream
+5. Epic #7 and its next incomplete dependency
+6. relevant specification docs
 
 When chat memory and repository state disagree, Git is authoritative.

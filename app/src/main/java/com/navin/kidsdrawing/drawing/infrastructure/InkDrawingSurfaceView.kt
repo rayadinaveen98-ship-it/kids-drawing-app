@@ -21,6 +21,7 @@ import androidx.input.motionprediction.MotionEventPredictor
 import com.navin.kidsdrawing.drawing.domain.DocumentPoint
 import com.navin.kidsdrawing.drawing.domain.DocumentSize
 import com.navin.kidsdrawing.drawing.domain.DocumentViewportMapper
+import com.navin.kidsdrawing.drawing.domain.DrawingDocument
 import com.navin.kidsdrawing.drawing.domain.DrawingSurfaceMetrics
 import com.navin.kidsdrawing.drawing.domain.InkStrokeRecord
 import com.navin.kidsdrawing.drawing.domain.PointerTool
@@ -88,18 +89,42 @@ class InkDrawingSurfaceView(
         // A resize never mutates committed document-space geometry. If it happens mid-gesture,
         // cancel only the transient stroke so no mixed coordinate transforms can be committed.
         if (activeStrokeId != null) {
-            inProgressStrokesView.cancelUnfinishedStrokes()
-            pendingStrokes.clear()
-            activeStrokeId = null
-            activePointerId = null
-            // The old predictor saw an incomplete stream. Reset it before accepting a new gesture.
-            motionPredictor = MotionEventPredictor.newInstance(this)
+            cancelTransientInput()
         }
 
         viewportTransform = coordinateMapper.transformFor(w.toFloat(), h.toFloat())
         committedInkView.viewportTransform = viewportTransform
         committedInkView.invalidate()
         publishMetrics(metrics.copy(activeTool = null))
+    }
+
+    /**
+     * Reprojects the authoritative editable document into the dry-stroke renderer.
+     *
+     * This is used only at stable editing boundaries such as Reload/Undo/Redo/process restore.
+     * Live stroke handoff remains incremental and does not rebuild prior geometry.
+     */
+    fun reconcileDocument(document: DrawingDocument) {
+        require(document.logicalSize == documentSize) {
+            "Surface document size ${document.logicalSize} does not match $documentSize."
+        }
+        cancelTransientInput()
+
+        val records = document.activeInkStrokes()
+        val rebuilt = records.map { record ->
+            record.strokeId to InkStrokeRehydrator.rehydrate(record)
+        }
+        committedInkView.replaceStrokes(rebuilt)
+        committedInkView.invalidate()
+        publishMetrics(
+            metrics.copy(
+                committedStrokeCount = records.size,
+                lastSampleCount = records.lastOrNull()?.points?.size ?: 0,
+                lastCommitLatencyMillis = null,
+                lastPressure = records.lastOrNull()?.points?.lastOrNull()?.pressure,
+                activeTool = null,
+            ),
+        )
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -226,6 +251,17 @@ class InkDrawingSurfaceView(
         return true
     }
 
+    private fun cancelTransientInput() {
+        if (activeStrokeId != null || pendingStrokes.isNotEmpty()) {
+            inProgressStrokesView.cancelUnfinishedStrokes()
+        }
+        pendingStrokes.clear()
+        activeStrokeId = null
+        activePointerId = null
+        // A canceled stream must never seed prediction for the next child gesture.
+        motionPredictor = MotionEventPredictor.newInstance(this)
+    }
+
     private fun handleAdditionalPointer(event: MotionEvent): Boolean {
         if (activeStrokeId == null) return false
 
@@ -266,9 +302,9 @@ class InkDrawingSurfaceView(
         if (strokes.isEmpty()) return
 
         for ((inkId, stroke) in strokes) {
-            committedInkView.addStroke(stroke)
             val pending = pendingStrokes.remove(inkId) ?: continue
             val record = pending.toRecord()
+            committedInkView.addStroke(record.strokeId, stroke)
             val latency = pending.finishRequestedAtUptimeMillis?.let {
                 (SystemClock.uptimeMillis() - it).coerceAtLeast(0L)
             }
@@ -466,13 +502,18 @@ class InkDrawingSurfaceView(
         context: Context,
         private val documentSize: DocumentSize,
     ) : View(context) {
-        private val strokes = mutableListOf<Stroke>()
+        private val strokes = mutableListOf<RenderedStroke>()
         private val renderer = ViewStrokeRenderer(CanvasStrokeRenderer.create(), this)
 
         var viewportTransform: DocumentViewportMapper.Transform? = null
 
-        fun addStroke(stroke: Stroke) {
-            strokes += stroke
+        fun addStroke(strokeId: String, stroke: Stroke) {
+            strokes += RenderedStroke(strokeId, stroke)
+        }
+
+        fun replaceStrokes(rebuilt: List<Pair<String, Stroke>>) {
+            strokes.clear()
+            strokes += rebuilt.map { (strokeId, stroke) -> RenderedStroke(strokeId, stroke) }
         }
 
         override fun onDraw(canvas: Canvas) {
@@ -483,10 +524,15 @@ class InkDrawingSurfaceView(
                 canvas.translate(transform.offsetX, transform.offsetY)
                 canvas.scale(transform.scale, transform.scale)
                 canvas.clipRect(0f, 0f, documentSize.width, documentSize.height)
-                strokes.forEach { scope.drawStroke(it) }
+                strokes.forEach { scope.drawStroke(it.stroke) }
                 canvas.restoreToCount(saveCount)
             }
         }
+
+        private data class RenderedStroke(
+            val strokeId: String,
+            val stroke: Stroke,
+        )
     }
 
     private companion object {

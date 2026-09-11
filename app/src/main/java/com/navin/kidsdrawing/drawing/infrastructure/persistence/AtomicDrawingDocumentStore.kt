@@ -33,9 +33,15 @@ class AtomicDrawingDocumentStore(
     )
 
     private val ioMutex = Mutex()
+    private var latestSavedModifiedAtEpochMillis: Long = Long.MIN_VALUE
 
     suspend fun save(document: DrawingDocument) = withContext(Dispatchers.IO) {
         ioMutex.withLock {
+            // A delayed debounce/lifecycle save must never overwrite a newer stable snapshot.
+            if (document.modifiedAtEpochMillis < latestSavedModifiedAtEpochMillis) {
+                return@withLock
+            }
+
             ensureRootDirectory()
             val files = filesFor(document.documentId)
             if (files.temp.exists() && !files.temp.delete()) {
@@ -64,6 +70,10 @@ class AtomicDrawingDocumentStore(
                     restoreBackupIfPrimaryMissing(files)
                     throw IOException("Unable to promote temporary drawing document to primary.")
                 }
+                latestSavedModifiedAtEpochMillis = maxOf(
+                    latestSavedModifiedAtEpochMillis,
+                    document.modifiedAtEpochMillis,
+                )
                 faultInjector(SaveStage.TARGET_REPLACED)
             } catch (failure: Throwable) {
                 files.temp.delete()
@@ -77,9 +87,15 @@ class AtomicDrawingDocumentStore(
         ioMutex.withLock {
             ensureRootDirectory()
             val files = filesFor(documentId)
-            decodeOrNull(files.target)?.let { return@withLock LoadResult(it, LoadSource.PRIMARY) }
-            decodeOrNull(files.backup)?.let { return@withLock LoadResult(it, LoadSource.BACKUP) }
-            null
+            val result = decodeOrNull(files.target)?.let { LoadResult(it, LoadSource.PRIMARY) }
+                ?: decodeOrNull(files.backup)?.let { LoadResult(it, LoadSource.BACKUP) }
+            if (result != null) {
+                latestSavedModifiedAtEpochMillis = maxOf(
+                    latestSavedModifiedAtEpochMillis,
+                    result.document.modifiedAtEpochMillis,
+                )
+            }
+            result
         }
     }
 

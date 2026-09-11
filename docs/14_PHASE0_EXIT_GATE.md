@@ -60,24 +60,27 @@ Phase 0 ends only when the product is sufficiently specified that Phase 1 can im
 - drawing→coloring→completion atomic handoffs defined;
 - cross-engine ownership/interfaces clear enough to prevent UI logic from owning engine behavior.
 
-### 0.6 Companion & visual system — IN PROGRESS
-Exit requirements:
+### 0.6 Companion & visual system — COMPLETE
 - companion semantic state machine finalized for V1;
+- priority/interruption/rate-limit behavior defined;
 - companion placement/obstruction rules defined;
-- voice/narration behavior defined;
+- voice/narration behavior and offline fallback defined;
+- child-safety language and reduced-motion behavior defined;
 - visual product principles defined;
 - design-system foundations defined;
-- at least one selected production-realistic visual direction for onboarding, Home and lesson workspace exists before polished UI implementation.
+- selected direction locked as **Premium Storybook Art Studio** for onboarding, Home, creation workspace, Gallery and Parent Zone;
+- Figma design workspace established. Automated frame generation can continue when free Figma MCP quota permits without blocking the engineering foundation.
 
 ### 0.7 Safety, privacy, quality & release — IN PROGRESS
 Exit requirements:
-- child safety/privacy engineering baseline reviewed;
+- child safety/privacy engineering baseline reviewed against current platform policy;
 - permission/third-party SDK policy defined;
 - parent-gate behavior defined;
-- test layers and Drawing Engine stress cases defined;
-- milestone Definition of Done defined;
-- versioning/release sequence defined;
-- public-launch legal/store compliance review explicitly tracked as a later pre-release gate.
+- test layers and Drawing Engine stress cases reconciled with milestone DoD;
+- milestone Definition of Done reviewed;
+- versioning/release sequence reviewed;
+- public-launch legal/store compliance review explicitly tracked as a later pre-release gate;
+- Phase 1 Art Lab issue set prepared.
 
 ## Phase 0 final exit checklist
 
@@ -96,12 +99,14 @@ Phase 1 may begin when all of the following are true:
 - [x] Drawing performance gates/reference devices defined.
 - [x] Lesson Engine state machine locked.
 - [x] Coloring Engine V1 contract documented.
-- [ ] Companion V1 state/voice contract locked.
-- [ ] Visual design direction selected.
+- [x] Companion V1 state/voice contract locked.
+- [x] Visual design direction selected.
 - [x] Child safety/privacy baseline documented.
 - [x] Test strategy documented.
 - [x] Version/release strategy documented.
 - [x] Project conventions and Definition of Done documented.
+- [ ] Current platform-policy/permission/SDK review locked.
+- [ ] Parent-gate implementation contract locked.
 - [ ] Phase 1 Art Lab implementation issue set prepared.
 
 ## Professional rule

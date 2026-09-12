@@ -58,6 +58,30 @@ class AtomicColoringSessionStoreTest {
     }
 
     @Test
+    fun handoffRollbackDeleteRemovesPrimaryBackupAndResumeProjection() = runBlocking {
+        withTempDirectory { root ->
+            val store = AtomicColoringSessionStore(root)
+            val engine = ColoringSessionEngine.start(
+                childDocumentId = "doc-rollback",
+                lessonId = "cute-cat",
+                lessonRevision = 1,
+                mode = ColoringSessionMode.COLOR_MYSELF,
+            )
+            val snapshot = engine.snapshot(11_000L)
+
+            store.save(snapshot)
+            assertTrue(store.load(snapshot.sessionId) is AtomicColoringSessionStore.LoadResult.Loaded)
+
+            store.delete(snapshot.sessionId)
+
+            assertEquals(
+                AtomicColoringSessionStore.LoadResult.Missing,
+                store.load(snapshot.sessionId),
+            )
+        }
+    }
+
+    @Test
     fun missingSessionReturnsTypedMissing() = runBlocking {
         withTempDirectory { root ->
             val store = AtomicColoringSessionStore(root)

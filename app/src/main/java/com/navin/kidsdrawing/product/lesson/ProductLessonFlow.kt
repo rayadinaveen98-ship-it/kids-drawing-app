@@ -1,9 +1,9 @@
 package com.navin.kidsdrawing.product.lesson
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.navin.kidsdrawing.drawing.domain.TeachingPace
 import com.navin.kidsdrawing.lesson.model.TeachingMode
@@ -53,6 +53,7 @@ fun ProductLessonFlow(
 
         ProductLessonStage.WORKSPACE -> GuidedLessonScreen(
             runtime = runtime,
+            ageBand = profile.ageBand,
             startMode = mode,
             startPace = pace,
             resumeOnly = resumeRequested,

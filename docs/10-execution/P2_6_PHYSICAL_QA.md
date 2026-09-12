@@ -2,19 +2,32 @@
 
 **Issue:** #34  
 **Target:** `0.2.0-lesson-engine`  
-**Status:** **PENDING-PHYSICAL** until executed on a real Android device.  
+**Status:** **PHYSICAL-QA-IN-PROGRESS** on the responsive hotfix candidate.  
 **Evidence rule:** automated/JVM/CI success must never be relabeled as physical PASS.
 
 ## Device record
 
-- Device class: Class M preferred
-- Device/model: PENDING
-- Android/API: PENDING
-- RAM: PENDING
-- Refresh rate: PENDING
-- APK commit: PENDING FINAL RELEASE COMMIT
-- APK SHA-256: PENDING FINAL ARTIFACT
-- Tester/date: PENDING
+- Device class: Class M
+- Device/model: Samsung SM-A546E
+- Android/API: API 36
+- RAM: ~7.4 GB
+- Refresh rate: 120 Hz
+- APK commit: `7a33edc6a5c37fe5bea93d3729f8a1eabf88e8df`
+- APK SHA-256: `656bee202bc71d5b487f287c6dc3a8b3f05f4cc50eea58c7477fd0a59534e109`
+- Tester/date: user physical-device validation / 2026-09-12
+
+## Physical UI checkpoint
+
+Initial `0.2.0-lesson-engine` physical candidate exposed status-bar overlap and horizontally clipped controls in portrait. Hotfix PR #41 replaced overflow-prone horizontal control rows with adaptive grids, added safe system insets, and preserved a dedicated drawing canvas.
+
+Replacement merged-main candidate verification:
+
+- hotfix merge commit: `7a33edc6a5c37fe5bea93d3729f8a1eabf88e8df`;
+- merged-main Android CI #204 / run `34685747984`: **GREEN**;
+- launch screenshot on Samsung SM-A546E: **PASS** for status-bar inset, portrait fit, initial scroll position, mode/pace visibility, reserved canvas, and no clipped horizontal controls;
+- initial runtime isolation diagnostic: `teacher/guide in child history: 0 · PASS`.
+
+Physical UI checkpoint result: **PASS**.
 
 ## Required scenarios
 
@@ -22,7 +35,7 @@ Record `PASS`, `FAIL`, or `BLOCKED` plus a concise observation for every row.
 
 | # | Scenario | Result | Observation / evidence |
 |---|---|---|---|
-| 1 | Launch Lesson Lab and load bundled Cute Cat | PENDING | |
+| 1 | Launch Lesson Lab and load bundled Cute Cat | PASS | Responsive merged-main APK launches on Samsung SM-A546E; `Loaded cute-cat r1`; initial state `No session`; no crash; isolation diagnostic `0 · PASS`. |
 | 2 | Start Draw With Me | PENDING | |
 | 3 | Start Watch Then Draw | PENDING | |
 | 4 | Start Trace & Learn | PENDING | |
@@ -64,7 +77,7 @@ At least once in Trace & Learn and once after Help level 4:
 - save/background/relaunch;
 - confirm child operation history still contains only child-authored ink plus child erase/clear operations.
 
-Result: **PENDING**.
+Current evidence: launch/idle diagnostic is `0 · PASS`; full Trace/Help isolation audit remains **PENDING**.
 
 ## Lifecycle audit
 
@@ -81,6 +94,6 @@ Result: **PENDING**.
 
 ## Release decision
 
-Physical milestone gate: **PENDING-PHYSICAL**.
+Physical milestone gate: **IN PROGRESS**.
 
 Do not tag `v0.2.0-lesson-engine` as the verified final milestone until this sheet is updated with real-device evidence or an explicit milestone-approved hardware exception is documented in Git.

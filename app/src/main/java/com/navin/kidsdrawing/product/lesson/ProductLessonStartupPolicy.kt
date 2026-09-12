@@ -12,16 +12,17 @@ enum class ProductLessonStartupDecision {
 /**
  * Pure product policy for deciding what the guided route does after runtime recovery.
  *
- * The runtime remains the source of recovery/session truth. This policy only prevents navigation
- * intent from being inferred from a potentially stale Compose projection.
+ * [startFreshRequested] is a one-time navigation intent set only when the child confirms Start
+ * Drawing in preview. After the real session starts, saveable product state clears that intent so
+ * Android recreation recovers the new session rather than wiping it and starting again.
  */
 object ProductLessonStartupPolicy {
     fun decide(
-        resumeRequested: Boolean,
+        startFreshRequested: Boolean,
         recoveryOutcome: LessonLabRecoveryOutcome,
         recoveredState: LessonSessionState?,
     ): ProductLessonStartupDecision {
-        if (!resumeRequested) return ProductLessonStartupDecision.START_FRESH
+        if (startFreshRequested) return ProductLessonStartupDecision.START_FRESH
 
         val activeRestoredSession = recoveryOutcome == LessonLabRecoveryOutcome.RESTORED &&
             recoveredState != null &&

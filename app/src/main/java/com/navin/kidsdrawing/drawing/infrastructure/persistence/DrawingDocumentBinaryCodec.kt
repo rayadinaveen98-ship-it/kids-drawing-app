@@ -1,6 +1,7 @@
 package com.navin.kidsdrawing.drawing.infrastructure.persistence
 
 import com.navin.kidsdrawing.drawing.domain.BackgroundRole
+import com.navin.kidsdrawing.drawing.domain.COLORING_DOCUMENT_SCHEMA_VERSION
 import com.navin.kidsdrawing.drawing.domain.CURRENT_DOCUMENT_SCHEMA_VERSION
 import com.navin.kidsdrawing.drawing.domain.DocumentOperation
 import com.navin.kidsdrawing.drawing.domain.DocumentSize
@@ -21,23 +22,25 @@ import java.nio.charset.StandardCharsets
 import java.util.zip.CRC32
 
 /**
- * App-owned, checksummed Art Lab document envelope.
+ * App-owned, checksummed editable drawing-document envelope.
  *
- * The envelope owns schema/versioning and operation ordering. Production embeds AndroidX Ink's
- * stable input-batch payload through [InkStrokePayloadCodec], while tests can inject a host-safe
- * codec without changing envelope or store behavior.
+ * Envelope v1 stays stable. Document schema v2 adds explicit coloring operation tags while schema-1
+ * files remain fully readable. AndroidX Ink payload serialization is unchanged.
  */
 class DrawingDocumentBinaryCodec(
     private val strokePayloadCodec: StrokePayloadCodec = InkStrokePayloadCodec,
 ) {
     fun encode(document: DrawingDocument, output: OutputStream) {
+        require(document.documentSchemaVersion in 1..CURRENT_DOCUMENT_SCHEMA_VERSION) {
+            "Unsupported document schema version: ${document.documentSchemaVersion}"
+        }
         val bodyBytes = ByteArrayOutputStream().use { bodyBuffer ->
             val body = DataOutputStream(bodyBuffer)
             writeDocumentBody(body, document)
             body.flush()
             bodyBuffer.toByteArray()
         }
-        require(bodyBytes.size <= MAX_BODY_BYTES) { "Drawing document exceeds Art Lab size limit." }
+        require(bodyBytes.size <= MAX_BODY_BYTES) { "Drawing document exceeds size limit." }
 
         val crc = CRC32().apply { update(bodyBytes) }.value
         val data = DataOutputStream(output)
@@ -101,6 +104,22 @@ class DrawingDocumentBinaryCodec(
                     data.writeByte(OP_CLEAR)
                     writeOperationHeader(data, operation.operationId, operation.createdAtEpochMillis)
                 }
+                is DocumentOperation.AddColorStroke -> {
+                    require(document.documentSchemaVersion >= COLORING_DOCUMENT_SCHEMA_VERSION) {
+                        "Color stroke requires document schema $COLORING_DOCUMENT_SCHEMA_VERSION+."
+                    }
+                    data.writeByte(OP_ADD_COLOR_INK)
+                    writeOperationHeader(data, operation.operationId, operation.createdAtEpochMillis)
+                    writeInkStroke(data, operation.stroke)
+                }
+                is DocumentOperation.AddColorEraseMask -> {
+                    require(document.documentSchemaVersion >= COLORING_DOCUMENT_SCHEMA_VERSION) {
+                        "Color erase requires document schema $COLORING_DOCUMENT_SCHEMA_VERSION+."
+                    }
+                    data.writeByte(OP_ADD_COLOR_ERASE_MASK)
+                    writeOperationHeader(data, operation.operationId, operation.createdAtEpochMillis)
+                    writeEraseMask(data, operation.mask)
+                }
             }
         }
     }
@@ -140,6 +159,26 @@ class DrawingDocumentBinaryCodec(
                     operationId = operationId,
                     createdAtEpochMillis = operationTime,
                 )
+                OP_ADD_COLOR_INK -> {
+                    require(schemaVersion >= COLORING_DOCUMENT_SCHEMA_VERSION) {
+                        "Color stroke tag is invalid in schema $schemaVersion."
+                    }
+                    DocumentOperation.AddColorStroke(
+                        operationId = operationId,
+                        createdAtEpochMillis = operationTime,
+                        stroke = readInkStroke(data),
+                    )
+                }
+                OP_ADD_COLOR_ERASE_MASK -> {
+                    require(schemaVersion >= COLORING_DOCUMENT_SCHEMA_VERSION) {
+                        "Color erase tag is invalid in schema $schemaVersion."
+                    }
+                    DocumentOperation.AddColorEraseMask(
+                        operationId = operationId,
+                        createdAtEpochMillis = operationTime,
+                        mask = readEraseMask(data),
+                    )
+                }
                 else -> error("Unknown document operation tag: $tag")
             }
         }
@@ -338,6 +377,8 @@ class DrawingDocumentBinaryCodec(
         const val OP_ADD_INK = 1
         const val OP_ADD_ERASE_MASK = 2
         const val OP_CLEAR = 3
+        const val OP_ADD_COLOR_INK = 4
+        const val OP_ADD_COLOR_ERASE_MASK = 5
         const val MAX_BODY_BYTES = 64 * 1024 * 1024
         const val MAX_STROKE_PAYLOAD_BYTES = 16 * 1024 * 1024
         const val MAX_STRING_BYTES = 1024 * 1024

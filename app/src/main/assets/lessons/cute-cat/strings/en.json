@@ -1,0 +1,12 @@
+{
+  "lesson.cute_cat.title": "Cute Cat",
+  "lesson.cute_cat.summary": "Draw a friendly cat from simple curves, ears, face details and a body with a tail.",
+  "lesson.cute_cat.step.head": "Let’s start with a big soft curve for the cat’s head.",
+  "lesson.cute_cat.step.ears": "Now add two pointy ears, one on each side.",
+  "lesson.cute_cat.step.face": "Add two eyes and a tiny smiling mouth.",
+  "lesson.cute_cat.step.body_tail": "Finish with the body and a long curved tail.",
+  "lesson.cute_cat.help.head_hint": "Think of a round balloon shape.",
+  "lesson.cute_cat.help.face_hint": "Keep the eyes level with each other.",
+  "lesson.cute_cat.complete.face": "Nice! Your cat has a face now.",
+  "lesson.cute_cat.complete.drawing": "Great work. Your cat is ready!"
+}

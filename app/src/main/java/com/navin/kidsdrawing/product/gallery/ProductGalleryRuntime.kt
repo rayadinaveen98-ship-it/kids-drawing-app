@@ -1,6 +1,7 @@
 package com.navin.kidsdrawing.product.gallery
 
 import android.content.Context
+import com.navin.kidsdrawing.coloring.session.ColoringSessionPhase
 import com.navin.kidsdrawing.drawing.domain.DrawingDocument
 import com.navin.kidsdrawing.drawing.infrastructure.persistence.AtomicDrawingDocumentStore
 import com.navin.kidsdrawing.gallery.domain.ArtworkCompletionCoordinator
@@ -15,6 +16,8 @@ import com.navin.kidsdrawing.gallery.persistence.AtomicGalleryCatalogStore
 import com.navin.kidsdrawing.lesson.lab.LessonLabRuntimeCore
 import com.navin.kidsdrawing.lesson.session.FinishForNow
 import com.navin.kidsdrawing.lesson.session.LessonCommandResult
+import com.navin.kidsdrawing.lesson.session.LessonFinishReason
+import com.navin.kidsdrawing.lesson.session.LessonSessionState
 import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
 import com.navin.kidsdrawing.product.lesson.ProductLessonRuntime
 import java.io.File
@@ -65,8 +68,13 @@ class ProductGalleryRuntime(
             lessonRuntime.saveNow()
         }
 
-        override suspend fun finishSemanticState(): Boolean =
-            lessonRuntime.dispatch(FinishForNow) is LessonCommandResult.Accepted
+        override suspend fun finishSemanticState(): Boolean {
+            val current = lessonRuntime.sessionState.value
+            if (current is LessonSessionState.Finished) {
+                return current.reason == LessonFinishReason.FINISHED_FOR_NOW
+            }
+            return lessonRuntime.dispatch(FinishForNow) is LessonCommandResult.Accepted
+        }
 
         override suspend fun saveAfterFinish() {
             lessonRuntime.saveNow()
@@ -83,7 +91,10 @@ class ProductGalleryRuntime(
             coloringRuntime.saveNow()
         }
 
-        override suspend fun finishSemanticState(): Boolean = coloringRuntime.finish()
+        override suspend fun finishSemanticState(): Boolean {
+            if (coloringRuntime.sessionState.value?.phase == ColoringSessionPhase.FINISHED) return true
+            return coloringRuntime.finish()
+        }
 
         override suspend fun saveAfterFinish() {
             coloringRuntime.saveNow()

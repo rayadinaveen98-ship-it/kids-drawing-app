@@ -513,13 +513,8 @@ private fun TeachingMode.labLabel(): String = when (this) {
     TeachingMode.TRACE_AND_LEARN -> "Trace & Learn"
 }
 
-private fun TeachingPace.labLabel(): String = when (this) {
-    TeachingPace.EXTRA_SLOW -> "Extra slow · 0.4×"
-    TeachingPace.SLOW -> "Slow · 0.7×"
-    TeachingPace.NORMAL -> "Normal · 1.0×"
-    TeachingPace.FAST -> "Fast · 1.35×"
-    TeachingPace.EXTRA_FAST -> "Extra fast · 1.8×"
-}
+private fun TeachingPace.labLabel(): String =
+    "${name.lowercase().replace('_', ' ')} · ${multiplier}×"
 
 private fun Float.roundToOne(): String = "%.1f".format(this)
 

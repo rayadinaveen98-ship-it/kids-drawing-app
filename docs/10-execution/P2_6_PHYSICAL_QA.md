@@ -50,9 +50,9 @@ Record `PASS`, `FAIL`, or `BLOCKED` plus a concise observation for every row.
 | 13 | Trace guide visible during child turn | PASS | Trace & Learn child turn showed `guide TRACE_MODE` and a visible authored head trace on the canvas after teacher playback completed. |
 | 14 | Trace/help guide does not increase child operation count | PASS | With the Trace guide visibly active, runtime remained `operations 0 · child ink 0` and `teacher/guide in child history: 0 · PASS`, physically proving the guide stays outside child artwork/history. |
 | 15 | Replay during valid child turn | PASS | In Trace & Learn `AwaitingChild`, Replay re-ran teacher playback to `COMPLETED`, then restored the authored `TRACE_MODE` guide. Child history remained `operations 0 · child ink 0` and isolation stayed `0 · PASS`. |
-| 16 | Help escalation skips missing authored levels correctly | PENDING | |
-| 17 | Reduce Help | PENDING | |
-| 18 | Dismiss Help | PENDING | |
+| 16 | Help escalation skips missing authored levels correctly | PASS | Repeated Help+ on Trace & Learn advanced authored help to level 4. A further Help+ was deterministically rejected with `HELP_NOT_AVAILABLE: No higher authored help level is available for step head`; active guide was `...head-help-h4`. |
+| 17 | Reduce Help | PASS | From Help level 4, Help− moved to the next lower authored level, level 1, skipping unavailable intermediate levels. Runtime remained `HelpActive`, child history stayed empty, and the base trace overlay was restored. |
+| 18 | Dismiss Help | PASS | Dismiss Help returned the engine to `AwaitingChild · help 0` and restored the base `TRACE_MODE` guide without altering child history. |
 | 19 | Invalid Skip rejected on non-skippable step | PENDING | |
 | 20 | Valid Skip accepted on `face` step | PENDING | |
 | 21 | Invalid Done/command path rejected without state corruption | PENDING | |
@@ -63,7 +63,7 @@ Record `PASS`, `FAIL`, or `BLOCKED` plus a concise observation for every row.
 | 26 | Drawing complete reaches post-drawing choice | PENDING | |
 | 27 | Coloring handoff unavailable → returns to retryable choice | PENDING | |
 | 28 | Post-drawing state survives recreation | PENDING | |
-| 29 | Persisted child artwork contains zero TEACHER_GENERATED ink operations | PENDING | Live history remains isolated after Draw With Me, Watch Then Draw overview cancellation, Trace guide display, and Replay; persistence/relaunch proof still required. |
+| 29 | Persisted child artwork contains zero TEACHER_GENERATED ink operations | PENDING | Live history remains isolated after Draw With Me, Watch Then Draw overview cancellation, Trace guide display, Replay, and Help level 4; persistence/relaunch proof still required. |
 | 30 | Art Lab launcher still opens and draws | PENDING | |
 | 31 | Quality Lab launcher still opens | PENDING | |
 | 32 | No crash/deadlock during full matrix | PENDING | |
@@ -83,7 +83,9 @@ Current evidence:
 - Watch Then Draw after Skip Overview: `operations 0 · child ink 0`, `teacher/guide in child history: 0 · PASS`;
 - Trace & Learn with a visible `TRACE_MODE` guide: `operations 0 · child ink 0`, `teacher/guide in child history: 0 · PASS`;
 - Trace & Learn Replay completed and rehydrated the trace guide with history still `operations 0 · child ink 0`, isolation `0 · PASS`;
-- Help-level plus save/relaunch isolation audit remains **PENDING**.
+- Help level 4 displayed `guide HELP` / authored `...head-help-h4` while history remained `operations 0 · child ink 0` and isolation stayed `0 · PASS`;
+- Help− returned to authored level 1 and Dismiss Help returned to base trace mode, both with history still isolated;
+- save/relaunch isolation proof remains **PENDING**.
 
 ## Lifecycle audit
 

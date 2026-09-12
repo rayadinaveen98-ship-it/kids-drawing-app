@@ -11,17 +11,21 @@
 - Android/API: PENDING physical test confirmation
 - RAM: PENDING physical test confirmation
 - Refresh rate: PENDING physical test confirmation
-- Executable candidate commit: `670b0f81d716ca4c150d426f09ec5171f4cfbb2a`
+- Executable candidate commit: `3ab93d7a57022e543009753d033c7f538fd12441`
 - Version: `0.3.0-vertical-slice` / versionCode `13`
-- CI: Android CI #300 / run `34702119721` — **GREEN**
-- Profile artifact ID: `10300369347`
+- CI: Android CI #302 / run `34704173936` — **GREEN**
+- Profile artifact ID: `10301073060`
 - Profile artifact name: `kids-drawing-0.3.0-vertical-slice-profile`
 - APK filename: `Kids_Drawing_0.3.0_Vertical_Slice-profile.apk`
-- APK byte size: `16080882`
-- APK SHA-256: `b4ec499f221512a464ed96b269733317fe395377952e0ebec3a14e8f6246187d`
+- APK byte size: `16080880`
+- APK SHA-256: `ddf0b15b230c549788034e889330cd73e186124da2c64255ba24ef29ab87810d`
 - Tester/date: PENDING physical validation / 2026-09-12
 
-The executable candidate above is frozen for physical QA. Later documentation-only commits on this branch do not change the candidate APK and must not be substituted for this executable SHA unless a code/build change intentionally creates a replacement candidate.
+### Superseded candidate
+
+The first physical candidate `670b0f81d716ca4c150d426f09ec5171f4cfbb2a` exposed a release-blocking production layout defect: the primary `Done` action used a fill-max-size child, expanded vertically, and collapsed the weighted drawing canvas during the child turn. That candidate is not eligible for release. The replacement candidate above contains the minimal sizing hotfix and is the only executable to use for resumed physical QA.
+
+The replacement executable candidate is frozen for physical QA. Later documentation-only commits on this branch do not change the candidate APK and must not be substituted for this executable SHA unless another code/build change intentionally creates a replacement candidate.
 
 ## Required scenarios
 

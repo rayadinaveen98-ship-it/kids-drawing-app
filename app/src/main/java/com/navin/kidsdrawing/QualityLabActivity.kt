@@ -447,13 +447,19 @@ private fun QualityLabScreen(
                 color = Color(0xFF4E4A45),
             )
             Text(
+                text = "Frame card shows native-refresh JankStats and >16.7ms rate separately. On 90/120Hz devices the Phase 1 60Hz-equivalent gate uses >16.7ms plus P95/P99; native jank is recorded too.",
+                fontSize = 10.sp,
+                lineHeight = 13.sp,
+                color = Color(0xFF4E4A45),
+            )
+            Text(
                 text = "Input proxy is window-dispatch timing: a conservative upper bound, not the narrower Ink-only CPU trace.",
                 fontSize = 10.sp,
                 lineHeight = 13.sp,
                 color = Color(0xFF4E4A45),
             )
             Text(
-                text = "Class M: W1 frame P95 ≤16.7ms · P99 ≤33.4ms · jank ≤3%; input P95 ≤4ms · P99 ≤8ms; W2 save P95 ≤1000ms; load P95 ≤1500ms; undo/redo P95 ≤50ms.",
+                text = "Class M: W1 frame P95 ≤16.7ms · P99 ≤33.4ms · >16.7ms ≤3%; input P95 ≤4ms · P99 ≤8ms; W2 save P95 ≤1000ms; load P95 ≤1500ms; undo/redo P95 ≤50ms.",
                 fontSize = 10.sp,
                 lineHeight = 13.sp,
                 color = Color(0xFF4E4A45),
@@ -488,7 +494,7 @@ private fun QualityMetricsCard(
             QualityLine("workload", "$workloadStatus · ops=$operationCount ink=$activeInk")
             QualityLine(
                 "frames",
-                "n=${frameStats.frameCount} jank=${frameStats.jankFrameCount} (${format(frameStats.jankRatePercent)}%) p95=${frameStats.p95UiMillis ?: "—"}ms p99=${frameStats.p99UiMillis ?: "—"}ms max=${frameStats.maxUiMillis?.let(::format) ?: "—"}ms",
+                "n=${frameStats.frameCount} nativeJank=${frameStats.jankFrameCount} (${format(frameStats.jankRatePercent)}%) >16.7=${frameStats.over16_7FrameCount} (${format(frameStats.over16_7RatePercent)}%) p95=${frameStats.p95UiMillis ?: "—"}ms p99=${frameStats.p99UiMillis ?: "—"}ms max=${frameStats.maxUiMillis?.let(::format) ?: "—"}ms",
             )
             QualityLine(
                 "input upper",

@@ -3,10 +3,9 @@
 **Working project:** Kids Drawing App  
 **Authoritative repository:** `rayadinaveen98-ship-it/kids-drawing-app`  
 **Phase:** Phase 1 — Art Lab / Drawing Engine 0.1  
-**Foundation version:** 0.0.1  
 **Target milestone:** `0.1.0-art-lab`  
-**Latest physically verified test build:** `0.0.5-p1.6-test` / versionCode 5  
-**Current software task:** #14 / P1.7 — tests, benchmarks and recovery stress  
+**Current release version:** `0.1.0-art-lab` / versionCode 11  
+**Current software task:** #15 / P1.8 — package and verify milestone APK  
 **Last updated:** 2026-09-12
 
 ## Phase 0 — COMPLETE
@@ -23,36 +22,46 @@ Epic: **#7 — Phase 1 Art Lab / Drawing Engine 0.1**
 4. #11 — P1.4 atomic persistence/recovery — **COMPLETE**
 5. #12 — P1.5 deterministic teacher playback + five pace profiles — **COMPLETE**
 6. #13 — P1.6 Art Lab controls + debug metrics — **COMPLETE**
-7. #14 — P1.7 tests/benchmarks/recovery stress — **ACTIVE**
-8. #15 — P1.8 package/verify `0.1.0-art-lab` — **PENDING**
+7. #14 — P1.7 tests/benchmarks/recovery stress — **COMPLETE**
+8. #15 — P1.8 package/verify `0.1.0-art-lab` — **ACTIVE**
 
-## P1.6 — COMPLETE
+## P1.7 — COMPLETE
 
-PR **#21** squash-merged to `main` as `3f09716ed8db11520a6f045010a361a1819105d7` after exact head `ada65e4bdc30e2689c51e819e208d85e2b4ec2da` passed CI run **#64** (`34636448915`) and real-device verification.
+PR **#22** squash-merged to `main` as `e7cefac6a0705838f209bf591dd253618325719b` after automated, release-like profile, and physical-device quality evidence passed.
 
-Physically verified APK:
-- version: `0.0.5-p1.6-test`;
-- versionCode: `5`;
-- CI artifact ID: `10278896739`;
-- extracted APK size: `18,226,354` bytes;
-- APK SHA-256: `3ff4b1fbb3e00459d0430a6f02341b5e3170626b5d8d38647772feec200b7db3`;
-- physical result: user reported all requested P1.6 tests working correctly.
+### Physical Class-M evidence
 
-P1.6 proves one internal Art Lab can directly exercise Pencil/Eraser, color/width, New/Clear, Undo/Redo, Save/Reload, non-destructive erase masks, teacher demo/captured-stroke playback, five speeds, Pause/Resume/Replay and live diagnostics on real Android hardware.
+Device: Samsung SM-A546E, API 36, ~7.4 GB RAM, 120 Hz.
 
-## P1.7 — ACTIVE
+- input dispatch upper bound — **PASS**: P95/P99 2–3 ms;
+- W2 Save×20 — **PASS**: worst recorded P95 360 ms <= 1000 ms;
+- W2 Load→editable×20 — **PASS**: P95 500 ms <= 1500 ms;
+- W2 visible Undo/Redo×20 — **PASS** after raster/checkpoint renderer optimization: P95 19 ms / P99 36 ms;
+- W3 5,000-op document — **PASS**: opens, remains editable, no OOM/crash in physical interaction;
+- W1 committed-frame gate — **PASS**: 603 measured frames, 0 native jank, only 3 frames >16.7 ms = 0.5%;
+- 30-minute soak — **PASS**: 4,587 cycles, 0 failures, final persisted timeline verified, end memory ~55.4 MiB Java / 58.5 MiB native.
 
-Issue **#14**. Objective: turn Drawing Engine 0.1 contracts into repeatable quality evidence rather than subjective smoothness.
+P1.7 also includes deterministic host stress for large operation/sample counts, history, persistence/recovery/corruption, five-speed teacher playback, Android Ink codec instrumentation compile coverage, Quality Lab metrics, and bounded raster/checkpoint projection.
 
-Required evidence:
-- generated 2,000 and 5,000 operation stress documents;
-- repeated large undo/redo sequences;
-- repeated save/load/recovery abuse tests;
-- deterministic playback stress;
-- instrumentation/performance harness where useful;
-- frame/input/memory measurements against `docs/18_DRAWING_PERFORMANCE_GATES.md`;
-- 30-minute soak-test procedure and evidence template;
-- physical-device classes recorded as `PASS`, `FAIL`, or `PENDING-HARDWARE`.
+### Explicit non-blocking pending hardware
+
+Stylus-specific pressure/tilt/palm/inverted-eraser behavior and external instrumented input-to-visible latency remain **PENDING-HARDWARE** until suitable stylus/equipment is available. They are not silently marked PASS and do not block the finger-first Art Lab milestone.
+
+## P1.8 — ACTIVE
+
+Issue **#15**. Objective: produce the first reproducible, handoff-safe formal Art Lab milestone.
+
+Release branch: `phase1/p1.8-art-lab-release`.
+
+Required before close:
+- exact `0.1.0-art-lab` release commit;
+- CI green on that exact commit;
+- installable release-like profile APK;
+- APK size + SHA-256;
+- release notes and known limitations;
+- Git tag tied to known-good milestone commit;
+- `PROJECT_STATUS.md`, `docs/HANDOFF.md`, `CHANGELOG.md` synchronized;
+- #15 and parent Epic #7 closed only after release evidence is complete.
 
 ## Architecture invariants
 
@@ -66,7 +75,7 @@ Required evidence:
 
 ## Immediate next action
 
-Create an isolated P1.7 branch from current `main`, add deterministic stress fixtures and high-volume document/history/playback/persistence tests, then add physical benchmark/soak evidence tooling. When #14 passes its required automated and recorded hardware gates, advance to #15 / P1.8 and package the first formal `0.1.0-art-lab` APK.
+Finish the `0.1.0-art-lab` release documentation on the P1.8 branch, run final CI/profile packaging, record artifact checksums, merge the release PR, tag the known-good commit, and publish the installable milestone APK.
 
 ## Continuation rule
 

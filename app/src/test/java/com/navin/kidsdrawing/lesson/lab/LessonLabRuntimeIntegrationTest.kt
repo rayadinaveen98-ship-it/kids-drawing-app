@@ -1,5 +1,6 @@
 package com.navin.kidsdrawing.lesson.lab
 
+import com.navin.kidsdrawing.drawing.domain.EraseMaskRecord
 import com.navin.kidsdrawing.drawing.domain.InkStrokeRecord
 import com.navin.kidsdrawing.drawing.domain.PointerTool
 import com.navin.kidsdrawing.drawing.domain.StrokeAuthorRole
@@ -30,7 +31,6 @@ import java.nio.file.Files
 import java.security.MessageDigest
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -74,7 +74,11 @@ class LessonLabRuntimeIntegrationTest {
             })
             assertTrue(runtime.documentEngine.state.value.document.operations.isEmpty())
 
-            runtime.commitChildStroke(childStroke("trace-child"))
+            // Host JVM tests deliberately stop at the app-owned drawing-domain boundary here.
+            // Production AtomicDrawingDocumentStore encodes ink samples through AndroidX Ink JNI;
+            // that exact native payload path is exercised on Android, not fabricated on the host.
+            runtime.documentEngine.commitChildStroke(childStroke("trace-child"))
+            assertAccepted(runtime.dispatch(RequestHelp))
 
             val document = runtime.documentEngine.state.value.document
             assertEquals(1, document.operations.size)
@@ -129,7 +133,7 @@ class LessonLabRuntimeIntegrationTest {
     }
 
     @Test
-    fun backgroundAndProcessRecreationRestoreArtworkHelpAndGuideThroughRealStores() = runBlocking {
+    fun backgroundAndProcessRecreationRestoreDocumentHelpAndGuideThroughRealStores() = runBlocking {
         val root = newRoot()
         try {
             val first = runtime(root)
@@ -138,7 +142,23 @@ class LessonLabRuntimeIntegrationTest {
             assertAccepted(first.dispatch(RequestHelp))
             assertAccepted(first.dispatch(RequestHelp))
             assertNotNull(first.guideOverlay.value)
-            first.commitChildStroke(childStroke("persisted-child"))
+
+            // Erase-mask persistence uses the same real document envelope/store without invoking the
+            // Android-only Ink JNI payload codec, so this remains a legitimate host integration test.
+            first.commitEraseMask(
+                EraseMaskRecord(
+                    maskId = "persisted-mask",
+                    baseSize = 20f,
+                    points = listOf(
+                        StrokePoint(
+                            x = 430f,
+                            y = 420f,
+                            elapsedTimeMillis = 0L,
+                            pressure = 1f,
+                        ),
+                    ),
+                ),
+            )
             first.onBackground()
 
             val recreated = runtime(root)
@@ -196,7 +216,7 @@ class LessonLabRuntimeIntegrationTest {
     }
 
     @Test
-    fun corruptNewestSessionFallsBackToBackupWithArtworkIntact() = runBlocking {
+    fun corruptNewestSessionFallsBackToBackupWithDocumentIntact() = runBlocking {
         val root = newRoot()
         try {
             val first = runtime(root)

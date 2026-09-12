@@ -44,7 +44,6 @@ import com.navin.kidsdrawing.coloring.session.ColoringSessionMode
 import com.navin.kidsdrawing.coloring.session.ColoringSessionPhase
 import com.navin.kidsdrawing.coloring.session.ColoringSessionTool
 import com.navin.kidsdrawing.drawing.domain.DrawingSurfaceContentRole
-import com.navin.kidsdrawing.drawing.domain.activeColorStrokes
 import com.navin.kidsdrawing.drawing.ui.DrawingSurface
 import com.navin.kidsdrawing.drawing.ui.DrawingSurfaceController
 import com.navin.kidsdrawing.product.design.StudioColors

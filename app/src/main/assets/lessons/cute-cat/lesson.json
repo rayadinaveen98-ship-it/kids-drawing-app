@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "1.0",
+  "lessonId": "cute-cat",
+  "revision": 1,
+  "status": "release",
+  "minimumContentApi": 1,
+  "metadata": {
+    "titleKey": "lesson.cute_cat.title",
+    "summaryKey": "lesson.cute_cat.summary",
+    "ageBands": ["creative_explorers", "growing_artists"],
+    "difficulty": 1,
+    "estimatedMinutes": 8,
+    "categoryIds": ["animals", "pets"],
+    "skillIds": ["curves", "shape_construction", "simple_details"],
+    "journeyIds": ["animal_artist"],
+    "tags": ["cat", "beginner"]
+  },
+  "canvas": {
+    "width": 1000,
+    "height": 1000,
+    "backgroundRole": "paper_warm"
+  },
+  "supportedModes": ["draw_with_me", "watch_then_draw", "trace_and_learn"],
+  "assets": {
+    "strokeFile": "strokes.json",
+    "thumbnail": "thumbnail.svg",
+    "preview": "preview.svg",
+    "strings": {
+      "en": "strings/en.json"
+    }
+  },
+  "drawing": {
+    "steps": [
+      {
+        "id": "head",
+        "objectiveSkillIds": ["curves", "shape_construction"],
+        "teacher": {
+          "narrationKey": "lesson.cute_cat.step.head",
+          "strokeRefs": ["head-outline"],
+          "normalDurationMs": 2400
+        },
+        "childTurn": {
+          "completionPolicy": "manual_done",
+          "allowReplay": true,
+          "allowSkip": false,
+          "toolPreset": "pencil-soft",
+          "expectedStrokeRefs": ["head-outline"]
+        },
+        "help": [
+          {"level": 1, "kind": "gentle_hint", "narrationKey": "lesson.cute_cat.help.head_hint"},
+          {"level": 4, "kind": "trace_path", "guideRefs": ["guide-head"]}
+        ]
+      },
+      {
+        "id": "ears",
+        "objectiveSkillIds": ["angles", "symmetry"],
+        "teacher": {
+          "narrationKey": "lesson.cute_cat.step.ears",
+          "strokeRefs": ["ear-left", "ear-right"],
+          "normalDurationMs": 1900,
+          "playAsGroup": true
+        },
+        "childTurn": {
+          "completionPolicy": "manual_done",
+          "allowReplay": true,
+          "allowSkip": false,
+          "expectedStrokeRefs": ["ear-left", "ear-right"]
+        },
+        "help": [
+          {"level": 2, "kind": "visual_guide", "guideRefs": ["guide-ears"]},
+          {"level": 4, "kind": "trace_path", "guideRefs": ["guide-ears"]}
+        ]
+      },
+      {
+        "id": "face",
+        "objectiveSkillIds": ["simple_details", "placement"],
+        "teacher": {
+          "narrationKey": "lesson.cute_cat.step.face",
+          "strokeRefs": ["eye-left", "eye-right", "mouth"],
+          "normalDurationMs": 1800,
+          "playAsGroup": true
+        },
+        "childTurn": {
+          "completionPolicy": "manual_done",
+          "allowReplay": true,
+          "allowSkip": true,
+          "expectedStrokeRefs": ["eye-left", "eye-right", "mouth"]
+        },
+        "help": [
+          {"level": 1, "kind": "gentle_hint", "narrationKey": "lesson.cute_cat.help.face_hint"},
+          {"level": 4, "kind": "trace_path", "guideRefs": ["guide-face"]}
+        ],
+        "completionNarrationKey": "lesson.cute_cat.complete.face"
+      },
+      {
+        "id": "body_tail",
+        "objectiveSkillIds": ["curves", "proportion"],
+        "teacher": {
+          "narrationKey": "lesson.cute_cat.step.body_tail",
+          "strokeRefs": ["body", "tail"],
+          "normalDurationMs": 2800,
+          "playAsGroup": true
+        },
+        "childTurn": {
+          "completionPolicy": "manual_done",
+          "allowReplay": true,
+          "allowSkip": false,
+          "expectedStrokeRefs": ["body", "tail"]
+        },
+        "help": [
+          {"level": 3, "kind": "direction_anchors", "guideRefs": ["guide-body-tail"]},
+          {"level": 4, "kind": "trace_path", "guideRefs": ["guide-body-tail"]}
+        ],
+        "completionNarrationKey": "lesson.cute_cat.complete.drawing"
+      }
+    ]
+  },
+  "coloring": {
+    "enabled": false
+  }
+}

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -28,8 +29,6 @@ android {
 
         create("profile") {
             initWith(getByName("release"))
-            // Internal milestone/performance build: release-like runtime behavior but installable
-            // with the same trusted debug signing key used by previous Art Lab test APKs.
             signingConfig = signingConfigs.getByName("debug")
             isDebuggable = false
             isMinifyEnabled = false
@@ -61,12 +60,12 @@ dependencies {
     implementation(libs.activity.compose)
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
     implementation(libs.metrics.performance)
 
-    // Stable low-level inking substrate. Product/domain interfaces must wrap these APIs.
     implementation(libs.ink.authoring)
     implementation(libs.ink.brush)
     implementation(libs.ink.geometry)

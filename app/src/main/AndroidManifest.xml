@@ -3,36 +3,30 @@
 
     <application
         android:allowBackup="true"
-        android:label="Kids Drawing Art Lab"
+        android:label="Kids Drawing"
         android:supportsRtl="true"
         android:theme="@style/Theme.KidsDrawingArtLab">
         <activity
-            android:name=".LessonLabActivity"
+            android:name=".ProductActivity"
             android:exported="true"
-            android:label="Kids Drawing Lesson Lab">
+            android:label="Kids Drawing">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".LessonLabActivity"
+            android:exported="true"
+            android:label="Kids Drawing Lesson Lab" />
         <activity
             android:name=".QualityLabActivity"
             android:exported="true"
-            android:label="Kids Drawing Quality Lab">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:label="Kids Drawing Quality Lab" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="Kids Drawing Art Lab">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:label="Kids Drawing Art Lab" />
     </application>
 
 </manifest>

@@ -489,7 +489,7 @@ fun StudioPlaceholderRoute(
     modifier: Modifier = Modifier,
 ) {
     val title = when (destination) {
-        StudioDestination.LESSON_START -> "Lesson preview"
+        StudioDestination.LESSON_START -> "Cute Cat"
         StudioDestination.LESSON_RESUME -> "Continue Drawing"
         StudioDestination.ART_JOURNEY -> "Animal Artist"
         StudioDestination.FREE_DRAW -> "Free Draw"
@@ -498,12 +498,12 @@ fun StudioPlaceholderRoute(
         StudioDestination.HOME -> "Studio"
     }
     val body = when (destination) {
-        StudioDestination.LESSON_START -> "Your lesson choice is ready. The production lesson preview arrives in P3.3."
-        StudioDestination.LESSON_RESUME -> "Your saved lesson is still there. P3.3 connects this route to the production guided workspace."
-        StudioDestination.ART_JOURNEY -> "A curated drawing journey will grow here without turning Home into a content feed."
-        StudioDestination.FREE_DRAW -> "The Free Draw studio route is reserved and ready for its creation slice."
-        StudioDestination.GALLERY -> "Your personal art wall will appear here when Gallery lands in P3.5."
-        StudioDestination.PARENT_ZONE -> "Profile, audio and safety controls will live here behind the parent flow."
+        StudioDestination.LESSON_START -> "Your Cute Cat lesson is picked and ready for its drawing room."
+        StudioDestination.LESSON_RESUME -> "Your saved drawing is safe and ready for you to continue."
+        StudioDestination.ART_JOURNEY -> "A calm path of animal drawings will grow here as your studio grows."
+        StudioDestination.FREE_DRAW -> "A clean page for your own ideas will open here."
+        StudioDestination.GALLERY -> "This will become your personal wall of saved artwork."
+        StudioDestination.PARENT_ZONE -> "Profile, sound and safety settings belong in this quiet grown-ups area."
         StudioDestination.HOME -> "Back to your studio."
     }
 

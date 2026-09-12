@@ -36,15 +36,15 @@ Record `PASS`, `FAIL`, or `BLOCKED` plus a concise observation for every row.
 | # | Scenario | Result | Observation / evidence |
 |---|---|---|---|
 | 1 | Launch Lesson Lab and load bundled Cute Cat | PASS | Responsive merged-main APK launches on Samsung SM-A546E; `Loaded cute-cat r1`; initial state `No session`; no crash; isolation diagnostic `0 · PASS`. |
-| 2 | Start Draw With Me | PENDING | |
+| 2 | Start Draw With Me | PASS | Started in Draw With Me on device; teacher playback completed and engine reached `AwaitingChild` on step `head`. |
 | 3 | Start Watch Then Draw | PENDING | |
 | 4 | Start Trace & Learn | PENDING | |
 | 5 | EXTRA_SLOW 0.4× playback | PENDING | |
 | 6 | SLOW 0.7× playback | PENDING | |
-| 7 | NORMAL 1× playback | PENDING | |
+| 7 | NORMAL 1× playback | PASS | Draw With Me at Normal 1.0× completed teacher playback on device; runtime reported `playback COMPLETED`. |
 | 8 | FAST 1.5× playback | PENDING | |
 | 9 | VERY_FAST 2× playback | PENDING | |
-| 10 | Draw With Me teacher demo → child stroke → next step | PENDING | |
+| 10 | Draw With Me teacher demo → child stroke → next step | PENDING | Teacher demo → child turn → one child stroke is physically proven (`operations 1 · child ink 1`); next-step advancement still needs physical evidence. |
 | 11 | Watch overview Pause → Resume | PENDING | |
 | 12 | Watch overview Skip → child pass | PENDING | |
 | 13 | Trace guide visible during child turn | PENDING | |
@@ -63,7 +63,7 @@ Record `PASS`, `FAIL`, or `BLOCKED` plus a concise observation for every row.
 | 26 | Drawing complete reaches post-drawing choice | PENDING | |
 | 27 | Coloring handoff unavailable → returns to retryable choice | PENDING | |
 | 28 | Post-drawing state survives recreation | PENDING | |
-| 29 | Persisted child artwork contains zero TEACHER_GENERATED ink operations | PENDING | |
+| 29 | Persisted child artwork contains zero TEACHER_GENERATED ink operations | PENDING | Current live history remains isolated after one child stroke: `teacher/guide in child history: 0 · PASS`; persistence/relaunch proof still required. |
 | 30 | Art Lab launcher still opens and draws | PENDING | |
 | 31 | Quality Lab launcher still opens | PENDING | |
 | 32 | No crash/deadlock during full matrix | PENDING | |
@@ -77,7 +77,10 @@ At least once in Trace & Learn and once after Help level 4:
 - save/background/relaunch;
 - confirm child operation history still contains only child-authored ink plus child erase/clear operations.
 
-Current evidence: launch/idle diagnostic is `0 · PASS`; full Trace/Help isolation audit remains **PENDING**.
+Current evidence:
+- launch/idle diagnostic: `0 · PASS`;
+- Draw With Me after one committed child stroke: `operations 1 · child ink 1`, `teacher/guide in child history: 0 · PASS`;
+- full Trace/Help plus save/relaunch isolation audit remains **PENDING**.
 
 ## Lifecycle audit
 

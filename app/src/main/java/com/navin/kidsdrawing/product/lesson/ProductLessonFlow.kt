@@ -1,6 +1,7 @@
 package com.navin.kidsdrawing.product.lesson
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -36,6 +37,7 @@ fun ProductLessonFlow(
     var modeName by rememberSaveable { mutableStateOf(recommendation.defaultMode.name) }
     var paceName by rememberSaveable { mutableStateOf(recommendation.defaultPace.name) }
     var startFreshRequested by rememberSaveable { mutableStateOf(!resumeRequested) }
+    val coloringSessionState by coloringRuntime.sessionState.collectAsState()
     val stage = runCatching { ProductLessonStage.valueOf(stageName) }
         .getOrDefault(ProductLessonStage.PREVIEW)
     val mode = runCatching { TeachingMode.valueOf(modeName) }
@@ -75,7 +77,7 @@ fun ProductLessonFlow(
             ageBand = profile.ageBand,
             // After Activity/process recreation the saveable stage survives but the in-memory
             // runtime does not; the screen therefore restores from the semantic coloring store.
-            recoverRequested = coloringRuntime.sessionState.value == null,
+            recoverRequested = coloringSessionState == null,
             onExitToHome = onExitToHome,
         )
     }

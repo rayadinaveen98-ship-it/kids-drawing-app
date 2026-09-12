@@ -11,8 +11,8 @@ android {
         applicationId = "com.navin.kidsdrawing"
         minSdk = 23
         targetSdk = 36
-        versionCode = 7
-        versionName = "0.0.7-p1.7-fix-test"
+        versionCode = 8
+        versionName = "0.0.8-p1.7-raster-profile-test"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -24,6 +24,16 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+        }
+
+        create("profile") {
+            initWith(getByName("release"))
+            // Internal physical-performance build: release-like runtime behavior but installable
+            // with the same trusted debug signing key used by previous Art Lab test APKs.
+            signingConfig = signingConfigs.getByName("debug")
+            isDebuggable = false
+            isMinifyEnabled = false
+            matchingFallbacks += listOf("release")
         }
     }
 

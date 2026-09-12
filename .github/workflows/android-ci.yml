@@ -50,7 +50,7 @@ jobs:
       - name: Unit tests, lint, debug APK, instrumentation APK, and profile APK compile
         run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleProfile
 
-      - name: Verify Art Lab APK permission allowlist
+      - name: Verify milestone APK permission allowlist
         shell: bash
         run: |
           set -euo pipefail
@@ -71,7 +71,7 @@ jobs:
 
             for permission in "${REQUESTED_PERMISSIONS[@]}"; do
               if [[ "$permission" != "$ALLOWED_PERMISSION" ]]; then
-                echo "Unexpected Android permission detected in Art Lab APK: $permission"
+                echo "Unexpected Android permission detected in milestone APK: $permission"
                 exit 1
               fi
             done
@@ -79,18 +79,46 @@ jobs:
 
           echo "Permission allowlist passed for debug and profile APKs."
 
-      - name: Upload debug APK
+      - name: Package Lesson Engine 0.2 APK evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          EVIDENCE_DIR="app/build/outputs/milestone/0.2.0-lesson-engine"
+          mkdir -p "$EVIDENCE_DIR"
+          cp app/build/outputs/apk/debug/app-debug.apk \
+            "$EVIDENCE_DIR/Kids_Drawing_0.2.0_Lesson_Engine-debug.apk"
+          cp app/build/outputs/apk/profile/app-profile.apk \
+            "$EVIDENCE_DIR/Kids_Drawing_0.2.0_Lesson_Engine-profile.apk"
+          (
+            cd "$EVIDENCE_DIR"
+            sha256sum \
+              Kids_Drawing_0.2.0_Lesson_Engine-debug.apk \
+              Kids_Drawing_0.2.0_Lesson_Engine-profile.apk \
+              | tee SHA256SUMS.txt
+            stat -c '%n %s bytes' \
+              Kids_Drawing_0.2.0_Lesson_Engine-debug.apk \
+              Kids_Drawing_0.2.0_Lesson_Engine-profile.apk \
+              | tee APK_SIZES.txt
+          )
+
+      - name: Upload Lesson Engine 0.2 debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-art-lab-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: kids-drawing-0.2.0-lesson-engine-debug
+          path: |
+            app/build/outputs/milestone/0.2.0-lesson-engine/Kids_Drawing_0.2.0_Lesson_Engine-debug.apk
+            app/build/outputs/milestone/0.2.0-lesson-engine/SHA256SUMS.txt
+            app/build/outputs/milestone/0.2.0-lesson-engine/APK_SIZES.txt
           if-no-files-found: error
           retention-days: 14
 
-      - name: Upload release-like profile APK
+      - name: Upload Lesson Engine 0.2 release-like profile APK
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-quality-lab-profile
-          path: app/build/outputs/apk/profile/app-profile.apk
+          name: kids-drawing-0.2.0-lesson-engine-profile
+          path: |
+            app/build/outputs/milestone/0.2.0-lesson-engine/Kids_Drawing_0.2.0_Lesson_Engine-profile.apk
+            app/build/outputs/milestone/0.2.0-lesson-engine/SHA256SUMS.txt
+            app/build/outputs/milestone/0.2.0-lesson-engine/APK_SIZES.txt
           if-no-files-found: error
           retention-days: 14

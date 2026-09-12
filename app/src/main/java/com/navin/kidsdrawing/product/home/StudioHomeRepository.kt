@@ -10,6 +10,7 @@ import com.navin.kidsdrawing.product.profile.ChildProfile
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 /**
@@ -81,7 +82,7 @@ class StudioHomeRepository(context: Context) {
 
     private fun String.toDisplayTitle(): String = split('-', '_')
         .filter(String::isNotBlank)
-        .joinToString(" ") { token -> token.replaceFirstChar(Char::uppercaseChar) }
+        .joinToString(" ") { token -> token.replaceFirstChar { it.uppercaseChar() } }
 
     private companion object {
         const val P2_SESSION_DIRECTORY = "lesson-lab-sessions"

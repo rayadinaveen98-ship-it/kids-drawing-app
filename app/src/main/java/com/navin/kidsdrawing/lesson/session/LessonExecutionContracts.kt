@@ -2,12 +2,27 @@ package com.navin.kidsdrawing.lesson.session
 
 import com.navin.kidsdrawing.drawing.domain.TeacherStrokeSequence
 import com.navin.kidsdrawing.drawing.domain.TeachingPace
+import com.navin.kidsdrawing.lesson.assistance.GuideOverlayRequest
+import com.navin.kidsdrawing.lesson.model.HelpKind
 
 data object ReplayDemonstration : LessonCommand
 
 data object MarkChildTurnDone : LessonCommand
 
 data object SkipStep : LessonCommand
+
+data object SkipOverview : LessonCommand
+
+data object RequestHelp : LessonCommand
+
+data object ReduceHelp : LessonCommand
+
+data object DismissHelp : LessonCommand
+
+enum class TeacherPlaybackScope {
+    STEP,
+    OVERVIEW,
+}
 
 data class TeacherPlaybackRequest(
     val requestId: String,
@@ -16,6 +31,7 @@ data class TeacherPlaybackRequest(
     val pace: TeachingPace,
     val replay: Boolean,
     val narrationKey: String?,
+    val scope: TeacherPlaybackScope = TeacherPlaybackScope.STEP,
 ) {
     init {
         require(requestId.isNotBlank()) { "requestId cannot be blank." }
@@ -94,6 +110,30 @@ data class TeacherPlaybackCancelRequested(
 data class TeacherPlaybackFailureObserved(
     val requestId: String,
     val reason: String,
+) : LessonSessionEvent
+
+data class OverviewStarted(
+    val requestId: String,
+) : LessonSessionEvent
+
+data object OverviewCompleted : LessonSessionEvent
+
+data object OverviewSkipped : LessonSessionEvent
+
+data class GuideOverlayRequested(
+    val request: GuideOverlayRequest,
+) : LessonSessionEvent
+
+data class GuideOverlayCleared(
+    val stepId: String,
+) : LessonSessionEvent
+
+data class HelpLevelChanged(
+    val stepId: String,
+    val previousLevel: Int,
+    val currentLevel: Int,
+    val kind: HelpKind?,
+    val narrationKey: String?,
 ) : LessonSessionEvent
 
 data class ChildTurnStarted(

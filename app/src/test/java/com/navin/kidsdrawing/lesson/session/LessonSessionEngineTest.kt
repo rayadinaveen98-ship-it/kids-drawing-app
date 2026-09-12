@@ -43,7 +43,7 @@ class LessonSessionEngineTest {
     }
 
     @Test
-    fun traceModeRetainsPreparingStepBoundaryAcrossAllPacesUntilP24() {
+    fun traceModeStartsTeacherImmediatelyAcrossAllPaces() {
         TeachingPace.entries.forEach { pace ->
             val engine = engine()
 
@@ -52,12 +52,16 @@ class LessonSessionEngineTest {
             )
 
             assertTrue(result is LessonCommandResult.Accepted)
-            val state = engine.state as LessonSessionState.PreparingStep
+            result as LessonCommandResult.Accepted
+            val state = engine.state as LessonSessionState.TeacherDemonstrating
             assertEquals(TeachingMode.TRACE_AND_LEARN, state.context.mode)
             assertEquals(pace, state.context.pace)
             assertEquals(0, state.context.currentStepIndex)
             assertEquals("head", state.context.currentStepId)
             assertTrue(state.context.overviewCompleted)
+            val request = result.events.filterIsInstance<TeacherPlaybackRequested>().single().request
+            assertEquals("head", request.stepId)
+            assertEquals(pace, request.pace)
         }
     }
 

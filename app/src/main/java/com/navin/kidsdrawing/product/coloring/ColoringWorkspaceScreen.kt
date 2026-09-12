@@ -44,12 +44,14 @@ import com.navin.kidsdrawing.coloring.session.ColoringSessionMode
 import com.navin.kidsdrawing.coloring.session.ColoringSessionPhase
 import com.navin.kidsdrawing.coloring.session.ColoringSessionTool
 import com.navin.kidsdrawing.drawing.domain.DrawingSurfaceContentRole
+import com.navin.kidsdrawing.drawing.domain.activeColorStrokes
 import com.navin.kidsdrawing.drawing.ui.DrawingSurface
 import com.navin.kidsdrawing.drawing.ui.DrawingSurfaceController
 import com.navin.kidsdrawing.product.design.StudioColors
 import com.navin.kidsdrawing.product.design.densityPolicyFor
 import com.navin.kidsdrawing.product.profile.AgeBand
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @Composable
 fun ColoringWorkspaceScreen(
@@ -57,17 +59,21 @@ fun ColoringWorkspaceScreen(
     ageBand: AgeBand,
     recoverRequested: Boolean,
     onExitToHome: () -> Unit,
+    onFinishColoring: suspend () -> Boolean,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
     val density = densityPolicyFor(ageBand)
+    val workspaceTarget = density.minimumTouchTarget.coerceAtMost(58.dp)
     val surfaceController = remember { DrawingSurfaceController() }
     val documentState by runtime.documentEngine.state.collectAsState()
     val toolSettings by runtime.toolEngine.state.collectAsState()
     val sessionState by runtime.sessionState.collectAsState()
     var ready by remember { mutableStateOf(!recoverRequested && sessionState != null) }
     var startupMessage by remember { mutableStateOf<String?>(null) }
+    var finishing by remember { mutableStateOf(false) }
+    var finishMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(runtime, recoverRequested) {
         if (recoverRequested) {
@@ -124,10 +130,10 @@ fun ColoringWorkspaceScreen(
                     .fillMaxSize()
                     .safeDrawingPadding()
                     .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(7.dp),
             ) {
                 ColoringTopBar(
-                    minimumControlHeight = density.minimumTouchTarget,
+                    minimumControlHeight = workspaceTarget,
                     onSaveAndLeave = {
                         scope.launch {
                             runtime.saveNow()
@@ -138,6 +144,7 @@ fun ColoringWorkspaceScreen(
 
                 ColoringCompanionCard(
                     mode = semantic?.mode ?: ColoringSessionMode.COLOR_MYSELF,
+                    colorStrokeCount = documentState.document.activeColorStrokes().size,
                 )
 
                 Surface(
@@ -171,7 +178,7 @@ fun ColoringWorkspaceScreen(
                 if (semantic?.phase == ColoringSessionPhase.ACTIVE) {
                     ColorPalette(
                         selectedColorArgb = semantic.selectedColorArgb,
-                        minimumTarget = density.minimumTouchTarget,
+                        minimumTarget = workspaceTarget,
                         onSelect = { color -> scope.launch { runtime.selectColor(color) } },
                     )
                     ColoringTools(
@@ -180,21 +187,36 @@ fun ColoringWorkspaceScreen(
                         ageBand = ageBand,
                         canUndo = documentState.canUndoColoring,
                         canRedo = documentState.canRedoColoring,
-                        minimumTarget = density.minimumTouchTarget,
+                        minimumTarget = workspaceTarget,
                         onBrush = { scope.launch { runtime.selectTool(ColoringSessionTool.BRUSH) } },
                         onEraser = { scope.launch { runtime.selectTool(ColoringSessionTool.ERASER) } },
                         onSize = { width -> scope.launch { runtime.setBrushWidth(width) } },
                         onUndo = { scope.launch { runtime.undo() } },
                         onRedo = { scope.launch { runtime.redo() } },
                     )
+                    finishMessage?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = StudioColors.Coral500,
+                        )
+                    }
                     ColoringActionButton(
-                        label = "Finish coloring",
+                        label = if (finishing) "Saving artwork…" else "Finish coloring",
                         primary = true,
-                        minimumHeight = density.minimumTouchTarget,
+                        enabled = !finishing,
+                        minimumHeight = workspaceTarget,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
+                        if (finishing) return@ColoringActionButton
+                        finishing = true
+                        finishMessage = null
                         scope.launch {
-                            if (runtime.finish()) onExitToHome()
+                            val saved = runCatching { onFinishColoring() }.getOrDefault(false)
+                            if (!saved) {
+                                finishing = false
+                                finishMessage = "We couldn’t save yet. Your coloring is still safe."
+                            }
                         }
                     }
                 }
@@ -239,14 +261,29 @@ private fun ColoringTopBar(
 }
 
 @Composable
-private fun ColoringCompanionCard(mode: ColoringSessionMode) {
+private fun ColoringCompanionCard(
+    mode: ColoringSessionMode,
+    colorStrokeCount: Int,
+) {
+    val instruction = when (mode) {
+        ColoringSessionMode.COLOR_MYSELF ->
+            "Your colors, your way. The drawing lines stay safe while you experiment."
+        ColoringSessionMode.COLOR_WITH_ME -> when {
+            colorStrokeCount == 0 ->
+                "Step 1 of 3 · Pick a color and fill one part of your cat. Start anywhere you like."
+            colorStrokeCount < 3 ->
+                "Step 2 of 3 · Nice start. Pick another color and add it to a different part."
+            else ->
+                "Step 3 of 3 · Add any finishing colors you want, then save your artwork."
+        }
+    }
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
         color = StudioColors.Paper100,
         border = BorderStroke(1.dp, StudioColors.Line200),
     ) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
             Text(
                 text = if (mode == ColoringSessionMode.COLOR_WITH_ME) "COLOR WITH ME" else "YOUR COLORS",
                 style = MaterialTheme.typography.bodyMedium,
@@ -254,11 +291,7 @@ private fun ColoringCompanionCard(mode: ColoringSessionMode) {
                 color = StudioColors.Studio600,
             )
             Text(
-                text = if (mode == ColoringSessionMode.COLOR_WITH_ME) {
-                    "Try one area at a time. Pick any color you like — I’ll stay with you."
-                } else {
-                    "Your colors, your way. The drawing lines stay safe while you experiment."
-                },
+                text = instruction,
                 modifier = Modifier.padding(top = 2.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = StudioColors.Ink700,
@@ -281,7 +314,7 @@ private fun ColorPalette(
         0xFF6C9CB8.toInt(),
         0xFF9A83B8.toInt(),
     )
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
         Text(
             text = "Colors",
             style = MaterialTheme.typography.bodyMedium,
@@ -297,7 +330,7 @@ private fun ColorPalette(
                     val index = rowIndex * 3 + columnIndex
                     Surface(
                         modifier = Modifier
-                            .size(minimumTarget.coerceAtMost(68.dp))
+                            .size(minimumTarget)
                             .clip(CircleShape)
                             .semantics {
                                 contentDescription = "Color ${index + 1}${if (argb == selectedColorArgb) ", selected" else ""}"
@@ -336,10 +369,14 @@ private fun ColoringTools(
         AgeBand.GROWING_ARTIST -> listOf(24f, 38f, 56f)
         AgeBand.YOUNG_ARTIST -> listOf(18f, 32f, 48f)
     }
-    Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+    val sizeLabels = listOf("Small", "Medium", "Large")
+    val currentSizeIndex = sizes.indices.minByOrNull { index -> abs(brushWidth - sizes[index]) } ?: 1
+    val nextSizeIndex = (currentSizeIndex + 1) % sizes.size
+
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(7.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             ColoringActionButton(
                 label = if (selectedTool == ColoringSessionTool.BRUSH) "✓ Brush" else "Brush",
@@ -353,10 +390,15 @@ private fun ColoringTools(
                 modifier = Modifier.weight(1f),
                 onClick = onEraser,
             )
+            ColoringActionButton(
+                label = "Size: ${sizeLabels[currentSizeIndex]}",
+                minimumHeight = minimumTarget,
+                modifier = Modifier.weight(1f),
+            ) { onSize(sizes[nextSizeIndex]) }
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(7.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             ColoringActionButton(
                 label = "Undo",
@@ -372,19 +414,6 @@ private fun ColoringTools(
                 modifier = Modifier.weight(1f),
                 onClick = onRedo,
             )
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(7.dp),
-        ) {
-            sizes.forEachIndexed { index, width ->
-                val selected = kotlin.math.abs(brushWidth - width) < 1f
-                ColoringActionButton(
-                    label = "${if (selected) "✓ " else ""}${listOf("Small", "Medium", "Large")[index]}",
-                    minimumHeight = minimumTarget,
-                    modifier = Modifier.weight(1f),
-                ) { onSize(width) }
-            }
         }
     }
 }
@@ -409,7 +438,9 @@ private fun ColoringActionButton(
             TextButton(
                 onClick = onClick,
                 enabled = enabled,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = minimumHeight),
             ) {
                 Text(
                     label,

@@ -120,6 +120,9 @@ data object OverviewCompleted : LessonSessionEvent
 
 data object OverviewSkipped : LessonSessionEvent
 
+/** Clear any pre-recreation teacher/trace/help runtime overlays before deterministic rehydration. */
+data object LessonRuntimeResetRequested : LessonSessionEvent
+
 data class GuideOverlayRequested(
     val request: GuideOverlayRequest,
 ) : LessonSessionEvent

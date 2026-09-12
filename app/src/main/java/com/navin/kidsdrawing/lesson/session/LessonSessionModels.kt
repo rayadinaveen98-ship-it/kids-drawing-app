@@ -216,13 +216,19 @@ data class LessonSessionSnapshot(
     val pace: TeachingPace? = null,
     val phase: LessonSnapshotPhase,
     val pausedResumePhase: LessonSnapshotPhase? = null,
+    val transientRuntimePhase: LessonSnapshotPhase? = null,
     val currentStepIndex: Int? = null,
     val currentStepId: String? = null,
     val helpLevel: Int = 0,
     val overviewCompleted: Boolean = false,
     val finishReason: LessonFinishReason? = null,
+    val runtimeGeneration: Int = 0,
     val savedAtEpochMillis: Long,
 ) {
+    init {
+        require(runtimeGeneration >= 0) { "runtimeGeneration cannot be negative." }
+    }
+
     companion object {
         const val CURRENT_FORMAT_VERSION = 1
     }
@@ -246,6 +252,8 @@ enum class LessonRestoreIncompatibilityCode {
     INVALID_STEP,
     INVALID_HELP_LEVEL,
     INVALID_PAUSED_PHASE,
+    INVALID_TRANSIENT_PHASE,
+    INVALID_RUNTIME_GENERATION,
 }
 
 data class LessonRestoreIncompatibility(

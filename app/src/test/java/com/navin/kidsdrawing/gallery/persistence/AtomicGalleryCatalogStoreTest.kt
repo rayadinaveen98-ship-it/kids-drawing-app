@@ -5,9 +5,11 @@ import com.navin.kidsdrawing.gallery.domain.GalleryArtworkSource
 import com.navin.kidsdrawing.gallery.domain.GalleryCompletionKind
 import com.navin.kidsdrawing.gallery.domain.GalleryPreviewStatus
 import java.io.File
+import java.io.IOException
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -53,6 +55,32 @@ class AtomicGalleryCatalogStoreTest {
             loaded as AtomicGalleryCatalogStore.LoadResult.Loaded
             assertEquals(AtomicGalleryCatalogStore.LoadSource.BACKUP, loaded.source)
             assertEquals(listOf("first"), loaded.catalog.records.map { it.entryId })
+        }
+    }
+
+    @Test
+    fun failedMutationAfterBackupRecoveryPreservesLastKnownGoodCatalog() = withTempDirectory { root ->
+        runBlocking {
+            val healthy = AtomicGalleryCatalogStore(root)
+            healthy.upsert(record("first", completedAt = 1_000L))
+            healthy.upsert(record("second", completedAt = 2_000L))
+            File(root, "gallery.kgc").writeText("corrupt")
+
+            val failing = AtomicGalleryCatalogStore(
+                rootDirectory = root,
+                faultInjector = { stage ->
+                    if (stage == AtomicGalleryCatalogStore.SaveStage.BACKUP_READY) {
+                        throw IOException("injected recovery mutation failure")
+                    }
+                },
+            )
+            assertThrows(IOException::class.java) {
+                runBlocking { failing.upsert(record("third", completedAt = 3_000L)) }
+            }
+
+            val recovered = AtomicGalleryCatalogStore(root).load()
+                as AtomicGalleryCatalogStore.LoadResult.Loaded
+            assertEquals(listOf("first"), recovered.catalog.records.map { it.entryId })
         }
     }
 

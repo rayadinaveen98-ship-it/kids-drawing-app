@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.navin.kidsdrawing.drawing.domain.TeachingPace
 import com.navin.kidsdrawing.lesson.model.LessonRuntimePackage
@@ -55,6 +56,7 @@ fun LessonPreviewScreen(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val layout = lessonLayoutPolicyFor(profile.ageBand)
     val supportedModes = packageData?.lesson?.supportedModes.orEmpty().ifEmpty {
         listOf(recommendation.defaultMode)
     }
@@ -75,8 +77,8 @@ fun LessonPreviewScreen(
                 .fillMaxSize()
                 .safeDrawingPadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 22.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp),
+                .padding(horizontal = layout.horizontalGutter, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(layout.sectionGap),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -85,7 +87,7 @@ fun LessonPreviewScreen(
                 TextButton(
                     onClick = onBack,
                     modifier = Modifier
-                        .heightIn(min = 48.dp)
+                        .heightIn(min = layout.minimumControlHeight)
                         .semantics { contentDescription = "Back to studio home" },
                 ) {
                     Text("← Studio", color = StudioColors.Ink700)
@@ -108,11 +110,11 @@ fun LessonPreviewScreen(
                 color = StudioColors.Paper100,
                 border = BorderStroke(1.dp, StudioColors.Line200),
             ) {
-                Column(modifier = Modifier.padding(22.dp)) {
+                Column(modifier = Modifier.padding(if (profile.ageBand.maxAge <= 7) 22.dp else 18.dp)) {
                     CuteCatLessonArt(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .aspectRatio(1.55f),
+                            .aspectRatio(if (profile.ageBand.maxAge <= 7) 1.55f else 1.8f),
                     )
                     Text(
                         text = recommendation.title,
@@ -150,6 +152,7 @@ fun LessonPreviewScreen(
                         subtitle = mode.previewSubtitle(),
                         selected = mode == selectedMode,
                         onClick = { selectedModeName = mode.name },
+                        minimumHeight = layout.optionCardMinHeight,
                     )
                 }
             }
@@ -170,6 +173,7 @@ fun LessonPreviewScreen(
                                 selected = pace == selectedPace,
                                 onClick = { selectedPaceName = pace.name },
                                 modifier = Modifier.weight(1f),
+                                minimumHeight = layout.optionCardMinHeight,
                             )
                         }
                         if (rowPaces.size == 1) Spacer(modifier = Modifier.weight(1f))
@@ -210,9 +214,11 @@ fun LessonPreviewScreen(
             StudioPrimaryButton(
                 text = "Start drawing",
                 onClick = { onBegin(selectedMode, selectedPace) },
-                modifier = Modifier.semantics {
-                    contentDescription = "Start ${recommendation.title} with ${selectedMode.previewTitle()}"
-                },
+                modifier = Modifier
+                    .heightIn(min = layout.minimumControlHeight)
+                    .semantics {
+                        contentDescription = "Start ${recommendation.title} with ${selectedMode.previewTitle()}"
+                    },
             )
             Spacer(modifier = Modifier.size(12.dp))
         }
@@ -239,11 +245,12 @@ private fun LessonOptionCard(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    minimumHeight: Dp = 62.dp,
 ) {
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 62.dp)
+            .heightIn(min = minimumHeight)
             .semantics { contentDescription = "$title. $subtitle${if (selected) ". Selected" else ""}" }
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(18.dp),

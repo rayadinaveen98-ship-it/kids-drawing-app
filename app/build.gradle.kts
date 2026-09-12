@@ -11,8 +11,8 @@ android {
         applicationId = "com.navin.kidsdrawing"
         minSdk = 23
         targetSdk = 36
-        versionCode = 10
-        versionName = "0.0.10-p1.7-soak-profile-test"
+        versionCode = 11
+        versionName = "0.1.0-art-lab"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -28,7 +28,7 @@ android {
 
         create("profile") {
             initWith(getByName("release"))
-            // Internal physical-performance build: release-like runtime behavior but installable
+            // Internal milestone/performance build: release-like runtime behavior but installable
             // with the same trusted debug signing key used by previous Art Lab test APKs.
             signingConfig = signingConfigs.getByName("debug")
             isDebuggable = false

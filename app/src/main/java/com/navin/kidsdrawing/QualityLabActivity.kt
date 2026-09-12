@@ -8,6 +8,7 @@ import android.os.Debug
 import android.os.SystemClock
 import android.view.Display
 import android.view.MotionEvent
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -72,6 +73,7 @@ class QualityLabActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         val documentEngine = DrawingDocumentEngine(
             initialDocument = DrawingDocumentEngine.newDocument(documentId = QUALITY_BLANK_DOCUMENT_ID),
@@ -338,6 +340,90 @@ private fun QualityLabScreen(
         }
     }
 
+    fun runSoak30m() {
+        if (busy) return
+        scope.launch {
+            busy = true
+            onWorkloadChanged("Soak30m")
+            workloadStatus = "SOAK preparing W2…"
+
+            val startedAt = SystemClock.elapsedRealtime()
+            val deadline = startedAt + SOAK_DURATION_MILLIS
+            val initialMemory = currentMemorySnapshot()
+            var peakJavaMiB = initialMemory.javaUsedMiB
+            var peakNativeMiB = initialMemory.nativeAllocatedMiB
+            var cycles = 0
+            var failures = 0
+
+            try {
+                val generated = withContext(Dispatchers.Default) { ArtLabQualityWorkloadFactory.w2() }
+                val soakDocument = generated.copy(documentId = QUALITY_SOAK_DOCUMENT_ID)
+                documentEngine.replaceDocument(soakDocument)
+                controller.reconcileDocument(soakDocument)
+                withFrameNanos { }
+                store.save(soakDocument)
+
+                while (SystemClock.elapsedRealtime() < deadline && failures == 0) {
+                    when (cycles % 4) {
+                        0 -> {
+                            check(documentEngine.undo())
+                            controller.reconcileDocument(documentEngine.state.value.document)
+                            withFrameNanos { }
+                            check(documentEngine.redo())
+                            controller.reconcileDocument(documentEngine.state.value.document)
+                            withFrameNanos { }
+                        }
+                        1 -> {
+                            store.save(documentEngine.state.value.document)
+                        }
+                        2 -> {
+                            val loaded = checkNotNull(store.load(QUALITY_SOAK_DOCUMENT_ID))
+                            documentEngine.replaceDocument(loaded.document)
+                            controller.reconcileDocument(loaded.document)
+                            withFrameNanos { }
+                        }
+                        else -> {
+                            repeat(4) {
+                                controller.invalidateCommittedProjectionForBenchmark()
+                                withFrameNanos { }
+                            }
+                        }
+                    }
+
+                    cycles++
+                    val memory = currentMemorySnapshot()
+                    peakJavaMiB = maxOf(peakJavaMiB, memory.javaUsedMiB)
+                    peakNativeMiB = maxOf(peakNativeMiB, memory.nativeAllocatedMiB)
+                    val elapsedMinutes = (SystemClock.elapsedRealtime() - startedAt) / 60_000L
+                    workloadStatus =
+                        "SOAK running ${elapsedMinutes}m/30m · cycles=$cycles · failures=$failures"
+                    delay(SOAK_CYCLE_DELAY_MILLIS)
+                }
+
+                val current = documentEngine.state.value.document
+                store.save(current)
+                val finalLoad = checkNotNull(store.load(QUALITY_SOAK_DOCUMENT_ID))
+                check(finalLoad.document.operations == current.operations) {
+                    "final persisted operation timeline mismatch"
+                }
+                documentEngine.replaceDocument(finalLoad.document)
+                controller.reconcileDocument(finalLoad.document)
+                withFrameNanos { }
+
+                val endMemory = currentMemorySnapshot()
+                workloadStatus =
+                    "SOAK PASS · 30m · cycles=$cycles · failures=0 · java ${format(initialMemory.javaUsedMiB)}→${format(endMemory.javaUsedMiB)}MiB peak=${format(peakJavaMiB)} · native ${format(initialMemory.nativeAllocatedMiB)}→${format(endMemory.nativeAllocatedMiB)}MiB peak=${format(peakNativeMiB)}"
+            } catch (t: Throwable) {
+                failures++
+                workloadStatus =
+                    "SOAK FAIL · cycle=$cycles · ${t::class.java.simpleName}: ${t.message ?: "no message"}"
+            } finally {
+                memoryStats = currentMemorySnapshot()
+                busy = false
+            }
+        }
+    }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color(0xFFFFFDF8),
@@ -426,6 +512,9 @@ private fun QualityLabScreen(
                 ) {
                     Text("W1 Frame×600", maxLines = 1)
                 }
+                OutlinedButton(enabled = !busy, onClick = ::runSoak30m) {
+                    Text("Soak 30m", maxLines = 1)
+                }
                 OutlinedButton(enabled = !busy, onClick = ::runSave20) {
                     Text("Save×20", maxLines = 1)
                 }
@@ -488,6 +577,12 @@ private fun QualityLabScreen(
             )
             Text(
                 text = "During W1 Frame×600 the frame card measures the committed raster projection under forced ViewRoot draws. The Phase 1 60Hz-equivalent gate still uses >16.7ms plus P95/P99; native-refresh jank is recorded separately.",
+                fontSize = 10.sp,
+                lineHeight = 13.sp,
+                color = Color(0xFF4E4A45),
+            )
+            Text(
+                text = "Soak 30m: leave Quality Lab in the foreground and connected to power if convenient. The harness cycles history, save/load, renderer frames and memory checks automatically; only an explicit SOAK PASS closes the reliability gate.",
                 fontSize = 10.sp,
                 lineHeight = 13.sp,
                 color = Color(0xFF4E4A45),
@@ -603,4 +698,7 @@ private const val BENCHMARK_SAMPLE_COUNT = 20
 private const val W1_FRAME_PULSE_COUNT = 600
 private const val W1_MIN_VALID_FRAME_SAMPLES = 500L
 private const val W1_MIN_OPERATION_COUNT = 500
+private const val QUALITY_SOAK_DOCUMENT_ID = "quality-lab-soak"
+private const val SOAK_DURATION_MILLIS = 30L * 60L * 1_000L
+private const val SOAK_CYCLE_DELAY_MILLIS = 250L
 private const val BYTES_PER_MIB = 1024L * 1024L

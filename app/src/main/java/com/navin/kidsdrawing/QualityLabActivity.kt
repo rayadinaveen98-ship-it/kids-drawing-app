@@ -216,15 +216,18 @@ private fun QualityLabScreen(
             workloadStatus = "Generating $label…"
             val document = producer()
             documentEngine.replaceDocument(document)
-            framePerformanceMonitor.reset()
-            frameStats = framePerformanceMonitor.snapshot()
             onWorkloadChanged(stateLabel)
             val started = SystemClock.elapsedRealtimeNanos()
             controller.reconcileDocument(document)
             withFrameNanos { }
             lastReconcileToFrameMillis = elapsedMillisSince(started)
-            workloadStatus = "$label loaded · ${document.operations.size} ops"
+            workloadStatus = "$label loaded · ${document.operations.size} ops · measurements reset · draw now"
             busy = false
+
+            // Let the load/status/button-state frames settle, then start a clean interaction window.
+            withFrameNanos { }
+            withFrameNanos { }
+            onResetMeasurements()
         }
     }
 
@@ -336,6 +339,14 @@ private fun QualityLabScreen(
                 Button(
                     enabled = !busy,
                     onClick = {
+                        installDocument("W1 normal", "W1") {
+                            withContext(Dispatchers.Default) { ArtLabQualityWorkloadFactory.w1() }
+                        }
+                    },
+                ) { Text("Load W1 · 500", maxLines = 1) }
+                Button(
+                    enabled = !busy,
+                    onClick = {
                         installDocument("W2 heavy", "W2") {
                             withContext(Dispatchers.Default) { ArtLabQualityWorkloadFactory.w2() }
                         }
@@ -430,13 +441,19 @@ private fun QualityLabScreen(
             }
 
             Text(
-                text = "Input proxy: tap Reset measurements, then draw continuously without controls. Window-dispatch timing is a conservative upper bound, not the narrower Ink-only CPU trace.",
+                text = "W1 frame gate: Load W1; measurements auto-reset after load. Draw continuously for ~30s without controls. Use Reset measurements to repeat the window.",
                 fontSize = 10.sp,
                 lineHeight = 13.sp,
                 color = Color(0xFF4E4A45),
             )
             Text(
-                text = "Class M: frame P95 ≤16.7ms · P99 ≤33.4ms · jank ≤3%; input P95 ≤4ms · P99 ≤8ms; W2 save P95 ≤1000ms; load P95 ≤1500ms; undo/redo P95 ≤50ms.",
+                text = "Input proxy is window-dispatch timing: a conservative upper bound, not the narrower Ink-only CPU trace.",
+                fontSize = 10.sp,
+                lineHeight = 13.sp,
+                color = Color(0xFF4E4A45),
+            )
+            Text(
+                text = "Class M: W1 frame P95 ≤16.7ms · P99 ≤33.4ms · jank ≤3%; input P95 ≤4ms · P99 ≤8ms; W2 save P95 ≤1000ms; load P95 ≤1500ms; undo/redo P95 ≤50ms.",
                 fontSize = 10.sp,
                 lineHeight = 13.sp,
                 color = Color(0xFF4E4A45),

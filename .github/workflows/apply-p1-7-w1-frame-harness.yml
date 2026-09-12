@@ -1,0 +1,39 @@
+name: Apply P1.7 W1 frame harness patch
+
+on:
+  push:
+    branches:
+      - phase1/p1.7-quality-stress
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: ${{ !contains(github.event.head_commit.message, '[w1-frame-harness-applied]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v5
+        with:
+          ref: phase1/p1.7-quality-stress
+          fetch-depth: 0
+
+      - name: Apply deterministic W1 frame harness patch
+        run: python .github/scripts/apply-p1-7-w1-frame-harness.py
+
+      - name: Commit patched harness
+        run: |
+          if git diff --quiet; then
+            echo "No patch required"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            app/src/main/java/com/navin/kidsdrawing/drawing/ui/DrawingSurface.kt \
+            app/src/main/java/com/navin/kidsdrawing/drawing/infrastructure/InkDrawingSurfaceView.kt \
+            app/src/main/java/com/navin/kidsdrawing/QualityLabActivity.kt \
+            app/build.gradle.kts
+          git commit -m "test(perf): add deterministic W1 committed-frame harness [w1-frame-harness-applied]"
+          git push origin HEAD:phase1/p1.7-quality-stress

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -49,10 +48,6 @@ import com.navin.kidsdrawing.drawing.domain.TeachingPace
 import com.navin.kidsdrawing.drawing.ui.DrawingSurface
 import com.navin.kidsdrawing.drawing.ui.DrawingSurfaceController
 import com.navin.kidsdrawing.drawing.ui.TeacherPlaybackOverlay
-import com.navin.kidsdrawing.lesson.lab.LessonLabRecoveryOutcome
-import com.navin.kidsdrawing.lesson.model.TeachingMode
-import com.navin.kidsdrawing.lesson.session.ChooseColorMyself
-import com.navin.kidsdrawing.lesson.session.ChooseColorWithMe
 import com.navin.kidsdrawing.lesson.session.DismissHelp
 import com.navin.kidsdrawing.lesson.session.FinishForNow
 import com.navin.kidsdrawing.lesson.session.LessonCommand
@@ -70,7 +65,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun GuidedLessonScreen(
     runtime: ProductLessonRuntime,
-    startMode: TeachingMode,
+    startMode: com.navin.kidsdrawing.lesson.model.TeachingMode,
     startPace: TeachingPace,
     resumeOnly: Boolean,
     onExitToHome: () -> Unit,
@@ -89,12 +84,21 @@ fun GuidedLessonScreen(
     var recoveryReady by remember { mutableStateOf(false) }
     var startupMessage by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(runtime) {
+    LaunchedEffect(runtime, resumeOnly, startMode, startPace) {
         val outcome = runtime.recover()
-        when {
-            outcome == LessonLabRecoveryOutcome.RESTORED && sessionState !is LessonSessionState.Finished -> Unit
-            resumeOnly -> startupMessage = "We couldn’t find a drawing to continue. Your studio is still safe."
-            else -> {
+        val recoveredState = runtime.sessionState.value
+        when (
+            ProductLessonStartupPolicy.decide(
+                resumeRequested = resumeOnly,
+                recoveryOutcome = outcome,
+                recoveredState = recoveredState,
+            )
+        ) {
+            ProductLessonStartupDecision.RESUME_RESTORED -> Unit
+            ProductLessonStartupDecision.RESUME_NOT_FOUND -> {
+                startupMessage = "We couldn’t find a drawing to continue. Your studio is still safe."
+            }
+            ProductLessonStartupDecision.START_FRESH -> {
                 runtime.newSessionDocument()
                 runtime.start(startMode, startPace)
             }
@@ -217,9 +221,7 @@ fun GuidedLessonScreen(
                 }
 
                 if (presentation.showPostDrawingChoices) {
-                    PostDrawingChoices(
-                        onColorWithMe = { scope.launch { runtime.dispatch(ChooseColorWithMe) } },
-                        onColorMyself = { scope.launch { runtime.dispatch(ChooseColorMyself) } },
+                    PostDrawingBoundary(
                         onFinish = {
                             scope.launch {
                                 runtime.dispatch(FinishForNow)
@@ -458,31 +460,32 @@ private fun DrawingToolControls(runtime: ProductLessonRuntime, childCanDraw: Boo
 }
 
 @Composable
-private fun PostDrawingChoices(
-    onColorWithMe: () -> Unit,
-    onColorMyself: () -> Unit,
-    onFinish: () -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = "What next?",
-            style = MaterialTheme.typography.headlineSmall,
-            color = StudioColors.Ink900,
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+private fun PostDrawingBoundary(onFinish: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = StudioColors.Studio100,
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            WorkspaceButton("Color with me", Modifier.weight(1f), primary = true, onClick = onColorWithMe)
-            WorkspaceButton("Color myself", Modifier.weight(1f), onClick = onColorMyself)
-        }
-        TextButton(
-            onClick = onFinish,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 48.dp),
-        ) {
-            Text("Finish for now", color = StudioColors.Ink700)
+            Text(
+                text = "Your drawing is ready",
+                style = MaterialTheme.typography.headlineSmall,
+                color = StudioColors.Ink900,
+            )
+            Text(
+                text = "Nice work sticking with every part. Save your cat and come back whenever you like.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = StudioColors.Ink700,
+            )
+            WorkspaceButton(
+                label = "Finish for now",
+                modifier = Modifier.fillMaxWidth(),
+                primary = true,
+                onClick = onFinish,
+            )
         }
     }
 }

@@ -39,7 +39,7 @@ Record `PASS`, `FAIL`, or `BLOCKED` plus a concise observation for every row.
 | 2 | Start Draw With Me | PASS | Started in Draw With Me on device; teacher playback completed and engine reached `AwaitingChild` on step `head`. |
 | 3 | Start Watch Then Draw | PASS | Started Watch Then Draw on device at Normal 1.0×; full-lesson overview entered successfully and ultimately transitioned to the child pass without crash or state corruption. |
 | 4 | Start Trace & Learn | PASS | Started Trace & Learn on device at Normal 1.0×; teacher playback completed and engine reached `AwaitingChild` on step `head` with the authored trace guide active. |
-| 5 | EXTRA_SLOW 0.4× playback | PENDING | |
+| 5 | EXTRA_SLOW 0.4× playback | PASS | Draw With Me was started at Extra Slow 0.4× on the physical device. After an injected playback failure and Retry, teacher playback resumed and completed successfully at the selected pace, returning to a healthy child-turn state. |
 | 6 | SLOW 0.7× playback | PENDING | |
 | 7 | NORMAL 1× playback | PASS | Draw With Me at Normal 1.0× completed teacher playback on device; runtime reported `playback COMPLETED`. |
 | 8 | FAST 1.5× playback | PENDING | |
@@ -59,11 +59,11 @@ Record `PASS`, `FAIL`, or `BLOCKED` plus a concise observation for every row.
 | 22 | Background → foreground preserves artwork/session | PENDING | |
 | 23 | Process recreation/relaunch preserves child artwork/session progress | PENDING | |
 | 24 | Recreated teacher request is fresh; stale callback cannot advance | PENDING | |
-| 25 | Inject teacher playback failure → Retry → playback resumes | PENDING | |
+| 25 | Inject teacher playback failure → Retry → playback resumes | PASS | During active Draw With Me teacher playback at Extra Slow 0.4×, Inject Playback Failure produced the expected recoverable failure state. Retry was accepted, teacher playback restarted/resumed, completed successfully, and the engine returned to `AwaitingChild` with history/isolation still healthy (`teacher/guide in child history: 0 · PASS`). |
 | 26 | Drawing complete reaches post-drawing choice | PENDING | |
 | 27 | Coloring handoff unavailable → returns to retryable choice | PENDING | |
 | 28 | Post-drawing state survives recreation | PENDING | |
-| 29 | Persisted child artwork contains zero TEACHER_GENERATED ink operations | PENDING | Live history remains isolated after Draw With Me, Watch Then Draw overview cancellation, Trace guide display, Replay, Help level 4, invalid Skip rejection, valid Skip advancement, and invalid-command rejection; persistence/relaunch proof still required. |
+| 29 | Persisted child artwork contains zero TEACHER_GENERATED ink operations | PENDING | Live history remains isolated after Draw With Me, Watch Then Draw overview cancellation, Trace guide display, Replay, Help level 4, invalid Skip rejection, valid Skip advancement, invalid-command rejection, and failure/retry; persistence/relaunch proof still required. |
 | 30 | Art Lab launcher still opens and draws | PENDING | |
 | 31 | Quality Lab launcher still opens | PENDING | |
 | 32 | No crash/deadlock during full matrix | PENDING | |
@@ -87,6 +87,7 @@ Current evidence:
 - Help− returned to authored level 1 and Dismiss Help returned to base trace mode, both with history still isolated;
 - invalid Skip rejection on `head` and valid Skip advancement from `face` to `body_tail` both preserved `operations 0 · child ink 0` and isolation `0 · PASS`;
 - invalid-command rejection at `body_tail` preserved the active lesson state without observed history corruption;
+- injected teacher-playback failure followed by Retry returned to a healthy child turn with isolation still `0 · PASS`;
 - save/relaunch isolation proof remains **PENDING**.
 
 ## Lifecycle audit

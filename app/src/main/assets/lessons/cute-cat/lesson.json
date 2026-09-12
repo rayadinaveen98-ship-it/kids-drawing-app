@@ -116,6 +116,16 @@
     ]
   },
   "coloring": {
-    "enabled": false
+    "enabled": true,
+    "defaultMode": "self",
+    "steps": [
+      {
+        "id": "freehand_color",
+        "regionIds": [],
+        "narrationKey": "lesson.cute_cat.coloring.freehand",
+        "suggestedColorRoles": [],
+        "enforceSuggestedColors": false
+      }
+    ]
   }
 }

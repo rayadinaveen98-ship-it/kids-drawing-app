@@ -14,6 +14,7 @@ import com.navin.kidsdrawing.drawing.domain.DocumentOperation
 import com.navin.kidsdrawing.drawing.domain.DocumentSize
 import com.navin.kidsdrawing.drawing.domain.EraseMaskRecord
 import java.util.LinkedHashMap
+import java.util.LinkedHashSet
 
 /**
  * Flattened committed-artwork cache used by the production renderer.
@@ -39,6 +40,7 @@ internal class CommittedRasterCache(
     }
     private val projectedOperationCache = LinkedHashMap<String, RenderedRasterOperation>()
     private val checkpoints = LinkedHashMap<Int, Bitmap>()
+    private val provisionalVisualIds = LinkedHashSet<String>()
     private var documentId: String? = null
     private var operationIds: List<String> = emptyList()
 
@@ -47,18 +49,18 @@ internal class CommittedRasterCache(
     /**
      * Immediate wet→dry handoff for a just-finished live pencil stroke.
      *
-     * This intentionally does not mutate authoritative operation IDs/checkpoints. The document
-     * engine owns that timeline. The next explicit reconcile restores a known checkpoint and
-     * projects the authoritative tail, so provisional display pixels can never become document
-     * truth or accumulate geometry drift.
+     * The pixels are provisional until the document engine publishes the matching operation.
+     * Reconcile can confirm that exact append without drawing it a second time.
      */
-    fun appendLiveInk(stroke: Stroke) {
+    fun appendLiveInk(recordId: String, stroke: Stroke) {
         renderer.draw(canvas, stroke, identity)
+        provisionalVisualIds += recordId
     }
 
-    /** Immediate visual erase; authoritative erase ordering is reconciled from the document. */
+    /** Immediate visual erase; authoritative erase ordering is confirmed on reconcile. */
     fun appendLiveErase(mask: EraseMaskRecord) {
         drawEraseMask(mask)
+        provisionalVisualIds += mask.maskId
     }
 
     fun reconcile(newDocumentId: String, operations: List<DocumentOperation>) {
@@ -67,6 +69,10 @@ internal class CommittedRasterCache(
             resetForDocument(newDocumentId)
             rebuild(operations)
             operationIds = ids
+            return
+        }
+
+        if (acceptMatchingProvisionalExtension(operations, ids)) {
             return
         }
 
@@ -84,12 +90,47 @@ internal class CommittedRasterCache(
             dropProjectionIfOutsideRecentWindow(index, operations.size, operation.operationId)
         }
         operationIds = ids
+        provisionalVisualIds.clear()
         retainRecentProjectedOperations(operations)
+    }
+
+    /**
+     * Confirms a live visual append when the authoritative timeline extends by the exact same
+     * stroke/mask record IDs in the exact same order. No bitmap redraw is needed in this case.
+     */
+    private fun acceptMatchingProvisionalExtension(
+        operations: List<DocumentOperation>,
+        ids: List<String>,
+    ): Boolean {
+        if (provisionalVisualIds.isEmpty()) return false
+        if (operationIds.size > ids.size) return false
+        if (ids.subList(0, operationIds.size) != operationIds) return false
+
+        val tail = operations.subList(operationIds.size, operations.size)
+        if (tail.size != provisionalVisualIds.size) return false
+
+        val tailVisualIds = ArrayList<String>(tail.size)
+        for (operation in tail) {
+            val visualId = when (operation) {
+                is DocumentOperation.AddInkStroke -> operation.stroke.strokeId
+                is DocumentOperation.AddEraseMask -> operation.mask.maskId
+                is DocumentOperation.ClearDocument -> return false
+            }
+            tailVisualIds += visualId
+        }
+        if (tailVisualIds != provisionalVisualIds.toList()) return false
+
+        operationIds = ids
+        provisionalVisualIds.clear()
+        maybeCheckpoint(operations.size, operations.size)
+        retainRecentProjectedOperations(operations)
+        return true
     }
 
     private fun rebuild(operations: List<DocumentOperation>) {
         clearBitmap()
         recycleCheckpoints()
+        provisionalVisualIds.clear()
         operations.forEachIndexed { index, operation ->
             apply(project(operation))
             maybeCheckpoint(index + 1, operations.size)
@@ -140,9 +181,9 @@ internal class CommittedRasterCache(
         checkpoints.keys.filter { it <= targetPrefix }.maxOrNull() ?: 0
 
     private fun maybeCheckpoint(cursor: Int, totalSize: Int) {
-        if (cursor % CHECKPOINT_INTERVAL != 0 && cursor != totalSize) return
+        if (cursor == 0 || cursor % CHECKPOINT_INTERVAL != 0) return
         if (cursor < (totalSize - RECENT_HISTORY_WINDOW).coerceAtLeast(0)) return
-        checkpoints.remove(cursor)?.recycle()
+        if (checkpoints.containsKey(cursor)) return
         checkpoints[cursor] = bitmap.copy(Bitmap.Config.ARGB_8888, false)
         trimCheckpointCount()
     }
@@ -188,6 +229,7 @@ internal class CommittedRasterCache(
     private fun resetForDocument(newDocumentId: String) {
         documentId = newDocumentId
         operationIds = emptyList()
+        provisionalVisualIds.clear()
         clearBitmap()
         recycleCheckpoints()
         projectedOperationCache.clear()
@@ -211,6 +253,8 @@ internal class CommittedRasterCache(
     internal fun checkpointCount(): Int = checkpoints.size
 
     internal fun projectedOperationCount(): Int = projectedOperationCache.size
+
+    internal fun provisionalVisualCount(): Int = provisionalVisualIds.size
 
     private companion object {
         const val CHECKPOINT_INTERVAL = 8

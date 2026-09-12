@@ -11,19 +11,22 @@
 - Android/API: PENDING physical test confirmation
 - RAM: PENDING physical test confirmation
 - Refresh rate: PENDING physical test confirmation
-- Executable candidate commit: `3ab93d7a57022e543009753d033c7f538fd12441`
+- Executable candidate commit: `e54f8dabfd9a9f1a7dab5b382cedb73438f151cd`
 - Version: `0.3.0-vertical-slice` / versionCode `13`
-- CI: Android CI #302 / run `34704173936` — **GREEN**
-- Profile artifact ID: `10301073060`
+- CI: Android CI #307 / run `34706767213` — **GREEN**
+- Profile artifact ID: `10301836886`
 - Profile artifact name: `kids-drawing-0.3.0-vertical-slice-profile`
 - APK filename: `Kids_Drawing_0.3.0_Vertical_Slice-profile.apk`
 - APK byte size: `16080880`
-- APK SHA-256: `ddf0b15b230c549788034e889330cd73e186124da2c64255ba24ef29ab87810d`
+- APK SHA-256: `2f622c116813c7a5830109994c104d4bb1623dc41f57cb4f463c4d6e5e385961`
 - Tester/date: PENDING physical validation / 2026-09-12
 
-### Superseded candidate
+### Superseded candidates
 
-The first physical candidate `670b0f81d716ca4c150d426f09ec5171f4cfbb2a` exposed a release-blocking production layout defect: the primary `Done` action used a fill-max-size child, expanded vertically, and collapsed the weighted drawing canvas during the child turn. That candidate is not eligible for release. The replacement candidate above contains the minimal sizing hotfix and is the only executable to use for resumed physical QA.
+1. `670b0f81d716ca4c150d426f09ec5171f4cfbb2a` exposed a release-blocking guided-workspace layout defect: the primary `Done` action used a fill-max-size child, expanded vertically, and collapsed the weighted drawing canvas during the child turn.
+2. `3ab93d7a57022e543009753d033c7f538fd12441` fixed guided drawing, but physical testing exposed release-blocking coloring defects: the coloring primary action could collapse the canvas, an ACTIVE coloring session was covered by a duplicate Gallery completion overlay, and coloring palette/tool settings leaked into the lesson drawing pencil through a shared tool engine.
+
+The replacement candidate above fixes those defects by keeping the editable DrawingDocument shared while giving coloring an independent tool engine, compacting the coloring workspace, using a single active completion path, and providing semantic Color With Me guidance without inventing unauthored fill regions.
 
 The replacement executable candidate is frozen for physical QA. Later documentation-only commits on this branch do not change the candidate APK and must not be substituted for this executable SHA unless another code/build change intentionally creates a replacement candidate.
 

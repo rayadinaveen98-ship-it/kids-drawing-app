@@ -310,6 +310,7 @@ class LessonSessionEngine private constructor(
                 LessonCommandRejectionCode.HELP_NOT_AVAILABLE,
                 "No active Help Ladder level is displayed.",
             )
+        }
 
         val events = mutableListOf<LessonSessionEvent>()
         clearGuideIfNeeded(context, events)

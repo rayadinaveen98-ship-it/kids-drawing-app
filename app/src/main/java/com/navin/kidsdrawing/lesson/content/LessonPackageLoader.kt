@@ -183,7 +183,7 @@ object LessonPackageValidator {
                 ),
             )
         }
-        if (!lessonIdRegex.matches(lesson.lessonId)) {
+        if (!lessonIdRegex.matches(lesson.lessonId) || lesson.lessonId.length !in 3..120) {
             add(invalidId("lessonId", lesson.lessonId))
         }
         if (lesson.revision < 1) {
@@ -224,17 +224,22 @@ object LessonPackageValidator {
 
     private fun validateMetadata(lesson: LessonSource): List<LessonDiagnostic> = buildList {
         val metadata = lesson.metadata
+        validateSingleId("metadata.titleKey", metadata.titleKey)?.let(::add)
+        validateSingleId("metadata.summaryKey", metadata.summaryKey)?.let(::add)
         if (metadata.difficulty !in 1..5) add(invalidValue("metadata.difficulty", "Difficulty must be 1..5."))
         if (metadata.estimatedMinutes !in 1..90) {
             add(invalidValue("metadata.estimatedMinutes", "Estimated minutes must be 1..90."))
         }
         if (metadata.ageBands.isEmpty()) add(invalidValue("metadata.ageBands", "At least one age band is required."))
+        if (metadata.ageBands.size != metadata.ageBands.distinct().size) add(duplicateId("metadata.ageBands", "Age bands must be unique."))
         if (metadata.categoryIds.isEmpty()) add(invalidValue("metadata.categoryIds", "At least one category is required."))
         if (metadata.skillIds.isEmpty()) add(invalidValue("metadata.skillIds", "At least one skill is required."))
         validateIds("metadata.categoryIds", metadata.categoryIds).forEach(::add)
         validateIds("metadata.skillIds", metadata.skillIds).forEach(::add)
         validateIds("metadata.journeyIds", metadata.journeyIds).forEach(::add)
+        validateLessonIds("metadata.prerequisiteLessonIds", metadata.prerequisiteLessonIds).forEach(::add)
         validateIds("metadata.tags", metadata.tags).forEach(::add)
+        if (metadata.tags.size > 20) add(invalidValue("metadata.tags", "At most 20 tags are allowed."))
     }
 
     private fun validateCanvas(lesson: LessonSource): List<LessonDiagnostic> = buildList {
@@ -304,13 +309,24 @@ object LessonPackageValidator {
             validateIds("$base.objectiveSkillIds", step.objectiveSkillIds).forEach(::add)
             if (step.teacher.strokeRefs.isEmpty()) add(invalidValue("$base.teacher.strokeRefs", "Teacher demonstration needs at least one stroke."))
             step.teacher.strokeRefs.forEach { if (it !in strokeIds) add(missingRef("$base.teacher.strokeRefs", it)) }
+            step.teacher.normalDurationMs?.let { duration ->
+                if (duration !in 100..120_000) add(invalidValue("$base.teacher.normalDurationMs", "Teacher duration must be 100..120000ms."))
+            }
+            step.childTurn.toolPreset?.let { validateSingleId("$base.childTurn.toolPreset", it)?.let(::add) }
             step.childTurn.expectedStrokeRefs.forEach { if (it !in strokeIds) add(missingRef("$base.childTurn.expectedStrokeRefs", it)) }
 
+            if (step.help.size > 5) add(invalidValue("$base.help", "A step may contain at most five help entries."))
             val helpLevels = step.help.map { it.level }
             if (helpLevels.size != helpLevels.distinct().size) add(duplicateId("$base.help", "Help levels must be unique within a step."))
             step.help.forEachIndexed { helpIndex, help ->
                 if (help.level !in 1..5) add(invalidValue("$base.help[$helpIndex].level", "Help level must be 1..5."))
                 help.guideRefs.forEach { if (it !in guideIds) add(missingRef("$base.help[$helpIndex].guideRefs", it)) }
+            }
+
+            step.completionNarrationKey?.let { validateSingleId("$base.completionNarrationKey", it)?.let(::add) }
+            step.teacher.narrationKey?.let { validateSingleId("$base.teacher.narrationKey", it)?.let(::add) }
+            step.help.forEachIndexed { helpIndex, help ->
+                help.narrationKey?.let { validateSingleId("$base.help[$helpIndex].narrationKey", it)?.let(::add) }
             }
 
             if (TeachingMode.TRACE_AND_LEARN in lesson.supportedModes) {
@@ -340,6 +356,9 @@ object LessonPackageValidator {
         validateIds("coloring.steps", ids).forEach(::add)
         coloring.steps.forEachIndexed { index, step ->
             if (step.regionIds.isEmpty()) add(invalidValue("coloring.steps[$index].regionIds", "Coloring step requires at least one region."))
+            validateIds("coloring.steps[$index].regionIds", step.regionIds).forEach(::add)
+            validateIds("coloring.steps[$index].suggestedColorRoles", step.suggestedColorRoles).forEach(::add)
+            step.narrationKey?.let { validateSingleId("coloring.steps[$index].narrationKey", it)?.let(::add) }
         }
     }
 
@@ -359,12 +378,12 @@ object LessonPackageValidator {
             lesson.assets.coloringRegions?.let { add("assets.coloringRegions" to it) }
         }
         values.forEach { (path, value) ->
-            if (value.isBlank() || safeJoin("package", value) == null) {
+            if (value.isBlank() || value.length > 240 || safeJoin("package", value) == null) {
                 add(
                     LessonDiagnostic(
                         LessonDiagnosticCode.UNSAFE_ASSET_PATH,
                         path,
-                        "Asset path must be a non-empty relative path contained within the lesson package.",
+                        "Asset path must be a non-empty relative path of at most 240 characters contained within the lesson package.",
                     ),
                 )
             }
@@ -372,9 +391,19 @@ object LessonPackageValidator {
     }
 
     private fun validateIds(path: String, ids: List<String>): List<LessonDiagnostic> = buildList {
-        ids.forEachIndexed { index, id -> if (!idRegex.matches(id)) add(invalidId("$path[$index]", id)) }
+        ids.forEachIndexed { index, id -> validateSingleId("$path[$index]", id)?.let(::add) }
         if (ids.size != ids.distinct().size) add(duplicateId(path, "IDs must be unique."))
     }
+
+    private fun validateLessonIds(path: String, ids: List<String>): List<LessonDiagnostic> = buildList {
+        ids.forEachIndexed { index, id ->
+            if (!lessonIdRegex.matches(id) || id.length !in 1..120) add(invalidId("$path[$index]", id))
+        }
+        if (ids.size != ids.distinct().size) add(duplicateId(path, "Lesson IDs must be unique."))
+    }
+
+    private fun validateSingleId(path: String, value: String): LessonDiagnostic? =
+        if (!idRegex.matches(value) || value.length !in 1..120) invalidId(path, value) else null
 
     private fun invalidId(path: String, value: String) = LessonDiagnostic(
         LessonDiagnosticCode.INVALID_ID,

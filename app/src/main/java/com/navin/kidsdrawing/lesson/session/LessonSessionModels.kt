@@ -44,8 +44,13 @@ sealed interface LessonSessionState {
 
     data class TeacherDemonstrating(
         override val context: LessonActiveContext,
+        val requestId: String,
         val replay: Boolean = false,
-    ) : Pausable
+    ) : Pausable {
+        init {
+            require(requestId.isNotBlank()) { "Teacher demonstration requestId cannot be blank." }
+        }
+    }
 
     data class AwaitingChild(
         override val context: LessonActiveContext,
@@ -124,6 +129,10 @@ enum class LessonCommandRejectionCode {
     INVALID_STATE,
     UNSUPPORTED_MODE,
     SNAPSHOT_UNAVAILABLE,
+    REPLAY_NOT_ALLOWED,
+    SKIP_NOT_ALLOWED,
+    COMPLETION_POLICY_NOT_SATISFIED,
+    UNSUPPORTED_COMPLETION_POLICY,
 }
 
 data class LessonCommandRejection(

@@ -1,5 +1,6 @@
 package com.navin.kidsdrawing.product.lesson
 
+import com.navin.kidsdrawing.lesson.model.ChildCompletionPolicy
 import com.navin.kidsdrawing.lesson.model.LessonRuntimePackage
 import com.navin.kidsdrawing.lesson.session.LessonSessionState
 
@@ -49,6 +50,7 @@ object ProductLessonPresentationPolicy {
         val progress = context?.currentStepIndex?.let { index ->
             (index.toFloat() / totalSteps.toFloat()).coerceIn(0f, 1f)
         } ?: if (state is LessonSessionState.Finished) 1f else 0f
+        val manualDoneAllowed = step?.childTurn?.completionPolicy == ChildCompletionPolicy.MANUAL_DONE
 
         return when (state) {
             null,
@@ -89,9 +91,9 @@ object ProductLessonPresentationPolicy {
                 stepLabel = stepLabel,
                 progress = progress,
                 showPause = true,
-                showReplay = true,
-                showHelp = true,
-                showDone = true,
+                showReplay = step?.childTurn?.allowReplay == true,
+                showHelp = step?.help?.isNotEmpty() == true,
+                showDone = manualDoneAllowed,
                 showSkipStep = step?.childTurn?.allowSkip == true,
             )
 
@@ -102,11 +104,11 @@ object ProductLessonPresentationPolicy {
                 stepLabel = stepLabel,
                 progress = progress,
                 showPause = true,
-                showReplay = true,
-                showHelp = true,
+                showReplay = step?.childTurn?.allowReplay == true,
+                showHelp = step?.help?.any { it.level > state.context.helpLevel } == true,
                 showReduceHelp = true,
                 showDismissHelp = true,
-                showDone = true,
+                showDone = manualDoneAllowed,
                 showSkipStep = step?.childTurn?.allowSkip == true,
             )
 
@@ -129,14 +131,21 @@ object ProductLessonPresentationPolicy {
 
             is LessonSessionState.DrawingComplete,
             is LessonSessionState.AwaitingPostDrawingChoice,
-            is LessonSessionState.HandingOffToColoring,
             -> base(
                 companionState = CompanionSemanticState.CELEBRATING_ARTWORK,
                 eyebrow = "YOU MADE IT",
-                instruction = "Your cat is drawn. You can color it or finish for now.",
+                instruction = "Your cat is drawn. Save it for now and come back whenever you like.",
                 stepLabel = "Drawing complete",
                 progress = 1f,
-                showPostDrawingChoices = state !is LessonSessionState.HandingOffToColoring,
+                showPostDrawingChoices = true,
+            )
+
+            is LessonSessionState.HandingOffToColoring -> base(
+                companionState = CompanionSemanticState.IDLE_PRESENT,
+                eyebrow = "DRAWING SAFE",
+                instruction = "Your finished drawing is safe while the next studio step gets ready.",
+                stepLabel = "Drawing complete",
+                progress = 1f,
             )
 
             is LessonSessionState.RecoverableError -> base(

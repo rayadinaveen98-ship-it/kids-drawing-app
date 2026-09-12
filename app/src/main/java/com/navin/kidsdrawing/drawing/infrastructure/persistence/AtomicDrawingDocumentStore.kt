@@ -33,14 +33,15 @@ class AtomicDrawingDocumentStore(
     )
 
     private val ioMutex = Mutex()
-    private var latestSavedModifiedAtEpochMillis: Long = Long.MIN_VALUE
+    private val latestSavedModifiedAtEpochMillis = mutableMapOf<String, Long>()
 
     suspend fun save(document: DrawingDocument) = withContext(Dispatchers.IO) {
         ioMutex.withLock {
-            // A delayed debounce/lifecycle save must never overwrite a newer stable snapshot.
-            if (document.modifiedAtEpochMillis < latestSavedModifiedAtEpochMillis) {
-                return@withLock
-            }
+            // A delayed debounce/lifecycle save for one artwork must never overwrite a newer stable
+            // snapshot of that same artwork. The guard is deliberately per document: Gallery owns
+            // many independent DrawingDocuments and loading/saving one must not suppress another.
+            val remembered = latestSavedModifiedAtEpochMillis[document.documentId] ?: Long.MIN_VALUE
+            if (document.modifiedAtEpochMillis < remembered) return@withLock
 
             ensureRootDirectory()
             val files = filesFor(document.documentId)
@@ -70,8 +71,8 @@ class AtomicDrawingDocumentStore(
                     restoreBackupIfPrimaryMissing(files)
                     throw IOException("Unable to promote temporary drawing document to primary.")
                 }
-                latestSavedModifiedAtEpochMillis = maxOf(
-                    latestSavedModifiedAtEpochMillis,
+                latestSavedModifiedAtEpochMillis[document.documentId] = maxOf(
+                    remembered,
                     document.modifiedAtEpochMillis,
                 )
                 faultInjector(SaveStage.TARGET_REPLACED)
@@ -90,8 +91,8 @@ class AtomicDrawingDocumentStore(
             val result = decodeOrNull(files.target)?.let { LoadResult(it, LoadSource.PRIMARY) }
                 ?: decodeOrNull(files.backup)?.let { LoadResult(it, LoadSource.BACKUP) }
             if (result != null) {
-                latestSavedModifiedAtEpochMillis = maxOf(
-                    latestSavedModifiedAtEpochMillis,
+                latestSavedModifiedAtEpochMillis[documentId] = maxOf(
+                    latestSavedModifiedAtEpochMillis[documentId] ?: Long.MIN_VALUE,
                     result.document.modifiedAtEpochMillis,
                 )
             }
@@ -103,6 +104,19 @@ class AtomicDrawingDocumentStore(
         ioMutex.withLock {
             val files = filesFor(documentId)
             files.target.exists() || files.backup.exists()
+        }
+    }
+
+    /** Deletes one persisted document identity without touching any other artwork. */
+    suspend fun delete(documentId: String) = withContext(Dispatchers.IO) {
+        ioMutex.withLock {
+            val files = filesFor(documentId)
+            listOf(files.target, files.backup, files.temp).forEach { file ->
+                if (file.exists() && !file.delete()) {
+                    throw IOException("Unable to delete drawing document ${file.name}.")
+                }
+            }
+            latestSavedModifiedAtEpochMillis.remove(documentId)
         }
     }
 

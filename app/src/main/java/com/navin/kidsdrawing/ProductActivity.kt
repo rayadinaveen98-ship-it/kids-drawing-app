@@ -25,10 +25,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.navin.kidsdrawing.product.coloring.ColoringWorkspaceScreen
 import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
 import com.navin.kidsdrawing.product.design.StudioColors
 import com.navin.kidsdrawing.product.design.StudioTheme
+import com.navin.kidsdrawing.product.gallery.ArtworkCompletionScreen
+import com.navin.kidsdrawing.product.gallery.GalleryArtworkDetailScreen
+import com.navin.kidsdrawing.product.gallery.GalleryAwareColoringWorkspace
+import com.navin.kidsdrawing.product.gallery.GalleryScreen
+import com.navin.kidsdrawing.product.gallery.ProductGalleryRuntime
 import com.navin.kidsdrawing.product.home.StudioDestination
 import com.navin.kidsdrawing.product.home.StudioHomeModel
 import com.navin.kidsdrawing.product.home.StudioHomeRepository
@@ -108,10 +112,15 @@ private fun ProductStudio(profile: ChildProfile) {
     val coloringRuntime = remember(context, lessonRuntime) {
         ProductColoringRuntime(context, lessonRuntime)
     }
+    val galleryRuntime = remember(context, lessonRuntime, coloringRuntime) {
+        ProductGalleryRuntime(context, lessonRuntime, coloringRuntime)
+    }
     var routeName by rememberSaveable { mutableStateOf(StudioDestination.HOME.name) }
     val route = runCatching { StudioDestination.valueOf(routeName) }
         .getOrDefault(StudioDestination.HOME)
     var homeModel by remember(profile) { mutableStateOf<StudioHomeModel?>(null) }
+    var selectedGalleryEntryId by rememberSaveable { mutableStateOf<String?>(null) }
+    var completionEntryId by rememberSaveable { mutableStateOf<String?>(null) }
 
     LaunchedEffect(profile, route) {
         if (homeModel == null || route == StudioDestination.HOME) {
@@ -127,6 +136,24 @@ private fun ProductStudio(profile: ChildProfile) {
         }
     }
 
+    completionEntryId?.let { entryId ->
+        ArtworkCompletionScreen(
+            runtime = galleryRuntime,
+            entryId = entryId,
+            onSeeGallery = {
+                completionEntryId = null
+                selectedGalleryEntryId = null
+                routeName = StudioDestination.GALLERY.name
+            },
+            onBackToStudio = {
+                completionEntryId = null
+                selectedGalleryEntryId = null
+                routeName = StudioDestination.HOME.name
+            },
+        )
+        return
+    }
+
     when (route) {
         StudioDestination.HOME -> StudioHomeScreen(
             profile = profile,
@@ -139,7 +166,10 @@ private fun ProductStudio(profile: ChildProfile) {
                     else -> StudioDestination.LESSON_START.name
                 }
             },
-            onOpenDestination = { destination -> routeName = destination.name },
+            onOpenDestination = { destination ->
+                if (destination == StudioDestination.GALLERY) selectedGalleryEntryId = null
+                routeName = destination.name
+            },
         )
 
         StudioDestination.LESSON_START,
@@ -152,20 +182,43 @@ private fun ProductStudio(profile: ChildProfile) {
                 ProductLessonFlow(
                     runtime = lessonRuntime,
                     coloringRuntime = coloringRuntime,
+                    galleryRuntime = galleryRuntime,
                     profile = profile,
                     recommendation = recommendation,
                     resumeRequested = route == StudioDestination.LESSON_RESUME,
+                    onArtworkCompleted = { entryId -> completionEntryId = entryId },
                     onExitToHome = { routeName = StudioDestination.HOME.name },
                 )
             }
         }
 
-        StudioDestination.COLORING_RESUME -> ColoringWorkspaceScreen(
-            runtime = coloringRuntime,
+        StudioDestination.COLORING_RESUME -> GalleryAwareColoringWorkspace(
+            coloringRuntime = coloringRuntime,
+            galleryRuntime = galleryRuntime,
             ageBand = profile.ageBand,
+            artworkTitle = homeModel?.recommendation?.title ?: "My Artwork",
             recoverRequested = true,
+            onArtworkCompleted = { entryId -> completionEntryId = entryId },
             onExitToHome = { routeName = StudioDestination.HOME.name },
         )
+
+        StudioDestination.GALLERY -> {
+            val selected = selectedGalleryEntryId
+            if (selected == null) {
+                GalleryScreen(
+                    runtime = galleryRuntime,
+                    onOpenArtwork = { entryId -> selectedGalleryEntryId = entryId },
+                    onBack = { routeName = StudioDestination.HOME.name },
+                )
+            } else {
+                GalleryArtworkDetailScreen(
+                    runtime = galleryRuntime,
+                    entryId = selected,
+                    onBack = { selectedGalleryEntryId = null },
+                    onDeleted = { selectedGalleryEntryId = null },
+                )
+            }
+        }
 
         else -> StudioPlaceholderRoute(
             destination = route,

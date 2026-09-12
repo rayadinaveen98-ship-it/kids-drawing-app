@@ -28,10 +28,14 @@ object StudioColors {
     val Paper50 = Color(0xFFFFFDF8)
     val Paper100 = Color(0xFFFAF6ED)
     val Ink900 = Color(0xFF242321)
+    // Semantic hierarchy aliases intentionally reuse the locked palette; they do not add hues.
+    val Ink800 = Ink900
     val Ink700 = Color(0xFF4E4A45)
+    val Ink600 = Ink700
     val Ink500 = Color(0xFF79736C)
     val Line200 = Color(0xFFE8E0D4)
     val Studio600 = Color(0xFF5C6F52)
+    val Studio700 = Studio600
     val Studio500 = Color(0xFF718567)
     val Studio100 = Color(0xFFEAF0E5)
     val Sun500 = Color(0xFFE9A94A)

@@ -8,8 +8,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.navin.kidsdrawing.drawing.domain.TeachingPace
 import com.navin.kidsdrawing.lesson.model.TeachingMode
-import com.navin.kidsdrawing.product.coloring.ColoringWorkspaceScreen
 import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
+import com.navin.kidsdrawing.product.gallery.GalleryAwareColoringWorkspace
+import com.navin.kidsdrawing.product.gallery.GalleryAwareGuidedLessonWorkspace
+import com.navin.kidsdrawing.product.gallery.ProductGalleryRuntime
 import com.navin.kidsdrawing.product.home.LessonRecommendation
 import com.navin.kidsdrawing.product.profile.ChildProfile
 
@@ -23,9 +25,11 @@ private enum class ProductLessonStage {
 fun ProductLessonFlow(
     runtime: ProductLessonRuntime,
     coloringRuntime: ProductColoringRuntime,
+    galleryRuntime: ProductGalleryRuntime,
     profile: ChildProfile,
     recommendation: LessonRecommendation,
     resumeRequested: Boolean,
+    onArtworkCompleted: (String) -> Unit,
     onExitToHome: () -> Unit,
 ) {
     var stageName by rememberSaveable {
@@ -59,25 +63,30 @@ fun ProductLessonFlow(
             onBack = onExitToHome,
         )
 
-        ProductLessonStage.WORKSPACE -> GuidedLessonScreen(
-            runtime = runtime,
+        ProductLessonStage.WORKSPACE -> GalleryAwareGuidedLessonWorkspace(
+            lessonRuntime = runtime,
             coloringRuntime = coloringRuntime,
+            galleryRuntime = galleryRuntime,
             ageBand = profile.ageBand,
+            artworkTitle = recommendation.title,
             startMode = mode,
             startPace = pace,
             startFreshRequested = startFreshRequested,
             onFreshSessionStarted = { startFreshRequested = false },
             onColoringReady = { stageName = ProductLessonStage.COLORING.name },
+            onArtworkCompleted = onArtworkCompleted,
             onExitToHome = onExitToHome,
-            onFinishedForNow = onExitToHome,
         )
 
-        ProductLessonStage.COLORING -> ColoringWorkspaceScreen(
-            runtime = coloringRuntime,
+        ProductLessonStage.COLORING -> GalleryAwareColoringWorkspace(
+            coloringRuntime = coloringRuntime,
+            galleryRuntime = galleryRuntime,
             ageBand = profile.ageBand,
+            artworkTitle = recommendation.title,
             // After Activity/process recreation the saveable stage survives but the in-memory
-            // runtime does not; the screen therefore restores from the semantic coloring store.
+            // runtime does not; the workspace therefore restores from the semantic coloring store.
             recoverRequested = coloringSessionState == null,
+            onArtworkCompleted = onArtworkCompleted,
             onExitToHome = onExitToHome,
         )
     }

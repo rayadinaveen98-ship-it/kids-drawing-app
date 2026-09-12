@@ -61,6 +61,47 @@ class AtomicDrawingDocumentStoreTest {
     }
 
     @Test
+    fun independentDocumentTimelinesDoNotSuppressEachOther() = withTempDirectory { root ->
+        runBlocking {
+            val store = store(root)
+            val recentArtwork = documentWithStrokeCount(
+                count = 2,
+                documentId = "gallery-recent",
+                modifiedAtEpochMillis = 50_000L,
+            )
+            val olderTimestampDifferentArtwork = documentWithStrokeCount(
+                count = 1,
+                documentId = "gallery-other",
+                modifiedAtEpochMillis = 5_000L,
+            )
+
+            store.save(recentArtwork)
+            store.save(olderTimestampDifferentArtwork)
+
+            assertNotNull(store.load(recentArtwork.documentId))
+            val second = store.load(olderTimestampDifferentArtwork.documentId)
+            assertNotNull(second)
+            assertEquals(5_000L, second!!.document.modifiedAtEpochMillis)
+        }
+    }
+
+    @Test
+    fun deleteRemovesOnlyRequestedDocumentIdentity() = withTempDirectory { root ->
+        runBlocking {
+            val store = store(root)
+            val first = documentWithStrokeCount(1, documentId = "gallery-first")
+            val second = documentWithStrokeCount(2, documentId = "gallery-second")
+            store.save(first)
+            store.save(second)
+
+            store.delete(first.documentId)
+
+            assertNull(store.load(first.documentId))
+            assertNotNull(store.load(second.documentId))
+        }
+    }
+
+    @Test
     fun failureAfterBackupRotationCannotDestroyLastKnownGoodDocument() = withTempDirectory { root ->
         val original = documentWithStrokeCount(1)
         val updated = documentWithStrokeCount(2)
@@ -122,13 +163,17 @@ class AtomicDrawingDocumentStoreTest {
         faultInjector = faultInjector,
     )
 
-    private fun documentWithStrokeCount(count: Int): DrawingDocument {
+    private fun documentWithStrokeCount(
+        count: Int,
+        documentId: String = "document-atomic-test",
+        modifiedAtEpochMillis: Long = 2_000L + count,
+    ): DrawingDocument {
         val base = DrawingDocumentEngine.newDocument(
-            documentId = "document-atomic-test",
+            documentId = documentId,
             nowEpochMillis = 1_000L,
         )
         return base.copy(
-            modifiedAtEpochMillis = 2_000L + count,
+            modifiedAtEpochMillis = modifiedAtEpochMillis,
             operations = List(count) { index ->
                 DocumentOperation.AddInkStroke(
                     operationId = "op-$index",

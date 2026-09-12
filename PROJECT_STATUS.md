@@ -6,7 +6,8 @@
 **Latest formal milestone:** `0.1.0-art-lab` / versionCode 11  
 **Release tag:** `v0.1.0-art-lab`  
 **Release commit:** `a448d664af8df2bb585326d726f0723461cd36c6`  
-**Current software task:** #28 / Phase 2 — Lesson Engine 0.2 epic  
+**Current software task:** #30 — P2.2 deterministic lesson session state machine + snapshots  
+**Active branch:** `phase2/session-state-machine`  
 **Last updated:** 2026-09-12
 
 ## Phase 0 — COMPLETE
@@ -61,25 +62,44 @@ Target milestone: `0.2.0-lesson-engine`.
 
 Primary objective: build a production-grade structured Lesson Engine on top of the frozen Drawing Engine foundation and prove all three teaching modes — Draw With Me, Watch Then Draw, and Trace & Learn — with deterministic five-speed playback, lifecycle restoration, and strict teacher/trace isolation from child artwork.
 
+### Phase 2 slices
+
+1. #29 — P2.1 lesson package loader + runtime validation — **COMPLETE**
+   - merged through PR #35;
+   - `main` merge commit: `74d0de35a705d41747f7bb47e0b4383905c0f806`;
+   - exact hardened head: `dd9f0f86ebcb57afac09c0c079dfe62dd9c96634`;
+   - Android CI run #137 / `34677550750` — **GREEN**;
+   - bundled `lessons/cute-cat` reference package is now runtime-loadable and strictly validated.
+2. #30 — P2.2 deterministic lesson session state machine + snapshots — **ACTIVE**
+3. #31 — P2.3 teacher step execution + Draw With Me — **PENDING**
+4. #32 — P2.4 Watch Then Draw + Trace & Learn + Help Ladder — **PENDING**
+5. #33 — P2.5 lifecycle/session persistence + failure recovery — **PENDING**
+6. #34 — P2.6 Lesson Lab, physical verification + `0.2.0` milestone release — **PENDING**
+
 Starting contracts:
 - `schemas/lesson.schema.json`
 - `docs/08_LESSON_ENGINE_SPEC.md`
 - `docs/17_LESSON_CONTENT_SCHEMA.md`
 - `docs/20_ENGINE_BOUNDARIES.md`
 
+## P2.2 implementation target
+
+The state machine must remain pure Kotlin and UI-independent. It owns typed states, commands, deterministic command rejection, selected mode/pace, current step identity, help/overview session metadata, pause/resume identity, safe snapshots, transient-state normalization, and lesson revision compatibility. It must reuse Drawing Engine `TeachingPace` rather than creating a second pace vocabulary.
+
 ## Architecture invariants
 
 - UI never owns artwork/history/lesson truth.
+- UI cannot set arbitrary lesson-session state.
 - Teacher/trace overlays never become child artwork.
 - Persistence owns editable operation data, not screenshots.
 - AndroidX Ink types stay behind drawing infrastructure boundaries.
 - Core drawing/playback remains offline.
 - No ads, behavioral analytics, network dependency or sensitive permissions in the engine milestones.
-- CI must be green before a milestone is treated as shippable.
+- CI must be green before a slice/milestone is treated as complete.
 
 ## Immediate next action
 
-Break #28 into implementation-sized Phase 2 slices beginning with the lesson package loader/schema-validation boundary and lesson-session state machine. Preserve `v0.1.0-art-lab` as the frozen Drawing Engine baseline.
+Finish #30 implementation and transition/restore tests on `phase2/session-state-machine`, open the P2.2 PR, run exact-head CI, fix any compiler/test failures, merge only after green, then begin #31 from the resulting `main`.
 
 ## Continuation rule
 

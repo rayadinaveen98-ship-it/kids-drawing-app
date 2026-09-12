@@ -164,8 +164,9 @@ class GalleryRepository(
         is AtomicGalleryCatalogStore.LoadResult.Corrupt -> GalleryListResult.Unavailable(
             "Your Gallery index needs recovery. Saved artwork files were left untouched.",
         )
-        is AtomicGalleryCatalogStore.LoadResult.Loaded -> {
-            if (loaded.catalog.records.isEmpty()) return GalleryListResult.Empty
+        is AtomicGalleryCatalogStore.LoadResult.Loaded -> if (loaded.catalog.records.isEmpty()) {
+            GalleryListResult.Empty
+        } else {
             GalleryListResult.Ready(
                 loaded.catalog.records.newestFirst().map { record ->
                     val usablePreview = record.previewReference

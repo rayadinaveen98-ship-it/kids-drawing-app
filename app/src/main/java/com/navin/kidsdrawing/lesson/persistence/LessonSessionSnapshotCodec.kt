@@ -31,6 +31,9 @@ import kotlinx.serialization.json.put
  * The JSON payload is intentionally independent from Android UI/runtime objects. The outer binary
  * envelope protects it with an explicit format version and SHA-256 checksum so truncated or
  * corrupted session files fail closed and can fall back to the atomic backup.
+ *
+ * Stream ownership remains with the caller. In particular, encode must not close [output], because
+ * the atomic store flushes and fsyncs the underlying FileOutputStream after encoding.
  */
 class LessonSessionSnapshotCodec(
     private val json: Json = Json,
@@ -41,14 +44,14 @@ class LessonSessionSnapshotCodec(
         require(payload.size <= MAX_PAYLOAD_BYTES) { "Lesson session snapshot is unexpectedly large." }
         val checksum = sha256(payload)
 
-        DataOutputStream(output).use { data ->
-            data.writeInt(MAGIC)
-            data.writeInt(ENVELOPE_VERSION)
-            data.writeInt(payload.size)
-            data.writeInt(checksum.size)
-            data.write(checksum)
-            data.write(payload)
-        }
+        val data = DataOutputStream(output)
+        data.writeInt(MAGIC)
+        data.writeInt(ENVELOPE_VERSION)
+        data.writeInt(payload.size)
+        data.writeInt(checksum.size)
+        data.write(checksum)
+        data.write(payload)
+        data.flush()
     }
 
     @Throws(IOException::class)

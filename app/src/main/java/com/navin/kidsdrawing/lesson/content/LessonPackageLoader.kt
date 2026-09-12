@@ -355,8 +355,15 @@ object LessonPackageValidator {
         if (ids.size != ids.distinct().size) add(duplicateId("coloring.steps", "Coloring step IDs must be unique."))
         validateIds("coloring.steps", ids).forEach(::add)
         coloring.steps.forEachIndexed { index, step ->
-            if (step.regionIds.isEmpty()) add(invalidValue("coloring.steps[$index].regionIds", "Coloring step requires at least one region."))
             validateIds("coloring.steps[$index].regionIds", step.regionIds).forEach(::add)
+            if (step.regionIds.isNotEmpty() && lesson.assets.coloringRegions == null) {
+                add(
+                    invalidValue(
+                        "coloring.steps[$index].regionIds",
+                        "Region IDs require an authored assets.coloringRegions file; freehand coloring must leave regionIds empty.",
+                    ),
+                )
+            }
             validateIds("coloring.steps[$index].suggestedColorRoles", step.suggestedColorRoles).forEach(::add)
             step.narrationKey?.let { validateSingleId("coloring.steps[$index].narrationKey", it)?.let(::add) }
         }

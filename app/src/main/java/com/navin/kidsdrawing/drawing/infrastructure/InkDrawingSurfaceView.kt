@@ -601,7 +601,7 @@ class InkDrawingSurfaceView(
 
         fun addInkStroke(strokeId: String, stroke: Stroke) {
             require(strokeId.isNotBlank())
-            rasterCache.appendLiveInk(stroke)
+            rasterCache.appendLiveInk(strokeId, stroke)
         }
 
         fun addEraseMask(mask: EraseMaskRecord) {

@@ -428,7 +428,10 @@ private fun QualityLabScreen(
                     controller = controller,
                     toolSettings = toolSettings,
                     onStrokeCommitted = { stroke ->
-                        scope.launch { documentEngine.commitChildStroke(stroke) }
+                        scope.launch {
+                            documentEngine.commitChildStroke(stroke)
+                            controller.reconcileDocument(documentEngine.state.value.document)
+                        }
                     },
                     onEraseMaskCommitted = { mask ->
                         scope.launch {

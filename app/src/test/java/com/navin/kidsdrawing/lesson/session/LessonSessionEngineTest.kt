@@ -22,22 +22,42 @@ class LessonSessionEngineTest {
     }
 
     @Test
-    fun drawWithMeAndTraceStartAtPreparingStepAcrossAllPaces() {
-        listOf(TeachingMode.DRAW_WITH_ME, TeachingMode.TRACE_AND_LEARN).forEach { mode ->
-            TeachingPace.entries.forEach { pace ->
-                val engine = engine()
+    fun drawWithMeStartsTeacherImmediatelyAcrossAllPaces() {
+        TeachingPace.entries.forEach { pace ->
+            val engine = engine()
 
-                val result = engine.dispatch(LessonCommand.StartLesson(mode, pace))
+            val result = engine.dispatch(
+                LessonCommand.StartLesson(TeachingMode.DRAW_WITH_ME, pace),
+            )
 
-                assertTrue(result is LessonCommandResult.Accepted)
-                val state = engine.state as LessonSessionState.PreparingStep
-                assertEquals(mode, state.context.mode)
-                assertEquals(pace, state.context.pace)
-                assertEquals(0, state.context.currentStepIndex)
-                assertEquals("head", state.context.currentStepId)
-                assertEquals(0, state.context.helpLevel)
-                assertTrue(state.context.overviewCompleted)
-            }
+            assertTrue(result is LessonCommandResult.Accepted)
+            val state = engine.state as LessonSessionState.TeacherDemonstrating
+            assertEquals(TeachingMode.DRAW_WITH_ME, state.context.mode)
+            assertEquals(pace, state.context.pace)
+            assertEquals(0, state.context.currentStepIndex)
+            assertEquals("head", state.context.currentStepId)
+            assertEquals(0, state.context.helpLevel)
+            assertTrue(state.context.overviewCompleted)
+            assertTrue(result.events.filterIsInstance<TeacherPlaybackRequested>().size == 1)
+        }
+    }
+
+    @Test
+    fun traceModeRetainsPreparingStepBoundaryAcrossAllPacesUntilP24() {
+        TeachingPace.entries.forEach { pace ->
+            val engine = engine()
+
+            val result = engine.dispatch(
+                LessonCommand.StartLesson(TeachingMode.TRACE_AND_LEARN, pace),
+            )
+
+            assertTrue(result is LessonCommandResult.Accepted)
+            val state = engine.state as LessonSessionState.PreparingStep
+            assertEquals(TeachingMode.TRACE_AND_LEARN, state.context.mode)
+            assertEquals(pace, state.context.pace)
+            assertEquals(0, state.context.currentStepIndex)
+            assertEquals("head", state.context.currentStepId)
+            assertTrue(state.context.overviewCompleted)
         }
     }
 
@@ -109,11 +129,12 @@ class LessonSessionEngineTest {
     }
 
     @Test
-    fun paceChangePreservesCursorAndWorksWhilePaused() {
+    fun paceChangePreservesCursorAndTeacherRequestWhilePaused() {
         val engine = engine()
         engine.dispatch(
             LessonCommand.StartLesson(TeachingMode.DRAW_WITH_ME, TeachingPace.NORMAL),
         )
+        val originalTeacher = engine.state as LessonSessionState.TeacherDemonstrating
         engine.dispatch(LessonCommand.Pause)
 
         val result = engine.dispatch(LessonCommand.SetPace(TeachingPace.VERY_FAST))
@@ -123,10 +144,21 @@ class LessonSessionEngineTest {
         assertEquals(TeachingPace.VERY_FAST, paused.context.pace)
         assertEquals(0, paused.context.currentStepIndex)
         assertEquals("head", paused.context.currentStepId)
+        val pausedTeacher = paused.previousStableState as LessonSessionState.TeacherDemonstrating
+        assertEquals(originalTeacher.requestId, pausedTeacher.requestId)
+        assertTrue(result.events.any {
+            it is TeacherPlaybackPaceChangeRequested &&
+                it.requestId == originalTeacher.requestId &&
+                it.pace == TeachingPace.VERY_FAST
+        })
 
-        engine.dispatch(LessonCommand.Resume)
-        val resumed = engine.state as LessonSessionState.PreparingStep
+        val resume = engine.dispatch(LessonCommand.Resume)
+        val resumed = engine.state as LessonSessionState.TeacherDemonstrating
         assertEquals(TeachingPace.VERY_FAST, resumed.context.pace)
+        assertEquals(originalTeacher.requestId, resumed.requestId)
+        assertTrue(resume.events.any {
+            it is TeacherPlaybackResumeRequested && it.requestId == originalTeacher.requestId
+        })
     }
 
     @Test
@@ -153,6 +185,7 @@ class LessonSessionEngineTest {
             val snapshot = snapshot(engine)
             assertEquals(123_456L, snapshot.savedAtEpochMillis)
             assertEquals(pace, snapshot.pace)
+            assertEquals(LessonSnapshotPhase.PREPARING_STEP, snapshot.phase)
 
             val restored = LessonSessionEngine.restore(packageData(), snapshot)
             assertTrue(restored is LessonRestoreResult.Restored)
@@ -168,6 +201,7 @@ class LessonSessionEngineTest {
         engine.dispatch(
             LessonCommand.StartLesson(TeachingMode.DRAW_WITH_ME, TeachingPace.FAST),
         )
+        val requestId = (engine.state as LessonSessionState.TeacherDemonstrating).requestId
 
         val result = engine.dispatch(LessonCommand.SaveAndExit)
 
@@ -176,6 +210,9 @@ class LessonSessionEngineTest {
         val event = result.events.filterIsInstance<LessonSessionEvent.SaveAndExitRequested>().single()
         assertEquals(LessonSnapshotPhase.PREPARING_STEP, event.snapshot.phase)
         assertEquals(777L, event.snapshot.savedAtEpochMillis)
+        assertTrue(result.events.any {
+            it is TeacherPlaybackCancelRequested && it.requestId == requestId
+        })
         val finished = engine.state as LessonSessionState.Finished
         assertEquals(LessonFinishReason.SAVED_FOR_LATER, finished.reason)
 

@@ -1,6 +1,9 @@
 package com.navin.kidsdrawing.lesson.session
 
 import com.navin.kidsdrawing.drawing.domain.TeachingPace
+import com.navin.kidsdrawing.lesson.execution.LessonTeacherSequenceFactory
+import com.navin.kidsdrawing.lesson.model.ChildCompletionPolicy
+import com.navin.kidsdrawing.lesson.model.DrawingStep
 import com.navin.kidsdrawing.lesson.model.LessonRuntimePackage
 import com.navin.kidsdrawing.lesson.model.TeachingMode
 
@@ -10,6 +13,8 @@ class LessonSessionEngine private constructor(
     private val clock: () -> Long,
     initialState: LessonSessionState,
 ) {
+    private var teacherRequestOrdinal: Long = 0L
+
     var state: LessonSessionState = initialState
         private set
 
@@ -19,6 +24,15 @@ class LessonSessionEngine private constructor(
         LessonCommand.Resume -> resume()
         LessonCommand.SaveAndExit -> saveAndExit()
         is LessonCommand.SetPace -> setPace(command.pace)
+        ReplayDemonstration -> replayDemonstration()
+        MarkChildTurnDone -> markChildTurnDone()
+        SkipStep -> skipStep()
+    }
+
+    fun handle(signal: LessonRuntimeSignal): LessonSignalResult = when (signal) {
+        is LessonRuntimeSignal.TeacherPlaybackCompleted -> teacherPlaybackCompleted(signal)
+        is LessonRuntimeSignal.TeacherPlaybackFailed -> teacherPlaybackFailed(signal)
+        is LessonRuntimeSignal.ChildStrokeCommitted -> childStrokeCommitted(signal)
     }
 
     fun createSnapshot(): LessonSnapshotResult = snapshotForState(state, clock())
@@ -46,16 +60,27 @@ class LessonSessionEngine private constructor(
             helpLevel = 0,
             overviewCompleted = mode != TeachingMode.WATCH_THEN_DRAW,
         )
-        val nextState: LessonSessionState = if (mode == TeachingMode.WATCH_THEN_DRAW) {
-            LessonSessionState.OverviewDemonstrating(context)
-        } else {
-            LessonSessionState.PreparingStep(context)
-        }
 
-        return transition(
-            nextState,
-            LessonSessionEvent.SessionStarted(mode, pace),
-        )
+        val events = mutableListOf<LessonSessionEvent>()
+        when (mode) {
+            TeachingMode.DRAW_WITH_ME -> {
+                events += moveTo(LessonSessionState.PreparingStep(context))
+                events += LessonSessionEvent.SessionStarted(mode, pace)
+                launchTeacherDemonstration(context, replay = false, events = events)
+            }
+
+            TeachingMode.WATCH_THEN_DRAW -> {
+                events += moveTo(LessonSessionState.OverviewDemonstrating(context))
+                events += LessonSessionEvent.SessionStarted(mode, pace)
+            }
+
+            TeachingMode.TRACE_AND_LEARN -> {
+                // Full trace-guide orchestration belongs to P2.4. P2.2 semantics remain intact.
+                events += moveTo(LessonSessionState.PreparingStep(context))
+                events += LessonSessionEvent.SessionStarted(mode, pace)
+            }
+        }
+        return accepted(events)
     }
 
     private fun pause(): LessonCommandResult {
@@ -67,10 +92,13 @@ class LessonSessionEngine private constructor(
             )
         }
 
-        return transition(
-            LessonSessionState.Paused(current),
-            LessonSessionEvent.SessionPaused(runtimePhaseOf(current)),
-        )
+        val events = mutableListOf<LessonSessionEvent>()
+        events += moveTo(LessonSessionState.Paused(current))
+        events += LessonSessionEvent.SessionPaused(runtimePhaseOf(current))
+        if (current is LessonSessionState.TeacherDemonstrating) {
+            events += TeacherPlaybackPauseRequested(current.requestId)
+        }
+        return accepted(events)
     }
 
     private fun resume(): LessonCommandResult {
@@ -83,33 +111,91 @@ class LessonSessionEngine private constructor(
         }
 
         val resumed = current.previousStableState
-        return transition(
-            resumed,
-            LessonSessionEvent.SessionResumed(runtimePhaseOf(resumed)),
-        )
+        val events = mutableListOf<LessonSessionEvent>()
+        events += moveTo(resumed)
+        events += LessonSessionEvent.SessionResumed(runtimePhaseOf(resumed))
+        if (resumed is LessonSessionState.TeacherDemonstrating) {
+            events += TeacherPlaybackResumeRequested(resumed.requestId)
+        }
+        return accepted(events)
     }
 
     private fun setPace(pace: TeachingPace): LessonCommandResult {
-        val current = state
-        val contextual = when (current) {
-            is LessonSessionState.Contextual -> current
-            else -> null
-        } ?: return reject(
-            LessonCommandRejectionCode.INVALID_STATE,
-            "SetPace requires an active or paused lesson session.",
-        )
+        val contextual = state as? LessonSessionState.Contextual
+            ?: return reject(
+                LessonCommandRejectionCode.INVALID_STATE,
+                "SetPace requires an active or paused lesson session.",
+            )
 
         val previousPace = contextual.context.pace
         if (previousPace == pace) {
             return LessonCommandResult.Accepted(state, emptyList())
         }
 
+        val activeTeacherRequestId = activeTeacherRequestId(contextual)
         val updatedContext = contextual.context.copy(pace = pace)
-        val nextState = replaceContext(current, updatedContext)
-        return transition(
-            nextState,
-            LessonSessionEvent.PaceChanged(previousPace, pace),
-        )
+        val nextState = replaceContext(contextual, updatedContext)
+        val events = mutableListOf<LessonSessionEvent>()
+        events += moveTo(nextState)
+        events += LessonSessionEvent.PaceChanged(previousPace, pace)
+        if (activeTeacherRequestId != null) {
+            events += TeacherPlaybackPaceChangeRequested(activeTeacherRequestId, pace)
+        }
+        return accepted(events)
+    }
+
+    private fun replayDemonstration(): LessonCommandResult {
+        val context = childTurnContext()
+            ?: return reject(
+                LessonCommandRejectionCode.INVALID_STATE,
+                "Replay is only valid during a child turn.",
+            )
+        val step = currentStep(context)
+        if (!step.childTurn.allowReplay) {
+            return reject(
+                LessonCommandRejectionCode.REPLAY_NOT_ALLOWED,
+                "Step ${step.id} does not allow teacher replay.",
+            )
+        }
+
+        val events = mutableListOf<LessonSessionEvent>()
+        launchTeacherDemonstration(context, replay = true, events = events)
+        return accepted(events)
+    }
+
+    private fun markChildTurnDone(): LessonCommandResult {
+        val context = childTurnContext()
+            ?: return reject(
+                LessonCommandRejectionCode.INVALID_STATE,
+                "Done is only valid during a child turn.",
+            )
+        return when (val policy = currentStep(context).childTurn.completionPolicy) {
+            ChildCompletionPolicy.MANUAL_DONE -> accepted(completeCurrentStep(context, skipped = false))
+            ChildCompletionPolicy.ANY_STROKE -> reject(
+                LessonCommandRejectionCode.COMPLETION_POLICY_NOT_SATISFIED,
+                "This step completes after a committed child stroke rather than manual Done.",
+            )
+            ChildCompletionPolicy.AUTHORED_SIGNAL -> reject(
+                LessonCommandRejectionCode.UNSUPPORTED_COMPLETION_POLICY,
+                "Authored completion signals are not enabled in Lesson Engine 0.2.",
+            )
+        }
+    }
+
+    private fun skipStep(): LessonCommandResult {
+        val context = childTurnContext()
+            ?: return reject(
+                LessonCommandRejectionCode.INVALID_STATE,
+                "Skip is only valid during a child turn.",
+            )
+        val step = currentStep(context)
+        if (!step.childTurn.allowSkip) {
+            return reject(
+                LessonCommandRejectionCode.SKIP_NOT_ALLOWED,
+                "Step ${step.id} does not allow Skip.",
+            )
+        }
+        return accepted(completeCurrentStep(context, skipped = true))
     }
 
     private fun saveAndExit(): LessonCommandResult {
@@ -127,30 +213,218 @@ class LessonSessionEngine private constructor(
                 "The current session state cannot be safely snapshotted.",
             )
 
-        val finalContext = when (val current = state) {
-            is LessonSessionState.Contextual -> current.context
-            else -> null
-        }
-        return transition(
+        val currentState = state
+        val finalContext = (currentState as? LessonSessionState.Contextual)?.context
+        val events = mutableListOf<LessonSessionEvent>()
+        activeTeacherRequestId(currentState)?.let { events += TeacherPlaybackCancelRequested(it) }
+        events += moveTo(
             LessonSessionState.Finished(
                 reason = LessonFinishReason.SAVED_FOR_LATER,
                 finalContext = finalContext,
             ),
-            LessonSessionEvent.SaveAndExitRequested(snapshot),
         )
+        events += LessonSessionEvent.SaveAndExitRequested(snapshot)
+        return accepted(events)
     }
 
-    private fun transition(
-        nextState: LessonSessionState,
-        vararg additionalEvents: LessonSessionEvent,
-    ): LessonCommandResult.Accepted {
+    private fun teacherPlaybackCompleted(
+        signal: LessonRuntimeSignal.TeacherPlaybackCompleted,
+    ): LessonSignalResult {
+        val current = state
+        if (current !is LessonSessionState.TeacherDemonstrating) {
+            return rejectSignal(
+                LessonSignalRejectionCode.INVALID_STATE,
+                "Teacher completion is only valid while a teacher demonstration is active.",
+            )
+        }
+        if (signal.requestId != current.requestId) {
+            return rejectSignal(
+                LessonSignalRejectionCode.STALE_TEACHER_REQUEST,
+                "Teacher completion ${signal.requestId} does not match active request ${current.requestId}.",
+            )
+        }
+
+        val nextState: LessonSessionState.Pausable = if (current.context.helpLevel > 0) {
+            LessonSessionState.HelpActive(current.context)
+        } else {
+            LessonSessionState.AwaitingChild(current.context)
+        }
+        val events = listOf(
+            moveTo(nextState),
+            ChildTurnStarted(
+                stepIndex = current.context.currentStepIndex,
+                stepId = current.context.currentStepId,
+            ),
+        )
+        return acceptedSignal(events)
+    }
+
+    private fun teacherPlaybackFailed(
+        signal: LessonRuntimeSignal.TeacherPlaybackFailed,
+    ): LessonSignalResult {
+        val current = state
+        if (current !is LessonSessionState.TeacherDemonstrating) {
+            return rejectSignal(
+                LessonSignalRejectionCode.INVALID_STATE,
+                "Teacher failure is only valid while a teacher demonstration is active.",
+            )
+        }
+        if (signal.requestId != current.requestId) {
+            return rejectSignal(
+                LessonSignalRejectionCode.STALE_TEACHER_REQUEST,
+                "Teacher failure ${signal.requestId} does not match active request ${current.requestId}.",
+            )
+        }
+
+        val reason = signal.reason.ifBlank { "unknown" }
+        val next = LessonSessionState.RecoverableError(
+            context = current.context,
+            recoveryPhase = LessonSnapshotPhase.PREPARING_STEP,
+            code = "teacher_playback_failed",
+        )
+        val events = listOf(
+            moveTo(next),
+            TeacherPlaybackFailureObserved(current.requestId, reason),
+        )
+        return acceptedSignal(events)
+    }
+
+    private fun childStrokeCommitted(
+        signal: LessonRuntimeSignal.ChildStrokeCommitted,
+    ): LessonSignalResult {
+        val context = childTurnContext()
+            ?: return rejectSignal(
+                LessonSignalRejectionCode.INVALID_STATE,
+                "A child stroke can affect lesson progression only during a child turn.",
+            )
+        if (signal.childDocumentId != identity.childDocumentId) {
+            return rejectSignal(
+                LessonSignalRejectionCode.DOCUMENT_MISMATCH,
+                "Committed child stroke belongs to a different drawing document.",
+            )
+        }
+        if (signal.operationId.isBlank()) {
+            return rejectSignal(
+                LessonSignalRejectionCode.COMPLETION_POLICY_NOT_APPLICABLE,
+                "Committed child operation ID cannot be blank.",
+            )
+        }
+
+        return when (currentStep(context).childTurn.completionPolicy) {
+            ChildCompletionPolicy.ANY_STROKE -> acceptedSignal(
+                completeCurrentStep(context, skipped = false),
+            )
+            ChildCompletionPolicy.MANUAL_DONE -> LessonSignalResult.Accepted(state, emptyList())
+            ChildCompletionPolicy.AUTHORED_SIGNAL -> rejectSignal(
+                LessonSignalRejectionCode.COMPLETION_POLICY_NOT_APPLICABLE,
+                "A committed child stroke does not satisfy authored_signal completion.",
+            )
+        }
+    }
+
+    private fun launchTeacherDemonstration(
+        context: LessonActiveContext,
+        replay: Boolean,
+        events: MutableList<LessonSessionEvent>,
+    ) {
+        val step = currentStep(context)
+        val sequence = LessonTeacherSequenceFactory.create(lessonPackage, step)
+        val requestId = nextTeacherRequestId(step)
+        val request = TeacherPlaybackRequest(
+            requestId = requestId,
+            stepId = step.id,
+            sequence = sequence,
+            pace = context.pace,
+            replay = replay,
+            narrationKey = step.teacher.narrationKey,
+        )
+        events += moveTo(
+            LessonSessionState.TeacherDemonstrating(
+                context = context,
+                requestId = requestId,
+                replay = replay,
+            ),
+        )
+        events += TeacherPlaybackRequested(request)
+    }
+
+    private fun completeCurrentStep(
+        context: LessonActiveContext,
+        skipped: Boolean,
+    ): List<LessonSessionEvent> {
+        val step = currentStep(context)
+        val events = mutableListOf<LessonSessionEvent>()
+        events += moveTo(LessonSessionState.CompletingStep(context))
+        events += StepCompleted(
+            stepIndex = context.currentStepIndex,
+            stepId = step.id,
+            skipped = skipped,
+        )
+        events += LessonAutosaveRequested(LessonAutosaveReason.STEP_COMPLETED)
+
+        val nextIndex = context.currentStepIndex + 1
+        if (nextIndex >= lessonPackage.lesson.drawing.steps.size) {
+            events += moveTo(LessonSessionState.DrawingComplete(context))
+            events += DrawingLessonCompleted(lessonPackage.lesson.lessonId)
+            events += LessonAutosaveRequested(LessonAutosaveReason.DRAWING_COMPLETED)
+            return events
+        }
+
+        val nextStep = lessonPackage.lesson.drawing.steps[nextIndex]
+        val nextContext = context.copy(
+            currentStepIndex = nextIndex,
+            currentStepId = nextStep.id,
+            helpLevel = 0,
+        )
+        events += moveTo(LessonSessionState.PreparingStep(nextContext))
+        if (nextContext.mode == TeachingMode.DRAW_WITH_ME) {
+            launchTeacherDemonstration(nextContext, replay = false, events = events)
+        }
+        return events
+    }
+
+    private fun currentStep(context: LessonActiveContext): DrawingStep {
+        val step = lessonPackage.lesson.drawing.steps.getOrNull(context.currentStepIndex)
+            ?: error("Session step index ${context.currentStepIndex} is outside the validated lesson.")
+        check(step.id == context.currentStepId) {
+            "Session step identity ${context.currentStepId} does not match authored step ${step.id}."
+        }
+        return step
+    }
+
+    private fun childTurnContext(): LessonActiveContext? = when (val current = state) {
+        is LessonSessionState.AwaitingChild -> current.context
+        is LessonSessionState.HelpActive -> current.context
+        else -> null
+    }
+
+    private fun nextTeacherRequestId(step: DrawingStep): String {
+        teacherRequestOrdinal += 1
+        return "${identity.sessionId}:r${identity.lessonRevision}:${step.id}:teacher:$teacherRequestOrdinal"
+    }
+
+    private fun activeTeacherRequestId(current: LessonSessionState): String? = when (current) {
+        is LessonSessionState.TeacherDemonstrating -> current.requestId
+        is LessonSessionState.Paused ->
+            (current.previousStableState as? LessonSessionState.TeacherDemonstrating)?.requestId
+        else -> null
+    }
+
+    private fun moveTo(nextState: LessonSessionState): LessonSessionEvent.StateChanged {
         val previous = state
         state = nextState
-        return LessonCommandResult.Accepted(
-            state = nextState,
-            events = listOf(LessonSessionEvent.StateChanged(previous, nextState)) + additionalEvents,
-        )
+        return LessonSessionEvent.StateChanged(previous, nextState)
     }
+
+    private fun accepted(events: List<LessonSessionEvent>) = LessonCommandResult.Accepted(
+        state = state,
+        events = events,
+    )
+
+    private fun acceptedSignal(events: List<LessonSessionEvent>) = LessonSignalResult.Accepted(
+        state = state,
+        events = events,
+    )
 
     private fun reject(
         code: LessonCommandRejectionCode,
@@ -158,6 +432,14 @@ class LessonSessionEngine private constructor(
     ): LessonCommandResult.Rejected = LessonCommandResult.Rejected(
         state = state,
         rejection = LessonCommandRejection(code, message),
+    )
+
+    private fun rejectSignal(
+        code: LessonSignalRejectionCode,
+        message: String,
+    ): LessonSignalResult.Rejected = LessonSignalResult.Rejected(
+        state = state,
+        rejection = LessonSignalRejection(code, message),
     )
 
     private fun snapshotForState(

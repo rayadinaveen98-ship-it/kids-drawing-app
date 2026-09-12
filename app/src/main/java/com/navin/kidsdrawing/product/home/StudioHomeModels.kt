@@ -14,6 +14,7 @@ enum class StudioDestination {
     HOME,
     LESSON_START,
     LESSON_RESUME,
+    COLORING_RESUME,
     ART_JOURNEY,
     FREE_DRAW,
     GALLERY,
@@ -79,9 +80,21 @@ data class ResumeLessonCandidate(
         }
 }
 
+data class ColoringResumeCandidate(
+    val sessionId: String,
+    val lessonId: String,
+    val lessonRevision: Int,
+    val childDocumentId: String,
+    val savedAtEpochMillis: Long,
+) {
+    val progressLabel: String
+        get() = "Your drawing is safe · continue adding color"
+}
+
 data class StudioHomeModel(
     val recommendation: LessonRecommendation?,
     val resumeCandidate: ResumeLessonCandidate?,
+    val coloringResumeCandidate: ColoringResumeCandidate? = null,
     val contentMessage: String? = null,
 )
 

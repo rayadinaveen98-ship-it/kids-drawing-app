@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -20,12 +19,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.navin.kidsdrawing.product.design.StudioColors
 import com.navin.kidsdrawing.product.design.StudioTheme
+import com.navin.kidsdrawing.product.home.StudioDestination
+import com.navin.kidsdrawing.product.home.StudioHomeModel
+import com.navin.kidsdrawing.product.home.StudioHomeRepository
+import com.navin.kidsdrawing.product.home.StudioHomeScreen
+import com.navin.kidsdrawing.product.home.StudioPlaceholderRoute
 import com.navin.kidsdrawing.product.onboarding.OnboardingFlow
 import com.navin.kidsdrawing.product.profile.ChildProfile
 import com.navin.kidsdrawing.product.profile.ChildProfileDraft
@@ -86,7 +92,45 @@ private fun ProductRoot(store: ChildProfileStore) {
                 }
             },
         )
-        is StartupState.Home -> HomeShell(current.profile)
+        is StartupState.Home -> ProductStudio(profile = current.profile)
+    }
+}
+
+@Composable
+private fun ProductStudio(profile: ChildProfile) {
+    val context = LocalContext.current
+    val repository = remember(context) { StudioHomeRepository(context) }
+    var routeName by rememberSaveable { mutableStateOf(StudioDestination.HOME.name) }
+    val route = runCatching { StudioDestination.valueOf(routeName) }
+        .getOrDefault(StudioDestination.HOME)
+    var homeModel by remember(profile) { mutableStateOf<StudioHomeModel?>(null) }
+
+    LaunchedEffect(profile, route) {
+        if (route == StudioDestination.HOME) {
+            homeModel = runCatching { repository.load(profile) }
+                .getOrElse {
+                    StudioHomeModel(
+                        recommendation = null,
+                        resumeCandidate = null,
+                        contentMessage = "Your studio is open. This lesson needs a moment before it can start.",
+                    )
+                }
+        }
+    }
+
+    when (route) {
+        StudioDestination.HOME -> StudioHomeScreen(
+            profile = profile,
+            model = homeModel,
+            onPrimaryLessonAction = { destination -> routeName = destination.name },
+            onOpenRecommendation = { routeName = StudioDestination.LESSON_START.name },
+            onOpenDestination = { destination -> routeName = destination.name },
+        )
+
+        else -> StudioPlaceholderRoute(
+            destination = route,
+            onBack = { routeName = StudioDestination.HOME.name },
+        )
     }
 }
 
@@ -108,59 +152,6 @@ private fun LoadingStudio() {
                 style = MaterialTheme.typography.bodyLarge,
                 color = StudioColors.Ink700,
             )
-        }
-    }
-}
-
-@Composable
-private fun HomeShell(profile: ChildProfile) {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = StudioColors.Paper50,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .safeDrawingPadding()
-                .padding(horizontal = 22.dp, vertical = 24.dp),
-        ) {
-            Text(
-                text = "Hi ${profile.nickname} 👋",
-                style = MaterialTheme.typography.headlineLarge,
-                color = StudioColors.Ink900,
-            )
-            Text(
-                text = "Your studio is ready.",
-                modifier = Modifier.padding(top = 6.dp),
-                style = MaterialTheme.typography.bodyLarge,
-                color = StudioColors.Ink700,
-            )
-
-            Spacer(modifier = Modifier.size(28.dp))
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = MaterialTheme.shapes.large,
-                color = StudioColors.Studio100,
-            ) {
-                Column(modifier = Modifier.padding(24.dp)) {
-                    Text(
-                        text = "🎨  Ready to make something?",
-                        style = MaterialTheme.typography.headlineSmall,
-                    )
-                    Text(
-                        text = "Picked-for-you lessons and Continue Drawing arrive in the next Phase 3 slice.",
-                        modifier = Modifier.padding(top = 10.dp),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = StudioColors.Ink700,
-                    )
-                    Text(
-                        text = "Starting style: ${profile.teachingMode.name.replace('_', ' ').lowercase()} · ${profile.pace.name.replace('_', ' ').lowercase()}",
-                        modifier = Modifier.padding(top = 16.dp),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = StudioColors.Studio600,
-                    )
-                }
-            }
         }
     }
 }

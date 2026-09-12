@@ -10,6 +10,15 @@ import org.junit.Test
 
 class DrawingEngineQualityStressTest {
     @Test
+    fun w1NormalDocumentMatchesFiveHundredOperationContract() {
+        val document = ArtLabQualityWorkloadFactory.w1()
+
+        assertEquals(ArtLabQualityWorkloadFactory.W1_OPERATION_COUNT, document.operations.size)
+        assertEquals(450, document.activeInkStrokes().size)
+        assertEquals(document.operations.size, document.operations.map { it.operationId }.toSet().size)
+    }
+
+    @Test
     fun w2HeavyDocumentMatchesContractAndPreservesStableOrdering() {
         val document = StressFixtureFactory.w2Document()
         val strokes = document.operations.filterIsInstance<DocumentOperation.AddInkStroke>()

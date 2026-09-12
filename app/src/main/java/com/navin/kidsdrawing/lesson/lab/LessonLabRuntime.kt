@@ -11,5 +11,5 @@ class LessonLabRuntime(context: Context) : LessonLabRuntimeCore(
     sessionRoot = File(context.filesDir, "lesson-lab-sessions"),
     lessonPackageResult = LessonPackageLoader(
         AndroidAssetLessonSource(context.assets),
-    ).load(LESSON_ROOT),
+    ).load(LessonLabRuntimeCore.LESSON_ROOT),
 )

@@ -14,6 +14,8 @@ data class DrawingEngineState(
     val historyCursor: Int,
     val historyDepth: Int,
     val redoDepth: Int,
+    val canUndoColoring: Boolean = false,
+    val canRedoColoring: Boolean = false,
 )
 
 /**
@@ -29,16 +31,7 @@ class DrawingDocumentEngine(
 ) {
     private val mutationMutex = Mutex()
     private val redoStack = ArrayDeque<DocumentOperation>()
-    private val _state = MutableStateFlow(
-        DrawingEngineState(
-            document = initialDocument,
-            canUndo = initialDocument.operations.isNotEmpty(),
-            canRedo = false,
-            historyCursor = initialDocument.operations.size,
-            historyDepth = initialDocument.operations.size,
-            redoDepth = 0,
-        ),
-    )
+    private val _state = MutableStateFlow(stateFor(initialDocument))
 
     val state: StateFlow<DrawingEngineState> = _state.asStateFlow()
 
@@ -60,6 +53,33 @@ class DrawingDocumentEngine(
         mutationMutex.withLock {
             val operation = DocumentOperation.AddEraseMask(
                 operationId = nextId("erase"),
+                createdAtEpochMillis = clockMillis(),
+                mask = mask,
+            )
+            appendNewOperation(operation)
+            operation
+        }
+
+    /** Commit child coloring without weakening the protected line-art operation role. */
+    suspend fun commitColorStroke(stroke: InkStrokeRecord): DocumentOperation.AddColorStroke =
+        mutationMutex.withLock {
+            require(stroke.authorRole == StrokeAuthorRole.CHILD) {
+                "Teacher-generated strokes cannot enter child coloring history."
+            }
+            val operation = DocumentOperation.AddColorStroke(
+                operationId = nextId("color"),
+                createdAtEpochMillis = clockMillis(),
+                stroke = stroke,
+            )
+            appendNewOperation(operation)
+            operation
+        }
+
+    /** Commit an erase mask that is structurally restricted to the coloring projection. */
+    suspend fun commitColorEraseMask(mask: EraseMaskRecord): DocumentOperation.AddColorEraseMask =
+        mutationMutex.withLock {
+            val operation = DocumentOperation.AddColorEraseMask(
+                operationId = nextId("color-erase"),
                 createdAtEpochMillis = clockMillis(),
                 mask = mask,
             )
@@ -89,29 +109,56 @@ class DrawingDocumentEngine(
     }
 
     suspend fun undo(): Boolean = mutationMutex.withLock {
+        undoLastOperation()
+    }
+
+    suspend fun redo(): Boolean = mutationMutex.withLock {
+        redoLastOperation()
+    }
+
+    /**
+     * Coloring UI may never cross into protected line-art history. This returns false at that
+     * boundary instead of delegating a global Undo that could remove drawing operations.
+     */
+    suspend fun undoColoring(): Boolean = mutationMutex.withLock {
+        val last = _state.value.document.operations.lastOrNull()
+        if (last?.isColoringOperation() != true) return@withLock false
+        undoLastOperation()
+    }
+
+    /** Redo only a coloring operation previously removed through coloring history. */
+    suspend fun redoColoring(): Boolean = mutationMutex.withLock {
+        val redo = redoStack.lastOrNull()
+        if (redo?.isColoringOperation() != true) return@withLock false
+        redoLastOperation()
+    }
+
+    private fun undoLastOperation(): Boolean {
         val current = _state.value.document
-        val last = current.operations.lastOrNull() ?: return@withLock false
+        val last = current.operations.lastOrNull() ?: return false
 
         redoStack.addLast(last)
         publishDocument(
             current.copy(
+                documentSchemaVersion = CURRENT_DOCUMENT_SCHEMA_VERSION,
                 modifiedAtEpochMillis = clockMillis(),
                 operations = current.operations.dropLast(1),
             ),
         )
-        true
+        return true
     }
 
-    suspend fun redo(): Boolean = mutationMutex.withLock {
-        val operation = redoStack.removeLastOrNull() ?: return@withLock false
+    private fun redoLastOperation(): Boolean {
+        val operation = redoStack.removeLastOrNull() ?: return false
         val current = _state.value.document
         publishDocument(
             current.copy(
+                documentSchemaVersion = CURRENT_DOCUMENT_SCHEMA_VERSION,
                 modifiedAtEpochMillis = clockMillis(),
                 operations = current.operations + operation,
             ),
         )
-        true
+        return true
     }
 
     private fun appendNewOperation(operation: DocumentOperation) {
@@ -119,6 +166,7 @@ class DrawingDocumentEngine(
         redoStack.clear()
         publishDocument(
             current.copy(
+                documentSchemaVersion = CURRENT_DOCUMENT_SCHEMA_VERSION,
                 modifiedAtEpochMillis = clockMillis(),
                 operations = current.operations + operation,
             ),
@@ -126,14 +174,20 @@ class DrawingDocumentEngine(
     }
 
     private fun publishDocument(document: DrawingDocument) {
+        _state.value = stateFor(document)
+    }
+
+    private fun stateFor(document: DrawingDocument): DrawingEngineState {
         val cursor = document.operations.size
-        _state.value = DrawingEngineState(
+        return DrawingEngineState(
             document = document,
             canUndo = cursor > 0,
             canRedo = redoStack.isNotEmpty(),
             historyCursor = cursor,
             historyDepth = cursor + redoStack.size,
             redoDepth = redoStack.size,
+            canUndoColoring = document.operations.lastOrNull()?.isColoringOperation() == true,
+            canRedoColoring = redoStack.lastOrNull()?.isColoringOperation() == true,
         )
     }
 

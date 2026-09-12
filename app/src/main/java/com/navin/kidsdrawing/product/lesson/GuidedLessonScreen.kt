@@ -73,7 +73,8 @@ fun GuidedLessonScreen(
     ageBand: AgeBand,
     startMode: TeachingMode,
     startPace: TeachingPace,
-    resumeOnly: Boolean,
+    startFreshRequested: Boolean,
+    onFreshSessionStarted: () -> Unit,
     onExitToHome: () -> Unit,
     onFinishedForNow: () -> Unit,
     modifier: Modifier = Modifier,
@@ -91,12 +92,12 @@ fun GuidedLessonScreen(
     var recoveryReady by remember { mutableStateOf(false) }
     var startupMessage by remember { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(runtime, resumeOnly, startMode, startPace) {
+    LaunchedEffect(runtime) {
         val outcome = runtime.recover()
         val recoveredState = runtime.sessionState.value
         when (
             ProductLessonStartupPolicy.decide(
-                resumeRequested = resumeOnly,
+                startFreshRequested = startFreshRequested,
                 recoveryOutcome = outcome,
                 recoveredState = recoveredState,
             )
@@ -107,7 +108,12 @@ fun GuidedLessonScreen(
             }
             ProductLessonStartupDecision.START_FRESH -> {
                 runtime.newSessionDocument()
-                runtime.start(startMode, startPace)
+                val started = runtime.start(startMode, startPace)
+                if (started != null) {
+                    onFreshSessionStarted()
+                } else {
+                    startupMessage = "This lesson needs a moment before it can start. Your studio is still safe."
+                }
             }
         }
         surfaceController.reconcileDocument(runtime.documentEngine.state.value.document)

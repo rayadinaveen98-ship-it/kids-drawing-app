@@ -19,7 +19,7 @@ class LessonSessionAutosaveCoordinatorTest {
     @Test
     fun startAndLifecycleBackgroundPersistSemanticSnapshots() = runBlocking {
         val saved = mutableListOf<LessonSessionSnapshot>()
-        val coordinator = LessonSessionAutosaveCoordinator(saved::add)
+        val coordinator = LessonSessionAutosaveCoordinator { snapshot -> saved += snapshot }
         val engine = engine(clockValue = 900L)
 
         val started = engine.dispatch(
@@ -42,7 +42,7 @@ class LessonSessionAutosaveCoordinatorTest {
     @Test
     fun overlayOnlyEventsDoNotCauseSessionWrite() = runBlocking {
         val saved = mutableListOf<LessonSessionSnapshot>()
-        val coordinator = LessonSessionAutosaveCoordinator(saved::add)
+        val coordinator = LessonSessionAutosaveCoordinator { snapshot -> saved += snapshot }
         val engine = engine()
 
         val result = coordinator.afterEvents(
@@ -64,7 +64,7 @@ class LessonSessionAutosaveCoordinatorTest {
     @Test
     fun rejectedCommandNeverWritesSession() = runBlocking {
         val saved = mutableListOf<LessonSessionSnapshot>()
-        val coordinator = LessonSessionAutosaveCoordinator(saved::add)
+        val coordinator = LessonSessionAutosaveCoordinator { snapshot -> saved += snapshot }
         val engine = engine()
 
         val rejected = engine.dispatch(LessonCommand.Pause)

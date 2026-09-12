@@ -24,6 +24,17 @@ enum class PointerTool {
 }
 
 /**
+ * Selects which persisted artwork role a low-latency DrawingSurface gesture is editing.
+ *
+ * LINE_ART preserves the Drawing Engine 0.1 behavior. COLORING routes the same Ink gesture path
+ * into coloring-only operations while keeping protected line art visually above transient color.
+ */
+enum class DrawingSurfaceContentRole {
+    LINE_ART,
+    COLORING,
+}
+
+/**
  * Product-owned input sample in document coordinates.
  *
  * No AndroidX Ink type is allowed in this model. Optional stylus axes remain nullable when the

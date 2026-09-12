@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
 import com.navin.kidsdrawing.product.design.StudioColors
 import com.navin.kidsdrawing.product.design.StudioTheme
 import com.navin.kidsdrawing.product.home.StudioDestination
@@ -103,6 +104,9 @@ private fun ProductStudio(profile: ChildProfile) {
     val context = LocalContext.current
     val repository = remember(context) { StudioHomeRepository(context) }
     val lessonRuntime = remember(context) { ProductLessonRuntime(context) }
+    val coloringRuntime = remember(context, lessonRuntime) {
+        ProductColoringRuntime(context, lessonRuntime)
+    }
     var routeName by rememberSaveable { mutableStateOf(StudioDestination.HOME.name) }
     val route = runCatching { StudioDestination.valueOf(routeName) }
         .getOrDefault(StudioDestination.HOME)
@@ -145,6 +149,7 @@ private fun ProductStudio(profile: ChildProfile) {
             } else {
                 ProductLessonFlow(
                     runtime = lessonRuntime,
+                    coloringRuntime = coloringRuntime,
                     profile = profile,
                     recommendation = recommendation,
                     resumeRequested = route == StudioDestination.LESSON_RESUME,

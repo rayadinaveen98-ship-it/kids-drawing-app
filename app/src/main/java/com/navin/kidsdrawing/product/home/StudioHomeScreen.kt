@@ -83,13 +83,14 @@ fun StudioHomeScreen(
                         profile = profile,
                         recommendation = model.recommendation,
                         resume = model.resumeCandidate,
+                        coloringResume = model.coloringResumeCandidate,
                         presentation = presentation,
                         onClick = {
                             onPrimaryLessonAction(
-                                if (model.resumeCandidate != null) {
-                                    StudioDestination.LESSON_RESUME
-                                } else {
-                                    StudioDestination.LESSON_START
+                                when {
+                                    model.coloringResumeCandidate != null -> StudioDestination.COLORING_RESUME
+                                    model.resumeCandidate != null -> StudioDestination.LESSON_RESUME
+                                    else -> StudioDestination.LESSON_START
                                 },
                             )
                         },
@@ -285,9 +286,11 @@ private fun PrimaryStudioHero(
     profile: ChildProfile,
     recommendation: LessonRecommendation,
     resume: ResumeLessonCandidate?,
+    coloringResume: ColoringResumeCandidate?,
     presentation: HomePresentationPolicy,
     onClick: () -> Unit,
 ) {
+    val continuing = resume != null || coloringResume != null
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(if (presentation.density == HomeCardDensity.SPACIOUS) 28.dp else 24.dp),
@@ -296,7 +299,11 @@ private fun PrimaryStudioHero(
     ) {
         Column(modifier = Modifier.padding(if (presentation.density == HomeCardDensity.SPACIOUS) 24.dp else 20.dp)) {
             Text(
-                text = if (resume != null) "CONTINUE DRAWING" else "DRAW TOGETHER",
+                text = when {
+                    coloringResume != null -> "CONTINUE COLORING"
+                    resume != null -> "CONTINUE DRAWING"
+                    else -> "DRAW TOGETHER"
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 color = StudioColors.Studio600,
@@ -315,7 +322,9 @@ private fun PrimaryStudioHero(
                         color = StudioColors.Ink900,
                     )
                     Text(
-                        text = resume?.progressLabel ?: recommendationReason(profile, recommendation),
+                        text = coloringResume?.progressLabel
+                            ?: resume?.progressLabel
+                            ?: recommendationReason(profile, recommendation),
                         modifier = Modifier.padding(top = 6.dp),
                         style = MaterialTheme.typography.bodyLarge,
                         color = StudioColors.Ink700,
@@ -337,15 +346,15 @@ private fun PrimaryStudioHero(
             }
 
             StudioPrimaryButton(
-                text = if (resume != null) "Continue" else recommendation.actionLabel,
+                text = if (continuing) "Continue" else recommendation.actionLabel,
                 onClick = onClick,
                 modifier = Modifier
                     .padding(top = 18.dp)
                     .semantics {
-                        contentDescription = if (resume != null) {
-                            "Continue ${recommendation.title} drawing"
-                        } else {
-                            "Start ${recommendation.title} lesson"
+                        contentDescription = when {
+                            coloringResume != null -> "Continue coloring ${recommendation.title}"
+                            resume != null -> "Continue ${recommendation.title} drawing"
+                            else -> "Start ${recommendation.title} lesson"
                         }
                     },
             )
@@ -491,6 +500,7 @@ fun StudioPlaceholderRoute(
     val title = when (destination) {
         StudioDestination.LESSON_START -> "Cute Cat"
         StudioDestination.LESSON_RESUME -> "Continue Drawing"
+        StudioDestination.COLORING_RESUME -> "Continue Coloring"
         StudioDestination.ART_JOURNEY -> "Animal Artist"
         StudioDestination.FREE_DRAW -> "Free Draw"
         StudioDestination.GALLERY -> "My Gallery"
@@ -500,6 +510,7 @@ fun StudioPlaceholderRoute(
     val body = when (destination) {
         StudioDestination.LESSON_START -> "Your Cute Cat lesson is picked and ready for its drawing room."
         StudioDestination.LESSON_RESUME -> "Your saved drawing is safe and ready for you to continue."
+        StudioDestination.COLORING_RESUME -> "Your colors and drawing are safe and ready to continue."
         StudioDestination.ART_JOURNEY -> "A calm path of animal drawings will grow here as your studio grows."
         StudioDestination.FREE_DRAW -> "A clean page for your own ideas will open here."
         StudioDestination.GALLERY -> "This will become your personal wall of saved artwork."

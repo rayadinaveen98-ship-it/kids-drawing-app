@@ -25,6 +25,11 @@ class DrawingSurfaceController {
         attachedSurface?.reconcileDocument(document)
     }
 
+    /** Internal Quality Lab hook. Never mutates document state. */
+    fun invalidateCommittedProjectionForBenchmark() {
+        attachedSurface?.invalidateCommittedProjectionForBenchmark()
+    }
+
     internal fun attach(surface: InkDrawingSurfaceView) {
         if (attachedSurface === surface) return
         attachedSurface = surface

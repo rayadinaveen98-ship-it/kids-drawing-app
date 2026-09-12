@@ -11,8 +11,8 @@ android {
         applicationId = "com.navin.kidsdrawing"
         minSdk = 23
         targetSdk = 36
-        versionCode = 8
-        versionName = "0.0.8-p1.7-raster-profile-test"
+        versionCode = 9
+        versionName = "0.0.9-p1.7-frame-harness-profile-test"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

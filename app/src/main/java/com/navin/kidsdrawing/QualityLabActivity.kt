@@ -307,6 +307,37 @@ private fun QualityLabScreen(
         }
     }
 
+    fun runW1Frame600() {
+        if (busy || documentEngine.state.value.document.operations.size < W1_MIN_OPERATION_COUNT) return
+        scope.launch {
+            busy = true
+            workloadStatus = "W1 committed frame×600 preparing…"
+            onWorkloadChanged("W1Frame600")
+            onResetMeasurements()
+
+            // Let the post-touch reset and button/status frames settle before the measured pulse.
+            withFrameNanos { }
+            withFrameNanos { }
+
+            repeat(W1_FRAME_PULSE_COUNT) {
+                controller.invalidateCommittedProjectionForBenchmark()
+                withFrameNanos { }
+            }
+            withFrameNanos { }
+
+            val snapshot = framePerformanceMonitor.snapshot()
+            frameStats = snapshot
+            val validity = if (snapshot.frameCount >= W1_MIN_VALID_FRAME_SAMPLES) {
+                "sample-valid"
+            } else {
+                "INVALID-sample<${W1_MIN_VALID_FRAME_SAMPLES}"
+            }
+            workloadStatus =
+                "W1 committed frame×600 complete · n=${snapshot.frameCount} · $validity"
+            busy = false
+        }
+    }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color(0xFFFFFDF8),
@@ -389,6 +420,12 @@ private fun QualityLabScreen(
                     label = "Eraser",
                     onClick = { toolEngine.selectTool(DrawingTool.ERASER) },
                 )
+                OutlinedButton(
+                    enabled = !busy && documentState.document.operations.size >= W1_MIN_OPERATION_COUNT,
+                    onClick = ::runW1Frame600,
+                ) {
+                    Text("W1 Frame×600", maxLines = 1)
+                }
                 OutlinedButton(enabled = !busy, onClick = ::runSave20) {
                     Text("Save×20", maxLines = 1)
                 }
@@ -444,13 +481,13 @@ private fun QualityLabScreen(
             }
 
             Text(
-                text = "W1 frame gate: Load W1; measurements auto-reset after load. Draw continuously for ~30s without controls. Use Reset measurements to repeat the window.",
+                text = "W1 committed-frame gate: Load W1, then tap W1 Frame×600. Do not draw or press controls while it runs. Acceptance requires at least 500 sampled ViewRoot frames; continuous AndroidX Ink drawing remains diagnostic because its wet-stroke path is not fully represented by JankStats.",
                 fontSize = 10.sp,
                 lineHeight = 13.sp,
                 color = Color(0xFF4E4A45),
             )
             Text(
-                text = "Frame card shows native-refresh JankStats and >16.7ms rate separately. On 90/120Hz devices the Phase 1 60Hz-equivalent gate uses >16.7ms plus P95/P99; native jank is recorded too.",
+                text = "During W1 Frame×600 the frame card measures the committed raster projection under forced ViewRoot draws. The Phase 1 60Hz-equivalent gate still uses >16.7ms plus P95/P99; native-refresh jank is recorded separately.",
                 fontSize = 10.sp,
                 lineHeight = 13.sp,
                 color = Color(0xFF4E4A45),
@@ -563,4 +600,7 @@ private fun format(value: Double): String = "%.1f".format(value)
 
 private const val QUALITY_BLANK_DOCUMENT_ID = "quality-lab-manual"
 private const val BENCHMARK_SAMPLE_COUNT = 20
+private const val W1_FRAME_PULSE_COUNT = 600
+private const val W1_MIN_VALID_FRAME_SAMPLES = 500L
+private const val W1_MIN_OPERATION_COUNT = 500
 private const val BYTES_PER_MIB = 1024L * 1024L

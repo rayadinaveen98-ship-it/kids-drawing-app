@@ -170,6 +170,15 @@ class InkDrawingSurfaceView(
         )
     }
 
+    /**
+     * Internal Quality Lab hook that forces only the committed projection to participate in a
+     * ViewRoot frame. It never mutates the authoritative document or transient Ink input.
+     */
+    fun invalidateCommittedProjectionForBenchmark() {
+        committedInkView.invalidate()
+        invalidate()
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val transform = viewportTransform ?: return false

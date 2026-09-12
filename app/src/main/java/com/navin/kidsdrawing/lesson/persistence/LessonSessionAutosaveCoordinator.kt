@@ -1,10 +1,13 @@
 package com.navin.kidsdrawing.lesson.persistence
 
 import com.navin.kidsdrawing.lesson.session.ChildTurnStarted
+import com.navin.kidsdrawing.lesson.session.ColoringHandoffFailureObserved
+import com.navin.kidsdrawing.lesson.session.ColoringHandoffRequested
 import com.navin.kidsdrawing.lesson.session.DrawingLessonCompleted
 import com.navin.kidsdrawing.lesson.session.HelpLevelChanged
 import com.navin.kidsdrawing.lesson.session.LessonAutosaveRequested
 import com.navin.kidsdrawing.lesson.session.LessonCommandResult
+import com.navin.kidsdrawing.lesson.session.LessonFinished
 import com.navin.kidsdrawing.lesson.session.LessonSessionEngine
 import com.navin.kidsdrawing.lesson.session.LessonSessionEvent
 import com.navin.kidsdrawing.lesson.session.LessonSnapshotResult
@@ -78,6 +81,9 @@ class LessonSessionAutosaveCoordinator(
         is StepCompleted,
         is DrawingLessonCompleted,
         is LessonAutosaveRequested,
+        is ColoringHandoffRequested,
+        is ColoringHandoffFailureObserved,
+        is LessonFinished,
         -> true
         else -> false
     }

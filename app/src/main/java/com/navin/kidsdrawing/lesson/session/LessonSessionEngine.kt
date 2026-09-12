@@ -43,12 +43,18 @@ class LessonSessionEngine private constructor(
         RequestHelp -> requestHelp()
         ReduceHelp -> reduceHelp()
         DismissHelp -> dismissHelp()
+        RetryRecoverable -> retryRecoverable()
+        ChooseColorWithMe -> chooseColoring(ColoringHandoffMode.COLOR_WITH_ME)
+        ChooseColorMyself -> chooseColoring(ColoringHandoffMode.COLOR_MYSELF)
+        FinishForNow -> finishForNow()
     }
 
     fun handle(signal: LessonRuntimeSignal): LessonSignalResult = when (signal) {
         is LessonRuntimeSignal.TeacherPlaybackCompleted -> teacherPlaybackCompleted(signal)
         is LessonRuntimeSignal.TeacherPlaybackFailed -> teacherPlaybackFailed(signal)
         is LessonRuntimeSignal.ChildStrokeCommitted -> childStrokeCommitted(signal)
+        is ColoringHandoffCompleted -> coloringHandoffCompleted(signal)
+        is ColoringHandoffFailed -> coloringHandoffFailed(signal)
     }
 
     fun createSnapshot(): LessonSnapshotResult = snapshotForState(state, clock())
@@ -442,6 +448,69 @@ class LessonSessionEngine private constructor(
         return accepted(events)
     }
 
+    private fun retryRecoverable(): LessonCommandResult {
+        val current = state as? LessonSessionState.RecoverableError
+            ?: return reject(
+                LessonCommandRejectionCode.INVALID_STATE,
+                "RetryRecoverable is only valid from a recoverable lesson error.",
+            )
+
+        val events = mutableListOf<LessonSessionEvent>(LessonRuntimeResetRequested)
+        return when (current.code) {
+            "overview_playback_failed" -> {
+                events += moveTo(LessonSessionState.OverviewDemonstrating(current.context))
+                launchOverview(current.context, events)
+                accepted(events)
+            }
+            "teacher_playback_failed" -> {
+                events += moveTo(LessonSessionState.PreparingStep(current.context))
+                launchTeacherDemonstration(current.context, replay = false, events = events)
+                accepted(events)
+            }
+            else -> reject(
+                LessonCommandRejectionCode.INVALID_STATE,
+                "Recoverable error ${current.code} has no deterministic retry policy.",
+            )
+        }
+    }
+
+    private fun chooseColoring(mode: ColoringHandoffMode): LessonCommandResult {
+        val context = when (val current = state) {
+            is LessonSessionState.DrawingComplete -> current.context
+            is LessonSessionState.AwaitingPostDrawingChoice -> current.context
+            else -> null
+        } ?: return reject(
+            LessonCommandRejectionCode.INVALID_STATE,
+            "A coloring choice is only valid after drawing completion.",
+        )
+
+        val events = mutableListOf<LessonSessionEvent>()
+        events += moveTo(LessonSessionState.HandingOffToColoring(context))
+        events += ColoringHandoffRequested(mode, identity.childDocumentId)
+        return accepted(events)
+    }
+
+    private fun finishForNow(): LessonCommandResult {
+        val context = when (val current = state) {
+            is LessonSessionState.DrawingComplete -> current.context
+            is LessonSessionState.AwaitingPostDrawingChoice -> current.context
+            else -> null
+        } ?: return reject(
+            LessonCommandRejectionCode.INVALID_STATE,
+            "FinishForNow is only valid after drawing completion.",
+        )
+
+        val events = mutableListOf<LessonSessionEvent>()
+        events += moveTo(
+            LessonSessionState.Finished(
+                reason = LessonFinishReason.FINISHED_FOR_NOW,
+                finalContext = context,
+            ),
+        )
+        events += LessonFinished(LessonFinishReason.FINISHED_FOR_NOW)
+        return accepted(events)
+    }
+
     private fun teacherPlaybackCompleted(
         signal: LessonRuntimeSignal.TeacherPlaybackCompleted,
     ): LessonSignalResult {
@@ -573,6 +642,56 @@ class LessonSessionEngine private constructor(
                 "A committed child stroke does not satisfy authored_signal completion.",
             )
         }
+    }
+
+    private fun coloringHandoffCompleted(
+        signal: ColoringHandoffCompleted,
+    ): LessonSignalResult {
+        val current = state as? LessonSessionState.HandingOffToColoring
+            ?: return rejectSignal(
+                LessonSignalRejectionCode.INVALID_STATE,
+                "Coloring completion is only valid during an active coloring handoff.",
+            )
+        if (signal.childDocumentId != identity.childDocumentId) {
+            return rejectSignal(
+                LessonSignalRejectionCode.DOCUMENT_MISMATCH,
+                "Coloring completion belongs to a different child document.",
+            )
+        }
+
+        val events = listOf(
+            moveTo(
+                LessonSessionState.Finished(
+                    reason = LessonFinishReason.COMPLETED,
+                    finalContext = current.context,
+                ),
+            ),
+            LessonFinished(LessonFinishReason.COMPLETED),
+        )
+        return acceptedSignal(events)
+    }
+
+    private fun coloringHandoffFailed(
+        signal: ColoringHandoffFailed,
+    ): LessonSignalResult {
+        val current = state as? LessonSessionState.HandingOffToColoring
+            ?: return rejectSignal(
+                LessonSignalRejectionCode.INVALID_STATE,
+                "Coloring failure is only valid during an active coloring handoff.",
+            )
+        if (signal.childDocumentId != identity.childDocumentId) {
+            return rejectSignal(
+                LessonSignalRejectionCode.DOCUMENT_MISMATCH,
+                "Coloring failure belongs to a different child document.",
+            )
+        }
+
+        val reason = signal.reason.ifBlank { "unknown" }
+        val events = listOf(
+            moveTo(LessonSessionState.AwaitingPostDrawingChoice(current.context)),
+            ColoringHandoffFailureObserved(reason),
+        )
+        return acceptedSignal(events)
     }
 
     private fun launchOverview(

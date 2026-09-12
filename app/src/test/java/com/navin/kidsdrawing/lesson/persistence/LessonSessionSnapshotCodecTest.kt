@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
 import org.junit.Test
 
@@ -37,6 +38,16 @@ class LessonSessionSnapshotCodecTest {
         )
 
         assertEquals(original, codec.decode(ByteArrayInputStream(encode(original))))
+    }
+
+    @Test
+    fun encodeDoesNotCloseCallerOwnedOutputStream() {
+        val output = CloseTrackingOutputStream()
+
+        codec.encode(snapshot(), output)
+
+        assertFalse(output.closed)
+        output.write(0x7f)
     }
 
     @Test
@@ -89,6 +100,16 @@ class LessonSessionSnapshotCodecTest {
         finishReason = LessonFinishReason.SAVED_FOR_LATER,
         savedAtEpochMillis = 123_456L,
     )
+
+    private class CloseTrackingOutputStream : ByteArrayOutputStream() {
+        var closed = false
+            private set
+
+        override fun close() {
+            closed = true
+            super.close()
+        }
+    }
 
     private infix fun Byte.xor(other: Int): Byte = (toInt() xor other).toByte()
 }

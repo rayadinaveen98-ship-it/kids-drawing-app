@@ -44,7 +44,7 @@ Record `PASS`, `FAIL`, or `BLOCKED` plus a concise observation for every row.
 | 7 | NORMAL 1× playback | PASS | Draw With Me at Normal 1.0× completed teacher playback on device; runtime reported `playback COMPLETED`. |
 | 8 | FAST 1.5× playback | PENDING | |
 | 9 | VERY_FAST 2× playback | PENDING | |
-| 10 | Draw With Me teacher demo → child stroke → next step | PENDING | Teacher demo → child turn → one child stroke is physically proven (`operations 1 · child ink 1`); next-step advancement still needs physical evidence. |
+| 10 | Draw With Me teacher demo → child stroke → next step | PASS | On device, step `head` teacher demo completed, one child stroke committed (`operations 1 · child ink 1`), tapping Done advanced deterministically to step `ears`, next teacher playback completed, and the original child operation remained preserved. Isolation diagnostic stayed `teacher/guide in child history: 0 · PASS`. |
 | 11 | Watch overview Pause → Resume | PENDING | |
 | 12 | Watch overview Skip → child pass | PENDING | |
 | 13 | Trace guide visible during child turn | PENDING | |

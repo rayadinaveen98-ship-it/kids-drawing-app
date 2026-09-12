@@ -46,6 +46,18 @@ class LessonPackageLoaderTest {
     }
 
     @Test
+    fun lessonIdSchemaLengthIsEnforcedAtRuntime() {
+        val invalid = lessonJson().replaceFirst(
+            "\"lessonId\": \"cute-cat\"",
+            "\"lessonId\": \"a\"",
+        )
+
+        val result = loader(lessonOverride = invalid).load(ROOT)
+
+        assertFailureHas(result, LessonDiagnosticCode.INVALID_ID)
+    }
+
+    @Test
     fun unsafeStrokeAssetPathIsRejected() {
         val invalid = lessonJson().replaceFirst(
             "\"strokeFile\": \"strokes.json\"",
@@ -103,6 +115,39 @@ class LessonPackageLoaderTest {
         )
 
         assertTrue(diagnostics.any { it.code == LessonDiagnosticCode.INVALID_TRACE_SUPPORT })
+    }
+
+    @Test
+    fun schemaParityBoundsAreEnforcedForMetadataAndSteps() {
+        val success = loader().load(ROOT) as LessonLoadResult.Success
+        val lesson = success.packageData.lesson
+        val first = lesson.drawing.steps.first()
+        val invalidLesson = lesson.copy(
+            metadata = lesson.metadata.copy(
+                prerequisiteLessonIds = listOf("Bad Lesson ID"),
+                tags = List(21) { "tag_$it" },
+                ageBands = listOf(lesson.metadata.ageBands.first(), lesson.metadata.ageBands.first()),
+            ),
+            drawing = lesson.drawing.copy(
+                steps = listOf(
+                    first.copy(
+                        teacher = first.teacher.copy(normalDurationMs = 99),
+                        help = first.help + first.help.first().copy(level = 5),
+                    ),
+                ) + lesson.drawing.steps.drop(1),
+            ),
+        )
+
+        val diagnostics = LessonPackageValidator.validate(
+            invalidLesson,
+            success.packageData.strokeCatalog,
+            LessonPackageLoader.CURRENT_CONTENT_API,
+        )
+
+        assertTrue(diagnostics.any { it.path == "metadata.prerequisiteLessonIds[0]" && it.code == LessonDiagnosticCode.INVALID_ID })
+        assertTrue(diagnostics.any { it.path == "metadata.tags" && it.code == LessonDiagnosticCode.INVALID_VALUE })
+        assertTrue(diagnostics.any { it.path == "metadata.ageBands" && it.code == LessonDiagnosticCode.DUPLICATE_ID })
+        assertTrue(diagnostics.any { it.path.endsWith("teacher.normalDurationMs") && it.code == LessonDiagnosticCode.INVALID_VALUE })
     }
 
     @Test

@@ -38,6 +38,11 @@ sealed interface LessonLoadResult {
     data class Failure(val diagnostics: List<LessonDiagnostic>) : LessonLoadResult
 }
 
+private sealed interface DecodeResult<out T> {
+    data class Value<T>(val value: T) : DecodeResult<T>
+    data class Failure(val result: LessonLoadResult.Failure) : DecodeResult<Nothing>
+}
+
 class LessonPackageLoader(
     private val source: LessonPackageSource,
     private val supportedContentApi: Int = CURRENT_CONTENT_API,
@@ -67,7 +72,10 @@ class LessonPackageLoader(
                 ),
             )
 
-        val lesson = decodeLesson(lessonPath, lessonText) ?: return parseFailure
+        val lesson = when (val decoded = decodeLesson(lessonPath, lessonText)) {
+            is DecodeResult.Value -> decoded.value
+            is DecodeResult.Failure -> return decoded.result
+        }
         val earlyDiagnostics = LessonPackageValidator.validateLessonHeader(lesson, supportedContentApi)
         if (earlyDiagnostics.isNotEmpty()) return LessonLoadResult.Failure(earlyDiagnostics)
 
@@ -91,7 +99,10 @@ class LessonPackageLoader(
                     ),
                 ),
             )
-        val strokeCatalog = decodeStrokeCatalog(strokePath, strokeText) ?: return parseFailure
+        val strokeCatalog = when (val decoded = decodeStrokeCatalog(strokePath, strokeText)) {
+            is DecodeResult.Value -> decoded.value
+            is DecodeResult.Failure -> return decoded.result
+        }
 
         val diagnostics = LessonPackageValidator.validate(lesson, strokeCatalog, supportedContentApi)
         return if (diagnostics.isEmpty()) {
@@ -107,59 +118,34 @@ class LessonPackageLoader(
         }
     }
 
-    private var parseFailure: LessonLoadResult.Failure = LessonLoadResult.Failure(emptyList())
-
-    private fun decodeLesson(path: String, text: String): LessonSource? = try {
-        json.decodeFromString<LessonSource>(text)
+    private fun decodeLesson(path: String, text: String): DecodeResult<LessonSource> = try {
+        DecodeResult.Value(json.decodeFromString<LessonSource>(text))
     } catch (error: SerializationException) {
-        parseFailure = LessonLoadResult.Failure(
-            listOf(
-                LessonDiagnostic(
-                    LessonDiagnosticCode.INVALID_JSON,
-                    path,
-                    error.message ?: "Lesson JSON could not be decoded.",
-                ),
-            ),
-        )
-        null
+        decodeFailure(path, error, "Lesson JSON could not be decoded.")
     } catch (error: IllegalArgumentException) {
-        parseFailure = LessonLoadResult.Failure(
-            listOf(
-                LessonDiagnostic(
-                    LessonDiagnosticCode.INVALID_JSON,
-                    path,
-                    error.message ?: "Lesson JSON is invalid.",
-                ),
-            ),
-        )
-        null
+        decodeFailure(path, error, "Lesson JSON is invalid.")
     }
 
-    private fun decodeStrokeCatalog(path: String, text: String): StrokeCatalogSource? = try {
-        json.decodeFromString<StrokeCatalogSource>(text)
+    private fun decodeStrokeCatalog(path: String, text: String): DecodeResult<StrokeCatalogSource> = try {
+        DecodeResult.Value(json.decodeFromString<StrokeCatalogSource>(text))
     } catch (error: SerializationException) {
-        parseFailure = LessonLoadResult.Failure(
-            listOf(
-                LessonDiagnostic(
-                    LessonDiagnosticCode.INVALID_JSON,
-                    path,
-                    error.message ?: "Stroke catalog JSON could not be decoded.",
-                ),
-            ),
-        )
-        null
+        decodeFailure(path, error, "Stroke catalog JSON could not be decoded.")
     } catch (error: IllegalArgumentException) {
-        parseFailure = LessonLoadResult.Failure(
-            listOf(
-                LessonDiagnostic(
-                    LessonDiagnosticCode.INVALID_JSON,
-                    path,
-                    error.message ?: "Stroke catalog JSON is invalid.",
+        decodeFailure(path, error, "Stroke catalog JSON is invalid.")
+    }
+
+    private fun decodeFailure(path: String, error: Exception, fallback: String): DecodeResult.Failure =
+        DecodeResult.Failure(
+            LessonLoadResult.Failure(
+                listOf(
+                    LessonDiagnostic(
+                        LessonDiagnosticCode.INVALID_JSON,
+                        path,
+                        error.message ?: fallback,
+                    ),
                 ),
             ),
         )
-        null
-    }
 
     companion object {
         const val CURRENT_CONTENT_API = 1

@@ -31,6 +31,7 @@ fun ProductLessonFlow(
     }
     var modeName by rememberSaveable { mutableStateOf(recommendation.defaultMode.name) }
     var paceName by rememberSaveable { mutableStateOf(recommendation.defaultPace.name) }
+    var startFreshRequested by rememberSaveable { mutableStateOf(!resumeRequested) }
     val stage = runCatching { ProductLessonStage.valueOf(stageName) }
         .getOrDefault(ProductLessonStage.PREVIEW)
     val mode = runCatching { TeachingMode.valueOf(modeName) }
@@ -46,6 +47,7 @@ fun ProductLessonFlow(
             onBegin = { selectedMode, selectedPace ->
                 modeName = selectedMode.name
                 paceName = selectedPace.name
+                startFreshRequested = true
                 stageName = ProductLessonStage.WORKSPACE.name
             },
             onBack = onExitToHome,
@@ -56,7 +58,8 @@ fun ProductLessonFlow(
             ageBand = profile.ageBand,
             startMode = mode,
             startPace = pace,
-            resumeOnly = resumeRequested,
+            startFreshRequested = startFreshRequested,
+            onFreshSessionStarted = { startFreshRequested = false },
             onExitToHome = onExitToHome,
             onFinishedForNow = onExitToHome,
         )

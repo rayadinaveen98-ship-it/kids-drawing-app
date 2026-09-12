@@ -44,6 +44,23 @@ internal class CommittedRasterCache(
 
     fun bitmap(): Bitmap = bitmap
 
+    /**
+     * Immediate wet→dry handoff for a just-finished live pencil stroke.
+     *
+     * This intentionally does not mutate authoritative operation IDs/checkpoints. The document
+     * engine owns that timeline. The next explicit reconcile restores a known checkpoint and
+     * projects the authoritative tail, so provisional display pixels can never become document
+     * truth or accumulate geometry drift.
+     */
+    fun appendLiveInk(stroke: Stroke) {
+        renderer.draw(canvas, stroke, identity)
+    }
+
+    /** Immediate visual erase; authoritative erase ordering is reconciled from the document. */
+    fun appendLiveErase(mask: EraseMaskRecord) {
+        drawEraseMask(mask)
+    }
+
     fun reconcile(newDocumentId: String, operations: List<DocumentOperation>) {
         val ids = operations.map { it.operationId }
         if (documentId != newDocumentId) {
@@ -171,10 +188,16 @@ internal class CommittedRasterCache(
         return index
     }
 
+    internal fun estimatedRasterBytes(): Long =
+        (1L + checkpoints.size) * bitmapWidth * bitmapHeight * BYTES_PER_ARGB_8888_PIXEL
+
+    internal fun checkpointCount(): Int = checkpoints.size
+
     private companion object {
         const val CHECKPOINT_INTERVAL = 8
         const val RECENT_HISTORY_WINDOW = 48
         const val MAX_CHECKPOINTS = 8
+        const val BYTES_PER_ARGB_8888_PIXEL = 4L
     }
 }
 

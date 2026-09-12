@@ -32,6 +32,8 @@ import com.navin.kidsdrawing.product.home.StudioHomeModel
 import com.navin.kidsdrawing.product.home.StudioHomeRepository
 import com.navin.kidsdrawing.product.home.StudioHomeScreen
 import com.navin.kidsdrawing.product.home.StudioPlaceholderRoute
+import com.navin.kidsdrawing.product.lesson.ProductLessonFlow
+import com.navin.kidsdrawing.product.lesson.ProductLessonRuntime
 import com.navin.kidsdrawing.product.onboarding.OnboardingFlow
 import com.navin.kidsdrawing.product.profile.ChildProfile
 import com.navin.kidsdrawing.product.profile.ChildProfileDraft
@@ -100,13 +102,14 @@ private fun ProductRoot(store: ChildProfileStore) {
 private fun ProductStudio(profile: ChildProfile) {
     val context = LocalContext.current
     val repository = remember(context) { StudioHomeRepository(context) }
+    val lessonRuntime = remember(context) { ProductLessonRuntime(context) }
     var routeName by rememberSaveable { mutableStateOf(StudioDestination.HOME.name) }
     val route = runCatching { StudioDestination.valueOf(routeName) }
         .getOrDefault(StudioDestination.HOME)
     var homeModel by remember(profile) { mutableStateOf<StudioHomeModel?>(null) }
 
     LaunchedEffect(profile, route) {
-        if (route == StudioDestination.HOME) {
+        if (homeModel == null || route == StudioDestination.HOME) {
             homeModel = runCatching { repository.load(profile) }
                 .getOrElse {
                     StudioHomeModel(
@@ -123,9 +126,32 @@ private fun ProductStudio(profile: ChildProfile) {
             profile = profile,
             model = homeModel,
             onPrimaryLessonAction = { destination -> routeName = destination.name },
-            onOpenRecommendation = { routeName = StudioDestination.LESSON_START.name },
+            onOpenRecommendation = {
+                routeName = if (homeModel?.resumeCandidate != null) {
+                    StudioDestination.LESSON_RESUME.name
+                } else {
+                    StudioDestination.LESSON_START.name
+                }
+            },
             onOpenDestination = { destination -> routeName = destination.name },
         )
+
+        StudioDestination.LESSON_START,
+        StudioDestination.LESSON_RESUME,
+        -> {
+            val recommendation = homeModel?.recommendation
+            if (recommendation == null) {
+                LoadingStudio()
+            } else {
+                ProductLessonFlow(
+                    runtime = lessonRuntime,
+                    profile = profile,
+                    recommendation = recommendation,
+                    resumeRequested = route == StudioDestination.LESSON_RESUME,
+                    onExitToHome = { routeName = StudioDestination.HOME.name },
+                )
+            }
+        }
 
         else -> StudioPlaceholderRoute(
             destination = route,

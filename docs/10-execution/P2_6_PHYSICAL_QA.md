@@ -40,10 +40,10 @@ Record `PASS`, `FAIL`, or `BLOCKED` plus a concise observation for every row.
 | 3 | Start Watch Then Draw | PASS | Started Watch Then Draw on device at Normal 1.0×; full-lesson overview entered successfully and ultimately transitioned to the child pass without crash or state corruption. |
 | 4 | Start Trace & Learn | PASS | Started Trace & Learn on device at Normal 1.0×; teacher playback completed and engine reached `AwaitingChild` on step `head` with the authored trace guide active. |
 | 5 | EXTRA_SLOW 0.4× playback | PASS | Draw With Me was started at Extra Slow 0.4× on the physical device. After an injected playback failure and Retry, teacher playback resumed and completed successfully at the selected pace, returning to a healthy child-turn state. |
-| 6 | SLOW 0.7× playback | PENDING | |
+| 6 | SLOW 0.7× playback | PASS | Fresh Draw With Me run at Slow 0.7× completed teacher playback normally on the physical device and reached the child turn without crash or state corruption. |
 | 7 | NORMAL 1× playback | PASS | Draw With Me at Normal 1.0× completed teacher playback on device; runtime reported `playback COMPLETED`. |
-| 8 | FAST 1.5× playback | PENDING | |
-| 9 | VERY_FAST 2× playback | PENDING | |
+| 8 | FAST 1.5× playback | PASS | Fresh Draw With Me run at Fast 1.5× completed teacher playback normally on the physical device and reached the child turn without crash or state corruption. |
+| 9 | VERY_FAST 2× playback | PASS | Fresh Draw With Me run at Very Fast 2.0× completed teacher playback normally on the physical device and reached the child turn without crash or state corruption. |
 | 10 | Draw With Me teacher demo → child stroke → next step | PASS | On device, step `head` teacher demo completed, one child stroke committed (`operations 1 · child ink 1`), tapping Done advanced deterministically to step `ears`, next teacher playback completed, and the original child operation remained preserved. Isolation diagnostic stayed `teacher/guide in child history: 0 · PASS`. |
 | 11 | Watch overview Pause → Resume | PASS | During active Watch Then Draw overview on device, Pause was accepted, playback held, Resume was accepted, and overview playback continued normally before Skip Overview. |
 | 12 | Watch overview Skip → child pass | PASS | Skip Overview intentionally cancelled overview playback (`playback CANCELLED`) and transitioned deterministically to `AwaitingChild` on step `head` with `overview true`; child history remained empty and isolation stayed `0 · PASS`. |
@@ -88,6 +88,7 @@ Current evidence:
 - invalid Skip rejection on `head` and valid Skip advancement from `face` to `body_tail` both preserved `operations 0 · child ink 0` and isolation `0 · PASS`;
 - invalid-command rejection at `body_tail` preserved the active lesson state without observed history corruption;
 - injected teacher-playback failure followed by Retry returned to a healthy child turn with isolation still `0 · PASS`;
+- all five teaching paces have now completed physically on device;
 - save/relaunch isolation proof remains **PENDING**.
 
 ## Lifecycle audit

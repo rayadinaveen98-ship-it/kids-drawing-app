@@ -5,9 +5,6 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Matrix
 import android.graphics.Paint
-import android.graphics.Path
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffXfermode
 import android.os.Build
 import android.os.SystemClock
 import android.view.MotionEvent
@@ -18,8 +15,6 @@ import androidx.ink.authoring.InProgressStrokesFinishedListener
 import androidx.ink.authoring.InProgressStrokesView
 import androidx.ink.brush.Brush
 import androidx.ink.brush.StockBrushes
-import androidx.ink.rendering.android.canvas.CanvasStrokeRenderer
-import androidx.ink.rendering.android.view.ViewStrokeRenderer
 import androidx.ink.strokes.Stroke
 import androidx.input.motionprediction.MotionEventPredictor
 import com.navin.kidsdrawing.drawing.domain.DocumentOperation
@@ -27,6 +22,7 @@ import com.navin.kidsdrawing.drawing.domain.DocumentPoint
 import com.navin.kidsdrawing.drawing.domain.DocumentSize
 import com.navin.kidsdrawing.drawing.domain.DocumentViewportMapper
 import com.navin.kidsdrawing.drawing.domain.DrawingDocument
+import com.navin.kidsdrawing.drawing.domain.DrawingSurfaceContentRole
 import com.navin.kidsdrawing.drawing.domain.DrawingSurfaceMetrics
 import com.navin.kidsdrawing.drawing.domain.DrawingTool
 import com.navin.kidsdrawing.drawing.domain.DrawingToolSettings
@@ -41,14 +37,30 @@ import java.util.UUID
  *
  * The rest of the app receives product-owned stroke/mask records in stable logical document
  * coordinates. No persistence or database work occurs on this input/rendering hot path.
+ *
+ * P3.4 adds an explicit content role while retaining the same Ink authoring path. In coloring mode
+ * committed color and wet color are composited below a separate protected line-art overlay, so a
+ * coloring erase cannot visually or persistently damage the completed drawing.
  */
 class InkDrawingSurfaceView(
     context: Context,
     private val documentSize: DocumentSize = DocumentSize(1000f, 1000f),
 ) : FrameLayout(context) {
     private val coordinateMapper = DocumentViewportMapper(documentSize)
-    private val committedInkView = CommittedInkView(context, documentSize)
+    private val lineRasterCache = CommittedRasterCache(documentSize)
+    private val colorRasterCache = CommittedColorRasterCache(documentSize)
+    private val committedInkView = CommittedInkView(
+        context = context,
+        documentSize = documentSize,
+        lineRasterCache = lineRasterCache,
+        colorRasterCache = colorRasterCache,
+    )
     private val inProgressStrokesView = InProgressStrokesView(context)
+    private val protectedLineArtOverlayView = ProtectedLineArtOverlayView(
+        context = context,
+        documentSize = documentSize,
+        lineRasterCache = lineRasterCache,
+    )
     private var motionPredictor = MotionEventPredictor.newInstance(this)
     private val pendingStrokes = mutableMapOf<InProgressStrokeId, PendingStroke>()
 
@@ -72,6 +84,18 @@ class InkDrawingSurfaceView(
             )
         }
 
+    var contentRole: DrawingSurfaceContentRole = DrawingSurfaceContentRole.LINE_ART
+        set(value) {
+            if (field == value) return
+            if (activeStrokeId != null) cancelTransientInput()
+            field = value
+            committedInkView.contentRole = value
+            protectedLineArtOverlayView.visibility =
+                if (value == DrawingSurfaceContentRole.COLORING) View.VISIBLE else View.GONE
+            committedInkView.invalidate()
+            protectedLineArtOverlayView.invalidate()
+        }
+
     var onStrokeCommitted: (InkStrokeRecord) -> Unit = {}
     var onEraseMaskCommitted: (EraseMaskRecord) -> Unit = {}
     var onMetricsChanged: (DrawingSurfaceMetrics) -> Unit = {}
@@ -87,6 +111,11 @@ class InkDrawingSurfaceView(
             inProgressStrokesView,
             LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT),
         )
+        addView(
+            protectedLineArtOverlayView,
+            LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT),
+        )
+        protectedLineArtOverlayView.visibility = View.GONE
 
         inProgressStrokesView.addFinishedStrokesListener(
             object : InProgressStrokesFinishedListener {
@@ -118,7 +147,9 @@ class InkDrawingSurfaceView(
 
         viewportTransform = coordinateMapper.transformFor(w.toFloat(), h.toFloat())
         committedInkView.viewportTransform = viewportTransform
+        protectedLineArtOverlayView.viewportTransform = viewportTransform
         committedInkView.invalidate()
+        protectedLineArtOverlayView.invalidate()
         val transform = viewportTransform
         publishMetrics(
             metrics.copy(
@@ -136,10 +167,10 @@ class InkDrawingSurfaceView(
     }
 
     /**
-     * Reprojects the authoritative editable document into the committed renderer.
+     * Reprojects the authoritative editable document into both committed render projections.
      *
      * This is used at stable editing boundaries such as Reload/Undo/Redo/Clear/erase/process
-     * restore. Live pencil handoff remains incremental and does not rebuild prior geometry.
+     * restore. Live stroke handoff remains incremental and does not rebuild prior geometry.
      */
     fun reconcileDocument(document: DrawingDocument) {
         require(document.logicalSize == documentSize) {
@@ -150,14 +181,37 @@ class InkDrawingSurfaceView(
         val activeOperations = document.activeOperations()
         committedInkView.replaceDocument(document)
         committedInkView.invalidate()
+        protectedLineArtOverlayView.invalidate()
 
-        val inkCount = activeOperations.count { it is DocumentOperation.AddInkStroke }
-        val eraseCount = activeOperations.count { it is DocumentOperation.AddEraseMask }
-        val lastPoints = when (val last = activeOperations.lastOrNull()) {
-            is DocumentOperation.AddInkStroke -> last.stroke.points
-            is DocumentOperation.AddEraseMask -> last.mask.points
-            else -> emptyList()
+        val inkCount = when (contentRole) {
+            DrawingSurfaceContentRole.LINE_ART ->
+                activeOperations.count { it is DocumentOperation.AddInkStroke }
+
+            DrawingSurfaceContentRole.COLORING ->
+                activeOperations.count { it is DocumentOperation.AddColorStroke }
         }
+        val eraseCount = when (contentRole) {
+            DrawingSurfaceContentRole.LINE_ART ->
+                activeOperations.count { it is DocumentOperation.AddEraseMask }
+
+            DrawingSurfaceContentRole.COLORING ->
+                activeOperations.count { it is DocumentOperation.AddColorEraseMask }
+        }
+        val lastPoints = activeOperations.asReversed().firstNotNullOfOrNull { operation ->
+            when (contentRole) {
+                DrawingSurfaceContentRole.LINE_ART -> when (operation) {
+                    is DocumentOperation.AddInkStroke -> operation.stroke.points
+                    is DocumentOperation.AddEraseMask -> operation.mask.points
+                    else -> null
+                }
+
+                DrawingSurfaceContentRole.COLORING -> when (operation) {
+                    is DocumentOperation.AddColorStroke -> operation.stroke.points
+                    is DocumentOperation.AddColorEraseMask -> operation.mask.points
+                    else -> null
+                }
+            }
+        }.orEmpty()
         publishMetrics(
             metrics.copy(
                 committedStrokeCount = inkCount,
@@ -176,6 +230,7 @@ class InkDrawingSurfaceView(
      */
     fun invalidateCommittedProjectionForBenchmark() {
         committedInkView.invalidate()
+        protectedLineArtOverlayView.invalidate()
         invalidate()
     }
 
@@ -366,7 +421,13 @@ class InkDrawingSurfaceView(
             when (pending.drawingTool) {
                 DrawingTool.PENCIL -> {
                     val record = pending.toInkRecord()
-                    committedInkView.addInkStroke(record.strokeId, stroke)
+                    when (contentRole) {
+                        DrawingSurfaceContentRole.LINE_ART ->
+                            committedInkView.addInkStroke(record.strokeId, stroke)
+
+                        DrawingSurfaceContentRole.COLORING ->
+                            committedInkView.addColorStroke(record.strokeId, stroke)
+                    }
                     metrics = metrics.copy(
                         committedStrokeCount = metrics.committedStrokeCount + 1,
                         lastSampleCount = record.points.size,
@@ -378,7 +439,10 @@ class InkDrawingSurfaceView(
 
                 DrawingTool.ERASER -> {
                     val mask = pending.toEraseMask()
-                    committedInkView.addEraseMask(mask)
+                    when (contentRole) {
+                        DrawingSurfaceContentRole.LINE_ART -> committedInkView.addEraseMask(mask)
+                        DrawingSurfaceContentRole.COLORING -> committedInkView.addColorEraseMask(mask)
+                    }
                     metrics = metrics.copy(
                         committedEraseMaskCount = metrics.committedEraseMaskCount + 1,
                         lastSampleCount = mask.points.size,
@@ -392,6 +456,7 @@ class InkDrawingSurfaceView(
 
         // Committed projection + wet-stroke removal occur in the same UI loop to avoid a gap.
         committedInkView.invalidate()
+        protectedLineArtOverlayView.invalidate()
         inProgressStrokesView.removeFinishedStrokes(strokes.keys)
         publishMetrics(metrics.copy(activeTool = null))
     }
@@ -602,23 +667,37 @@ class InkDrawingSurfaceView(
     private class CommittedInkView(
         context: Context,
         private val documentSize: DocumentSize,
+        private val lineRasterCache: CommittedRasterCache,
+        private val colorRasterCache: CommittedColorRasterCache,
     ) : View(context) {
-        private val rasterCache = CommittedRasterCache(documentSize)
         private val bitmapPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
 
         var viewportTransform: DocumentViewportMapper.Transform? = null
+        var contentRole: DrawingSurfaceContentRole = DrawingSurfaceContentRole.LINE_ART
 
         fun addInkStroke(strokeId: String, stroke: Stroke) {
             require(strokeId.isNotBlank())
-            rasterCache.appendLiveInk(strokeId, stroke)
+            lineRasterCache.appendLiveInk(strokeId, stroke)
+        }
+
+        fun addColorStroke(strokeId: String, stroke: Stroke) {
+            colorRasterCache.appendLiveColorInk(strokeId, stroke)
         }
 
         fun addEraseMask(mask: EraseMaskRecord) {
-            rasterCache.appendLiveErase(mask)
+            lineRasterCache.appendLiveErase(mask)
+        }
+
+        fun addColorEraseMask(mask: EraseMaskRecord) {
+            colorRasterCache.appendLiveColorErase(mask)
         }
 
         fun replaceDocument(document: DrawingDocument) {
-            rasterCache.reconcile(
+            lineRasterCache.reconcile(
+                newDocumentId = document.documentId,
+                operations = document.operations,
+            )
+            colorRasterCache.reconcile(
                 newDocumentId = document.documentId,
                 operations = document.operations,
             )
@@ -631,7 +710,30 @@ class InkDrawingSurfaceView(
             canvas.translate(transform.offsetX, transform.offsetY)
             canvas.scale(transform.scale, transform.scale)
             canvas.clipRect(0f, 0f, documentSize.width, documentSize.height)
-            canvas.drawBitmap(rasterCache.bitmap(), 0f, 0f, bitmapPaint)
+            canvas.drawBitmap(colorRasterCache.bitmap(), 0f, 0f, bitmapPaint)
+            if (contentRole == DrawingSurfaceContentRole.LINE_ART) {
+                canvas.drawBitmap(lineRasterCache.bitmap(), 0f, 0f, bitmapPaint)
+            }
+            canvas.restoreToCount(saveCount)
+        }
+    }
+
+    private class ProtectedLineArtOverlayView(
+        context: Context,
+        private val documentSize: DocumentSize,
+        private val lineRasterCache: CommittedRasterCache,
+    ) : View(context) {
+        private val bitmapPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+        var viewportTransform: DocumentViewportMapper.Transform? = null
+
+        override fun onDraw(canvas: Canvas) {
+            super.onDraw(canvas)
+            val transform = viewportTransform ?: return
+            val saveCount = canvas.save()
+            canvas.translate(transform.offsetX, transform.offsetY)
+            canvas.scale(transform.scale, transform.scale)
+            canvas.clipRect(0f, 0f, documentSize.width, documentSize.height)
+            canvas.drawBitmap(lineRasterCache.bitmap(), 0f, 0f, bitmapPaint)
             canvas.restoreToCount(saveCount)
         }
     }

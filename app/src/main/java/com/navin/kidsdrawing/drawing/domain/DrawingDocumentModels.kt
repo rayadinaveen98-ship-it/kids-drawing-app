@@ -30,13 +30,29 @@ sealed interface DocumentOperation {
     val operationId: String
     val createdAtEpochMillis: Long
 
+    /** Protected child drawing / line-art ink. */
     data class AddInkStroke(
         override val operationId: String,
         override val createdAtEpochMillis: Long,
         val stroke: InkStrokeRecord,
     ) : DocumentOperation
 
+    /** Drawing-stage erase. This retains legacy semantics for schema-1 documents. */
     data class AddEraseMask(
+        override val operationId: String,
+        override val createdAtEpochMillis: Long,
+        val mask: EraseMaskRecord,
+    ) : DocumentOperation
+
+    /** Child-authored coloring ink composited below protected line art. */
+    data class AddColorStroke(
+        override val operationId: String,
+        override val createdAtEpochMillis: Long,
+        val stroke: InkStrokeRecord,
+    ) : DocumentOperation
+
+    /** Coloring-only erase. It may clear color projection pixels but never line-art pixels. */
+    data class AddColorEraseMask(
         override val operationId: String,
         override val createdAtEpochMillis: Long,
         val mask: EraseMaskRecord,
@@ -47,6 +63,9 @@ sealed interface DocumentOperation {
         override val createdAtEpochMillis: Long,
     ) : DocumentOperation
 }
+
+fun DocumentOperation.isColoringOperation(): Boolean =
+    this is DocumentOperation.AddColorStroke || this is DocumentOperation.AddColorEraseMask
 
 data class DrawingDocument(
     val documentSchemaVersion: Int = CURRENT_DOCUMENT_SCHEMA_VERSION,
@@ -59,13 +78,20 @@ data class DrawingDocument(
     val operations: List<DocumentOperation> = emptyList(),
 ) {
     init {
-        require(documentSchemaVersion > 0) { "documentSchemaVersion must be positive." }
+        require(documentSchemaVersion in 1..CURRENT_DOCUMENT_SCHEMA_VERSION) {
+            "Unsupported document schema version: $documentSchemaVersion"
+        }
         require(documentId.isNotBlank()) { "documentId cannot be blank." }
         require(modifiedAtEpochMillis >= createdAtEpochMillis) {
             "modifiedAtEpochMillis cannot precede createdAtEpochMillis."
         }
         require(operations.map { it.operationId }.toSet().size == operations.size) {
             "Document operation IDs must be unique."
+        }
+        if (documentSchemaVersion < COLORING_DOCUMENT_SCHEMA_VERSION) {
+            require(operations.none(DocumentOperation::isColoringOperation)) {
+                "Coloring operations require drawing document schema $COLORING_DOCUMENT_SCHEMA_VERSION+."
+            }
         }
     }
 
@@ -78,6 +104,13 @@ data class DrawingDocument(
     fun activeInkStrokes(): List<InkStrokeRecord> = activeOperations()
         .filterIsInstance<DocumentOperation.AddInkStroke>()
         .map { it.stroke }
+
+    fun activeColorStrokes(): List<InkStrokeRecord> = activeOperations()
+        .filterIsInstance<DocumentOperation.AddColorStroke>()
+        .map { it.stroke }
+
+    fun hasColoringOperations(): Boolean = activeOperations().any(DocumentOperation::isColoringOperation)
 }
 
-const val CURRENT_DOCUMENT_SCHEMA_VERSION: Int = 1
+const val COLORING_DOCUMENT_SCHEMA_VERSION: Int = 2
+const val CURRENT_DOCUMENT_SCHEMA_VERSION: Int = COLORING_DOCUMENT_SCHEMA_VERSION

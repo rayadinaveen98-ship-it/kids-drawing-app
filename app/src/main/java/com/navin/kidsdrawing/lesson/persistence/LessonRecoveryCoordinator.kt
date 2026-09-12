@@ -22,7 +22,9 @@ import com.navin.kidsdrawing.lesson.session.LessonSessionSnapshot
  * 5. only then reactivate transient teacher/guide runtime work.
  *
  * This ordering keeps child artwork authoritative and prevents stale pre-recreation overlays from
- * being mistaken for persisted child content.
+ * being mistaken for persisted child content. Once artwork has loaded, every later failure result
+ * carries that document back to the product boundary so a missing/bad lesson can never strand the
+ * child's drawing.
  */
 class LessonRecoveryCoordinator(
     private val loadSession: suspend (String) -> AtomicLessonSessionStore.LoadResult,
@@ -55,6 +57,8 @@ class LessonRecoveryCoordinator(
         if (childDocument.documentId != snapshot.childDocumentId) {
             return RecoveryResult.IncompatibleChildDocument(
                 snapshot = snapshot,
+                childDocument = childDocument,
+                childDocumentSource = loadedDocument.source,
                 reason = "Loaded child document ID ${childDocument.documentId} does not match ${snapshot.childDocumentId}.",
             )
         }
@@ -63,6 +67,8 @@ class LessonRecoveryCoordinator(
             if (lessonId != snapshot.lessonId) {
                 return RecoveryResult.IncompatibleChildDocument(
                     snapshot = snapshot,
+                    childDocument = childDocument,
+                    childDocumentSource = loadedDocument.source,
                     reason = "Child document lesson $lessonId does not match snapshot lesson ${snapshot.lessonId}.",
                 )
             }
@@ -71,6 +77,8 @@ class LessonRecoveryCoordinator(
             if (revision != snapshot.lessonRevision) {
                 return RecoveryResult.IncompatibleChildDocument(
                     snapshot = snapshot,
+                    childDocument = childDocument,
+                    childDocumentSource = loadedDocument.source,
                     reason = "Child document lesson revision $revision does not match snapshot revision ${snapshot.lessonRevision}.",
                 )
             }
@@ -81,12 +89,16 @@ class LessonRecoveryCoordinator(
                 lessonId = snapshot.lessonId,
                 lessonRevision = snapshot.lessonRevision,
                 snapshot = snapshot,
+                childDocument = childDocument,
+                childDocumentSource = loadedDocument.source,
             )
 
         return when (val restored = restoreEngine(lessonPackage, snapshot)) {
             is LessonRestoreResult.Incompatible -> RecoveryResult.IncompatibleSession(
                 snapshot = snapshot,
                 incompatibility = restored.incompatibility,
+                childDocument = childDocument,
+                childDocumentSource = loadedDocument.source,
             )
             is LessonRestoreResult.Restored -> {
                 val runtimeEvents = restored.engine.activateRestoredRuntime(restored.normalization)
@@ -117,6 +129,8 @@ class LessonRecoveryCoordinator(
 
         data class IncompatibleChildDocument(
             val snapshot: LessonSessionSnapshot,
+            val childDocument: DrawingDocument,
+            val childDocumentSource: AtomicDrawingDocumentStore.LoadSource,
             val reason: String,
         ) : RecoveryResult
 
@@ -124,11 +138,15 @@ class LessonRecoveryCoordinator(
             val lessonId: String,
             val lessonRevision: Int,
             val snapshot: LessonSessionSnapshot,
+            val childDocument: DrawingDocument,
+            val childDocumentSource: AtomicDrawingDocumentStore.LoadSource,
         ) : RecoveryResult
 
         data class IncompatibleSession(
             val snapshot: LessonSessionSnapshot,
             val incompatibility: LessonRestoreIncompatibility,
+            val childDocument: DrawingDocument,
+            val childDocumentSource: AtomicDrawingDocumentStore.LoadSource,
         ) : RecoveryResult
 
         data class Restored(

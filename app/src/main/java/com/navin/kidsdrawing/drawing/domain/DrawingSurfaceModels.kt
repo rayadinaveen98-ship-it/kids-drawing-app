@@ -34,6 +34,35 @@ enum class DrawingSurfaceContentRole {
     COLORING,
 }
 
+/** Semantic back-to-front composition order used by the production DrawingSurface. */
+enum class DrawingSurfaceRenderLayer {
+    COMMITTED_COLOR,
+    COMMITTED_LINE_ART,
+    IN_PROGRESS_CHILD_INPUT,
+    PROTECTED_LINE_ART_OVERLAY,
+}
+
+/**
+ * Pure, testable rendering contract for the View-backed surface.
+ *
+ * In coloring mode both committed and wet color stay below the protected line-art overlay. In the
+ * normal drawing editor, previously persisted color (if any) remains below line art and the active
+ * child drawing stroke stays on top as before.
+ */
+fun DrawingSurfaceContentRole.renderLayersBackToFront(): List<DrawingSurfaceRenderLayer> = when (this) {
+    DrawingSurfaceContentRole.LINE_ART -> listOf(
+        DrawingSurfaceRenderLayer.COMMITTED_COLOR,
+        DrawingSurfaceRenderLayer.COMMITTED_LINE_ART,
+        DrawingSurfaceRenderLayer.IN_PROGRESS_CHILD_INPUT,
+    )
+
+    DrawingSurfaceContentRole.COLORING -> listOf(
+        DrawingSurfaceRenderLayer.COMMITTED_COLOR,
+        DrawingSurfaceRenderLayer.IN_PROGRESS_CHILD_INPUT,
+        DrawingSurfaceRenderLayer.PROTECTED_LINE_ART_OVERLAY,
+    )
+}
+
 /**
  * Product-owned input sample in document coordinates.
  *

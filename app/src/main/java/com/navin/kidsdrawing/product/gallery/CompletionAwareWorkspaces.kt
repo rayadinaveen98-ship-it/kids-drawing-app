@@ -31,6 +31,7 @@ import com.navin.kidsdrawing.coloring.session.ColoringSessionPhase
 import com.navin.kidsdrawing.drawing.domain.TeachingPace
 import com.navin.kidsdrawing.gallery.domain.ArtworkCompletionResult
 import com.navin.kidsdrawing.lesson.model.TeachingMode
+import com.navin.kidsdrawing.lesson.session.LessonFinishReason
 import com.navin.kidsdrawing.lesson.session.LessonSessionState
 import com.navin.kidsdrawing.product.coloring.ColoringWorkspaceScreen
 import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
@@ -58,6 +59,10 @@ fun GalleryAwareGuidedLessonWorkspace(
     onExitToHome: () -> Unit,
 ) {
     val sessionState by lessonRuntime.sessionState.collectAsState()
+    val drawingCompletionBoundary = sessionState is LessonSessionState.DrawingComplete ||
+        sessionState is LessonSessionState.AwaitingPostDrawingChoice ||
+        (sessionState as? LessonSessionState.Finished)?.reason == LessonFinishReason.FINISHED_FOR_NOW
+
     Box(modifier = Modifier.fillMaxSize()) {
         GuidedLessonScreen(
             runtime = lessonRuntime,
@@ -74,15 +79,14 @@ fun GalleryAwareGuidedLessonWorkspace(
             onFinishedForNow = {},
         )
 
-        if (sessionState is LessonSessionState.DrawingComplete ||
-            sessionState is LessonSessionState.AwaitingPostDrawingChoice
-        ) {
+        if (drawingCompletionBoundary) {
             DrawingCompletionOverlay(
                 coloringRuntime = coloringRuntime,
                 galleryRuntime = galleryRuntime,
                 artworkTitle = artworkTitle,
                 onColoringReady = onColoringReady,
                 onArtworkCompleted = onArtworkCompleted,
+                allowColoringChoices = sessionState !is LessonSessionState.Finished,
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
         }
@@ -108,11 +112,14 @@ fun GalleryAwareColoringWorkspace(
             recoverRequested = recoverRequested,
             onExitToHome = onExitToHome,
         )
-        if (semantic?.phase == ColoringSessionPhase.ACTIVE) {
+        if (semantic?.phase == ColoringSessionPhase.ACTIVE ||
+            semantic?.phase == ColoringSessionPhase.FINISHED
+        ) {
             ColoringCompletionOverlay(
                 galleryRuntime = galleryRuntime,
                 artworkTitle = artworkTitle,
                 onArtworkCompleted = onArtworkCompleted,
+                retryingFinishedState = semantic?.phase == ColoringSessionPhase.FINISHED,
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
         }
@@ -126,6 +133,7 @@ private fun DrawingCompletionOverlay(
     artworkTitle: String,
     onColoringReady: () -> Unit,
     onArtworkCompleted: (String) -> Unit,
+    allowColoringChoices: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
@@ -147,58 +155,64 @@ private fun DrawingCompletionOverlay(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                text = "Your drawing is ready",
+                text = if (allowColoringChoices) "Your drawing is ready" else "Save your finished drawing",
                 style = MaterialTheme.typography.titleMedium,
                 color = StudioColors.Ink900,
             )
             Text(
-                text = "Add color, or save this drawing to your Gallery.",
+                text = if (allowColoringChoices) {
+                    "Add color, or save this drawing to your Gallery."
+                } else {
+                    "The drawing is finished. Try saving it to your Gallery again."
+                },
                 style = MaterialTheme.typography.bodyMedium,
                 color = StudioColors.Ink600,
             )
             message?.let {
                 Text(it, style = MaterialTheme.typography.bodySmall, color = StudioColors.Coral500)
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                OutlinedButton(
-                    onClick = {
-                        if (busy) return@OutlinedButton
-                        busy = true
-                        message = null
-                        scope.launch {
-                            when (val result = coloringRuntime.beginFromLesson(ColoringSessionMode.COLOR_WITH_ME)) {
-                                is ProductColoringStartResult.Ready -> onColoringReady()
-                                is ProductColoringStartResult.Failed -> {
-                                    busy = false
-                                    message = result.message
+            if (allowColoringChoices) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedButton(
+                        onClick = {
+                            if (busy) return@OutlinedButton
+                            busy = true
+                            message = null
+                            scope.launch {
+                                when (val result = coloringRuntime.beginFromLesson(ColoringSessionMode.COLOR_WITH_ME)) {
+                                    is ProductColoringStartResult.Ready -> onColoringReady()
+                                    is ProductColoringStartResult.Failed -> {
+                                        busy = false
+                                        message = result.message
+                                    }
                                 }
                             }
-                        }
-                    },
-                    enabled = !busy,
-                    modifier = Modifier.weight(1f),
-                ) { Text("Color with me") }
-                OutlinedButton(
-                    onClick = {
-                        if (busy) return@OutlinedButton
-                        busy = true
-                        message = null
-                        scope.launch {
-                            when (val result = coloringRuntime.beginFromLesson(ColoringSessionMode.COLOR_MYSELF)) {
-                                is ProductColoringStartResult.Ready -> onColoringReady()
-                                is ProductColoringStartResult.Failed -> {
-                                    busy = false
-                                    message = result.message
+                        },
+                        enabled = !busy,
+                        modifier = Modifier.weight(1f),
+                    ) { Text("Color with me") }
+                    OutlinedButton(
+                        onClick = {
+                            if (busy) return@OutlinedButton
+                            busy = true
+                            message = null
+                            scope.launch {
+                                when (val result = coloringRuntime.beginFromLesson(ColoringSessionMode.COLOR_MYSELF)) {
+                                    is ProductColoringStartResult.Ready -> onColoringReady()
+                                    is ProductColoringStartResult.Failed -> {
+                                        busy = false
+                                        message = result.message
+                                    }
                                 }
                             }
-                        }
-                    },
-                    enabled = !busy,
-                    modifier = Modifier.weight(1f),
-                ) { Text("Color myself") }
+                        },
+                        enabled = !busy,
+                        modifier = Modifier.weight(1f),
+                    ) { Text("Color myself") }
+                }
             }
             Button(
                 onClick = {
@@ -219,7 +233,7 @@ private fun DrawingCompletionOverlay(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 52.dp),
-            ) { Text("Finish for now") }
+            ) { Text(if (busy) "Saving artwork…" else "Finish for now") }
         }
     }
 }
@@ -229,6 +243,7 @@ private fun ColoringCompletionOverlay(
     galleryRuntime: ProductGalleryRuntime,
     artworkTitle: String,
     onArtworkCompleted: (String) -> Unit,
+    retryingFinishedState: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
@@ -248,6 +263,13 @@ private fun ColoringCompletionOverlay(
             modifier = Modifier.padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
+            if (retryingFinishedState) {
+                Text(
+                    text = "Your coloring is finished. Try saving it to your Gallery again.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = StudioColors.Ink600,
+                )
+            }
             message?.let {
                 Text(it, style = MaterialTheme.typography.bodySmall, color = StudioColors.Coral500)
             }

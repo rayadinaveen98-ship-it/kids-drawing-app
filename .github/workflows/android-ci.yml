@@ -47,38 +47,50 @@ jobs:
       - name: Verify Drawing Engine Ink boundary
         run: bash scripts/verify-ink-boundary.sh
 
-      - name: Unit tests, lint, and debug APK
-        run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug
+      - name: Unit tests, lint, debug APK, instrumentation APK, and profile APK compile
+        run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleProfile
 
       - name: Verify Art Lab APK permission allowlist
         shell: bash
         run: |
           set -euo pipefail
-          APK="app/build/outputs/apk/debug/app-debug.apk"
           PACKAGE="com.navin.kidsdrawing"
           ALLOWED_PERMISSION="${PACKAGE}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
 
-          OUTPUT=$("$ANDROID_HOME/build-tools/36.0.0/aapt2" dump permissions "$APK")
-          echo "$OUTPUT"
+          for APK in \
+            "app/build/outputs/apk/debug/app-debug.apk" \
+            "app/build/outputs/apk/profile/app-profile.apk"; do
+            echo "Checking $APK"
+            OUTPUT=$("$ANDROID_HOME/build-tools/36.0.0/aapt2" dump permissions "$APK")
+            echo "$OUTPUT"
 
-          mapfile -t REQUESTED_PERMISSIONS < <(
-            echo "$OUTPUT" |
-              sed -n "s/^uses-permission: name='\([^']*\)'.*/\1/p"
-          )
+            mapfile -t REQUESTED_PERMISSIONS < <(
+              echo "$OUTPUT" |
+                sed -n "s/^uses-permission: name='\([^']*\)'.*/\1/p"
+            )
 
-          for permission in "${REQUESTED_PERMISSIONS[@]}"; do
-            if [[ "$permission" != "$ALLOWED_PERMISSION" ]]; then
-              echo "Unexpected Android permission detected in Art Lab APK: $permission"
-              exit 1
-            fi
+            for permission in "${REQUESTED_PERMISSIONS[@]}"; do
+              if [[ "$permission" != "$ALLOWED_PERMISSION" ]]; then
+                echo "Unexpected Android permission detected in Art Lab APK: $permission"
+                exit 1
+              fi
+            done
           done
 
-          echo "Permission allowlist passed. No network, location, microphone, storage, contacts, advertising ID, or other external Android permission is requested."
+          echo "Permission allowlist passed for debug and profile APKs."
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: kids-drawing-art-lab-debug
           path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload release-like profile APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: kids-drawing-quality-lab-profile
+          path: app/build/outputs/apk/profile/app-profile.apk
           if-no-files-found: error
           retention-days: 14

@@ -11,8 +11,8 @@ android {
         applicationId = "com.navin.kidsdrawing"
         minSdk = 23
         targetSdk = 36
-        versionCode = 5
-        versionName = "0.0.5-p1.6-test"
+        versionCode = 10
+        versionName = "0.0.10-p1.7-soak-profile-test"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -24,6 +24,16 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+        }
+
+        create("profile") {
+            initWith(getByName("release"))
+            // Internal physical-performance build: release-like runtime behavior but installable
+            // with the same trusted debug signing key used by previous Art Lab test APKs.
+            signingConfig = signingConfigs.getByName("debug")
+            isDebuggable = false
+            isMinifyEnabled = false
+            matchingFallbacks += listOf("release")
         }
     }
 
@@ -54,6 +64,7 @@ dependencies {
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
+    implementation(libs.metrics.performance)
 
     // Stable low-level inking substrate. Product/domain interfaces must wrap these APIs.
     implementation(libs.ink.authoring)

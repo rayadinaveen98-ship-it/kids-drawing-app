@@ -148,7 +148,7 @@ class InkDrawingSurfaceView(
         cancelTransientInput()
 
         val activeOperations = document.activeOperations()
-        committedInkView.replaceDocumentOperations(activeOperations)
+        committedInkView.replaceDocument(document)
         committedInkView.invalidate()
 
         val inkCount = activeOperations.count { it is DocumentOperation.AddInkStroke }
@@ -168,6 +168,15 @@ class InkDrawingSurfaceView(
                 activeTool = null,
             ),
         )
+    }
+
+    /**
+     * Internal Quality Lab hook that forces only the committed projection to participate in a
+     * ViewRoot frame. It never mutates the authoritative document or transient Ink input.
+     */
+    fun invalidateCommittedProjectionForBenchmark() {
+        committedInkView.invalidate()
+        invalidate()
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -594,76 +603,36 @@ class InkDrawingSurfaceView(
         context: Context,
         private val documentSize: DocumentSize,
     ) : View(context) {
-        private val operations = mutableListOf<RenderedOperation>()
-        private val renderer = ViewStrokeRenderer(CanvasStrokeRenderer.create(), this)
-        private val erasePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            style = Paint.Style.STROKE
-            strokeCap = Paint.Cap.ROUND
-            strokeJoin = Paint.Join.ROUND
-            xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
-        }
+        private val rasterCache = CommittedRasterCache(documentSize)
+        private val bitmapPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
 
         var viewportTransform: DocumentViewportMapper.Transform? = null
 
         fun addInkStroke(strokeId: String, stroke: Stroke) {
-            operations += RenderedOperation.Ink(strokeId, stroke)
+            require(strokeId.isNotBlank())
+            rasterCache.appendLiveInk(strokeId, stroke)
         }
 
         fun addEraseMask(mask: EraseMaskRecord) {
-            operations += RenderedOperation.Erase(mask)
+            rasterCache.appendLiveErase(mask)
         }
 
-        fun replaceDocumentOperations(documentOperations: List<DocumentOperation>) {
-            operations.clear()
-            documentOperations.forEach { operation ->
-                when (operation) {
-                    is DocumentOperation.AddInkStroke -> operations += RenderedOperation.Ink(
-                        strokeId = operation.stroke.strokeId,
-                        stroke = InkStrokeRehydrator.rehydrate(operation.stroke),
-                    )
-                    is DocumentOperation.AddEraseMask -> operations += RenderedOperation.Erase(operation.mask)
-                    is DocumentOperation.ClearDocument -> operations.clear()
-                }
-            }
+        fun replaceDocument(document: DrawingDocument) {
+            rasterCache.reconcile(
+                newDocumentId = document.documentId,
+                operations = document.operations,
+            )
         }
 
         override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
             val transform = viewportTransform ?: return
-            val layer = canvas.saveLayer(0f, 0f, width.toFloat(), height.toFloat(), null)
-            renderer.drawWithStrokes(canvas) { scope ->
-                val saveCount = canvas.save()
-                canvas.translate(transform.offsetX, transform.offsetY)
-                canvas.scale(transform.scale, transform.scale)
-                canvas.clipRect(0f, 0f, documentSize.width, documentSize.height)
-                operations.forEach { operation ->
-                    when (operation) {
-                        is RenderedOperation.Ink -> scope.drawStroke(operation.stroke)
-                        is RenderedOperation.Erase -> drawEraseMask(canvas, operation.mask)
-                    }
-                }
-                canvas.restoreToCount(saveCount)
-            }
-            canvas.restoreToCount(layer)
-        }
-
-        private fun drawEraseMask(canvas: Canvas, mask: EraseMaskRecord) {
-            erasePaint.strokeWidth = mask.baseSize
-            val points = mask.points
-            if (points.size == 1) {
-                canvas.drawCircle(points.first().x, points.first().y, mask.baseSize / 2f, erasePaint)
-                return
-            }
-            val path = Path().apply {
-                moveTo(points.first().x, points.first().y)
-                points.drop(1).forEach { point -> lineTo(point.x, point.y) }
-            }
-            canvas.drawPath(path, erasePaint)
-        }
-
-        private sealed interface RenderedOperation {
-            data class Ink(val strokeId: String, val stroke: Stroke) : RenderedOperation
-            data class Erase(val mask: EraseMaskRecord) : RenderedOperation
+            val saveCount = canvas.save()
+            canvas.translate(transform.offsetX, transform.offsetY)
+            canvas.scale(transform.scale, transform.scale)
+            canvas.clipRect(0f, 0f, documentSize.width, documentSize.height)
+            canvas.drawBitmap(rasterCache.bitmap(), 0f, 0f, bitmapPaint)
+            canvas.restoreToCount(saveCount)
         }
     }
 

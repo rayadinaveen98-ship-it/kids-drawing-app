@@ -320,7 +320,9 @@ private fun ArtLabLauncher(
                         onStrokeCommitted = { stroke ->
                             scope.launch {
                                 documentEngine.commitChildStroke(stroke)
-                                queueAutosave(documentEngine.state.value.document)
+                                val document = documentEngine.state.value.document
+                                surfaceController.reconcileDocument(document)
+                                queueAutosave(document)
                             }
                         },
                         onEraseMaskCommitted = { mask ->

@@ -7,8 +7,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.KidsDrawingArtLab">
         <activity
+            android:name=".QualityLabActivity"
+            android:exported="true"
+            android:label="Kids Drawing Quality Lab">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:label="Kids Drawing Art Lab">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

@@ -1,11 +1,15 @@
 package com.navin.kidsdrawing.product.home
 
 import android.content.Context
+import com.navin.kidsdrawing.coloring.persistence.AtomicColoringSessionStore
+import com.navin.kidsdrawing.coloring.session.ColoringSessionEngine
+import com.navin.kidsdrawing.coloring.session.ColoringSessionPhase
 import com.navin.kidsdrawing.lesson.content.AndroidAssetLessonSource
 import com.navin.kidsdrawing.lesson.content.LessonLoadResult
 import com.navin.kidsdrawing.lesson.content.LessonPackageLoader
 import com.navin.kidsdrawing.lesson.lab.LessonLabRuntimeCore
 import com.navin.kidsdrawing.lesson.persistence.AtomicLessonSessionStore
+import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
 import com.navin.kidsdrawing.product.profile.ChildProfile
 import java.io.File
 import kotlinx.coroutines.Dispatchers
@@ -14,20 +18,20 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 /**
- * Read-only product projection over authored lesson content + persisted Lesson Engine state.
+ * Read-only product projection over authored content + persisted Lesson/Coloring engine state.
  *
- * Home never owns a second lesson/session state machine. It derives a compact presentation model
- * from the bundled package and the exact semantic snapshot written by Lesson Engine 0.2.
+ * Home never owns a second session state machine. Active coloring takes presentation priority over
+ * a drawing resume because a successful coloring handoff has already finished the lesson session.
  */
 class StudioHomeRepository(context: Context) {
     private val appContext = context.applicationContext
     private val source = AndroidAssetLessonSource(appContext.assets)
     private val loader = LessonPackageLoader(source)
-
-    // Compatibility with the physically verified P2 runtime. P3.3 will move the same persistence
-    // contract behind the production lesson workspace without changing IDs or losing saved work.
     private val sessionStore = AtomicLessonSessionStore(
         File(appContext.filesDir, P2_SESSION_DIRECTORY),
+    )
+    private val coloringStore = AtomicColoringSessionStore(
+        File(appContext.filesDir, ProductColoringRuntime.COLORING_SESSION_DIRECTORY),
     )
 
     suspend fun load(profile: ChildProfile): StudioHomeModel = withContext(Dispatchers.IO) {
@@ -35,6 +39,7 @@ class StudioHomeRepository(context: Context) {
             is LessonLoadResult.Failure -> StudioHomeModel(
                 recommendation = null,
                 resumeCandidate = null,
+                coloringResumeCandidate = null,
                 contentMessage = "Your drawing studio is ready, but this lesson needs a quick refresh.",
             )
 
@@ -62,10 +67,34 @@ class StudioHomeRepository(context: Context) {
                     is AtomicLessonSessionStore.LoadResult.Corrupt,
                     -> null
                 }
+                val coloringSessionId = ColoringSessionEngine.sessionIdFor(LessonLabRuntimeCore.DOCUMENT_ID)
+                val coloringResume = when (val persisted = coloringStore.load(coloringSessionId)) {
+                    is AtomicColoringSessionStore.LoadResult.Loaded -> persisted.snapshot
+                        .takeIf { snapshot ->
+                            snapshot.phase == ColoringSessionPhase.ACTIVE &&
+                                snapshot.lessonId == packageData.lesson.lessonId &&
+                                snapshot.lessonRevision == packageData.lesson.revision &&
+                                snapshot.childDocumentId == LessonLabRuntimeCore.DOCUMENT_ID
+                        }
+                        ?.let { snapshot ->
+                            ColoringResumeCandidate(
+                                sessionId = snapshot.sessionId,
+                                lessonId = snapshot.lessonId,
+                                lessonRevision = snapshot.lessonRevision,
+                                childDocumentId = snapshot.childDocumentId,
+                                savedAtEpochMillis = snapshot.savedAtEpochMillis,
+                            )
+                        }
+
+                    AtomicColoringSessionStore.LoadResult.Missing,
+                    is AtomicColoringSessionStore.LoadResult.Corrupt,
+                    -> null
+                }
 
                 StudioHomeModel(
                     recommendation = recommendation,
-                    resumeCandidate = resume,
+                    resumeCandidate = if (coloringResume == null) resume else null,
+                    coloringResumeCandidate = coloringResume,
                 )
             }
         }

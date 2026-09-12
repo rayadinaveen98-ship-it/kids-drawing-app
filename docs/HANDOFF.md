@@ -18,6 +18,9 @@ Development model: **Core-engine + vertical-slice** — Specify → build capabi
 **Phase 1 — COMPLETE.**  
 **Phase 2 — ACTIVE.** Target: `0.2.0-lesson-engine`.
 
+Active issue: **#30 — P2.2 deterministic lesson session state machine + snapshots**.  
+Active branch: **`phase2/session-state-machine`**.
+
 ## Frozen Phase 1 milestone
 
 Version: `0.1.0-art-lab` / versionCode 11  
@@ -63,29 +66,62 @@ Samsung SM-A546E / API 36 / ~7.4 GB RAM / 120 Hz:
 
 Stylus-specific pressure/tilt/palm/inverted-eraser behavior and externally instrumented input-to-visible latency remain **PENDING-HARDWARE**. Do not silently convert these to PASS.
 
-## Active task — Phase 2 / Lesson Engine 0.2
+## Phase 2 progress
 
 Epic: **#28 — Phase 2 Lesson Engine 0.2**.
 
 Target: `0.2.0-lesson-engine`.
 
-The Drawing Engine is now a frozen foundation. Phase 2 should consume it through owned interfaces rather than reopening its internals without a specific regression/ADR.
+### P2.1 — COMPLETE
 
-Planned order:
-1. lesson package loader + schema validation;
-2. lesson session state machine + restoration;
-3. semantic step execution and teacher scheduling;
-4. Draw With Me;
-5. Watch Then Draw;
-6. Trace & Learn;
-7. pause/replay/speed/skip/help semantics;
-8. lifecycle and failure recovery;
-9. internal Lesson Lab + tests/CI/APK;
-10. physical verification and `0.2.0-lesson-engine` packaging.
+Issue: **#29 — Lesson package loader + runtime validation**  
+PR: **#35**  
+Merged `main` commit: `74d0de35a705d41747f7bb47e0b4383905c0f806`  
+Exact hardened branch head: `dd9f0f86ebcb57afac09c0c079dfe62dd9c96634`  
+Android CI run #137 / `34677550750`: **GREEN**.
+
+P2.1 established:
+- Kotlin serialization wiring;
+- product-owned runtime lesson models matching `schemas/lesson.schema.json`;
+- strict pure-Kotlin package parsing/validation;
+- typed diagnostics;
+- Android asset adapter only at the infrastructure boundary;
+- permanent bundled `lessons/cute-cat` reference package;
+- real authored teacher strokes and trace/help guides;
+- restored `docs/17_LESSON_CONTENT_SCHEMA.md`;
+- negative tests for malformed JSON, content API/version constraints, unsafe paths, duplicate IDs, missing refs, trace support and authored stroke validity.
+
+### P2.2 — ACTIVE
+
+Issue: **#30 — Deterministic lesson session state machine + snapshots**.
+
+Current implementation direction:
+- pure Kotlin/session-domain code only;
+- UI dispatches commands but cannot set state;
+- reuses frozen Drawing Engine `TeachingPace`;
+- typed `Ready`, overview, drawing sub-phases, `Paused(previousStableState)`, post-drawing and terminal states;
+- deterministic accepted/rejected command results;
+- Start/Pause/Resume/SetPace/SaveAndExit foundation;
+- immutable active context carries mode, pace, step index/stable ID, help level and overview status;
+- snapshots store lesson revision/session/document identity plus semantic progress;
+- unsafe transient phases normalize before persistence/restore;
+- exact lesson revision and step identity are checked before restoration;
+- tests use the real bundled Cute Cat package and cover all three modes/all five paces/illegal commands/pause-resume/snapshot compatibility.
+
+Do not mark P2.2 complete until exact-head CI is green and the PR is merged.
+
+## Remaining Phase 2 order
+
+1. #30 — session state machine + snapshots — **ACTIVE**
+2. #31 — teacher step execution + Draw With Me
+3. #32 — Watch Then Draw + Trace & Learn + Help Ladder
+4. #33 — lifecycle/session persistence + failure recovery
+5. #34 — Lesson Lab + physical verification + `0.2.0-lesson-engine` release
 
 ## Architecture constraints
 
 - UI never owns artwork/history/lesson truth.
+- UI cannot set arbitrary session states.
 - AndroidX Ink stays behind drawing infrastructure adapters.
 - teacher/trace overlays never become child artwork.
 - persistence stores editable operations, not screenshots.

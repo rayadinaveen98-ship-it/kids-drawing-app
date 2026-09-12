@@ -10,10 +10,18 @@ import com.navin.kidsdrawing.drawing.domain.StrokePoint
 
 /** Internal Art Lab workloads matching docs/18_DRAWING_PERFORMANCE_GATES.md. */
 object ArtLabQualityWorkloadFactory {
+    const val W1_OPERATION_COUNT = 500
+    const val W1_SAMPLES_PER_OPERATION = 24
     const val W2_OPERATION_COUNT = 2_000
     const val W2_SAMPLES_PER_OPERATION = 125
     const val W3_OPERATION_COUNT = 5_000
     const val W3_SAMPLES_PER_OPERATION = 16
+
+    fun w1(): DrawingDocument = document(
+        documentId = "quality-lab-w1",
+        operationCount = W1_OPERATION_COUNT,
+        samplesPerOperation = W1_SAMPLES_PER_OPERATION,
+    )
 
     fun w2(): DrawingDocument = document(
         documentId = "quality-lab-w2",

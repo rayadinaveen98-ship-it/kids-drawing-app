@@ -104,6 +104,7 @@ class LessonSessionSnapshotCodec(
         put("helpLevel", helpLevel)
         put("overviewCompleted", overviewCompleted)
         putNullableString("finishReason", finishReason?.name)
+        put("runtimeGeneration", runtimeGeneration)
         put("savedAtEpochMillis", savedAtEpochMillis)
     }
 
@@ -123,6 +124,7 @@ class LessonSessionSnapshotCodec(
             helpLevel = requiredInt("helpLevel"),
             overviewCompleted = requiredBoolean("overviewCompleted"),
             finishReason = optionalEnum<LessonFinishReason>("finishReason"),
+            runtimeGeneration = optionalInt("runtimeGeneration") ?: 0,
             savedAtEpochMillis = requiredLong("savedAtEpochMillis"),
         )
     } catch (failure: IllegalArgumentException) {

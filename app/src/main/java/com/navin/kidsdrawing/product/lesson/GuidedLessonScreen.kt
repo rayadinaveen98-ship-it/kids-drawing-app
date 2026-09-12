@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.navin.kidsdrawing.coloring.session.ColoringSessionMode
 import com.navin.kidsdrawing.drawing.domain.DrawingTool
 import com.navin.kidsdrawing.drawing.domain.TeacherPlaybackStatus
 import com.navin.kidsdrawing.drawing.domain.TeachingPace
@@ -63,6 +64,8 @@ import com.navin.kidsdrawing.lesson.session.RequestHelp
 import com.navin.kidsdrawing.lesson.session.RetryRecoverable
 import com.navin.kidsdrawing.lesson.session.SkipOverview
 import com.navin.kidsdrawing.lesson.session.SkipStep
+import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
+import com.navin.kidsdrawing.product.coloring.ProductColoringStartResult
 import com.navin.kidsdrawing.product.design.StudioColors
 import com.navin.kidsdrawing.product.profile.AgeBand
 import kotlinx.coroutines.launch
@@ -70,11 +73,13 @@ import kotlinx.coroutines.launch
 @Composable
 fun GuidedLessonScreen(
     runtime: ProductLessonRuntime,
+    coloringRuntime: ProductColoringRuntime,
     ageBand: AgeBand,
     startMode: TeachingMode,
     startPace: TeachingPace,
     startFreshRequested: Boolean,
     onFreshSessionStarted: () -> Unit,
+    onColoringReady: () -> Unit,
     onExitToHome: () -> Unit,
     onFinishedForNow: () -> Unit,
     modifier: Modifier = Modifier,
@@ -91,6 +96,8 @@ fun GuidedLessonScreen(
     val diagnostics by runtime.diagnostics.collectAsState()
     var recoveryReady by remember { mutableStateOf(false) }
     var startupMessage by remember { mutableStateOf<String?>(null) }
+    var coloringMessage by remember { mutableStateOf<String?>(null) }
+    var coloringStarting by remember { mutableStateOf(false) }
 
     LaunchedEffect(runtime) {
         val outcome = runtime.recover()
@@ -237,6 +244,34 @@ fun GuidedLessonScreen(
                 if (presentation.showPostDrawingChoices) {
                     PostDrawingBoundary(
                         minimumControlHeight = layout.minimumControlHeight,
+                        message = coloringMessage,
+                        enabled = !coloringStarting,
+                        onColorWithMe = {
+                            coloringStarting = true
+                            coloringMessage = null
+                            scope.launch {
+                                when (val result = coloringRuntime.beginFromLesson(ColoringSessionMode.COLOR_WITH_ME)) {
+                                    is ProductColoringStartResult.Ready -> onColoringReady()
+                                    is ProductColoringStartResult.Failed -> {
+                                        coloringStarting = false
+                                        coloringMessage = result.message
+                                    }
+                                }
+                            }
+                        },
+                        onColorMyself = {
+                            coloringStarting = true
+                            coloringMessage = null
+                            scope.launch {
+                                when (val result = coloringRuntime.beginFromLesson(ColoringSessionMode.COLOR_MYSELF)) {
+                                    is ProductColoringStartResult.Ready -> onColoringReady()
+                                    is ProductColoringStartResult.Failed -> {
+                                        coloringStarting = false
+                                        coloringMessage = result.message
+                                    }
+                                }
+                            }
+                        },
                         onFinish = {
                             scope.launch {
                                 runtime.dispatch(FinishForNow)
@@ -493,6 +528,10 @@ private fun DrawingToolControls(
 @Composable
 private fun PostDrawingBoundary(
     minimumControlHeight: Dp,
+    message: String?,
+    enabled: Boolean,
+    onColorWithMe: () -> Unit,
+    onColorMyself: () -> Unit,
     onFinish: () -> Unit,
 ) {
     Surface(
@@ -510,14 +549,41 @@ private fun PostDrawingBoundary(
                 color = StudioColors.Ink900,
             )
             Text(
-                text = "Nice work sticking with every part. Save your cat and come back whenever you like.",
+                text = "Keep going with colors, or save your cat for another time.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = StudioColors.Ink700,
             )
+            if (!message.isNullOrBlank()) {
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = StudioColors.Coral500,
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                WorkspaceButton(
+                    label = "Color with me",
+                    modifier = Modifier.weight(1f),
+                    primary = true,
+                    enabled = enabled,
+                    minimumHeight = minimumControlHeight,
+                    onClick = onColorWithMe,
+                )
+                WorkspaceButton(
+                    label = "Color myself",
+                    modifier = Modifier.weight(1f),
+                    enabled = enabled,
+                    minimumHeight = minimumControlHeight,
+                    onClick = onColorMyself,
+                )
+            }
             WorkspaceButton(
                 label = "Finish for now",
                 modifier = Modifier.fillMaxWidth(),
-                primary = true,
+                enabled = enabled,
                 minimumHeight = minimumControlHeight,
                 onClick = onFinish,
             )

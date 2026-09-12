@@ -99,6 +99,7 @@ class LessonSessionSnapshotCodec(
         putNullableString("pace", pace?.name)
         put("phase", phase.name)
         putNullableString("pausedResumePhase", pausedResumePhase?.name)
+        putNullableString("transientRuntimePhase", transientRuntimePhase?.name)
         if (currentStepIndex == null) put("currentStepIndex", JsonNull) else put("currentStepIndex", currentStepIndex)
         putNullableString("currentStepId", currentStepId)
         put("helpLevel", helpLevel)
@@ -119,6 +120,7 @@ class LessonSessionSnapshotCodec(
             pace = optionalEnum<TeachingPace>("pace"),
             phase = requiredEnum("phase"),
             pausedResumePhase = optionalEnum<LessonSnapshotPhase>("pausedResumePhase"),
+            transientRuntimePhase = optionalEnum<LessonSnapshotPhase>("transientRuntimePhase"),
             currentStepIndex = optionalInt("currentStepIndex"),
             currentStepId = optionalString("currentStepId"),
             helpLevel = requiredInt("helpLevel"),

@@ -9,6 +9,7 @@ import android.graphics.Path
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import androidx.ink.rendering.android.canvas.CanvasStrokeRenderer
+import androidx.ink.strokes.Stroke
 import com.navin.kidsdrawing.drawing.domain.DocumentOperation
 import com.navin.kidsdrawing.drawing.domain.DocumentSize
 import com.navin.kidsdrawing.drawing.domain.EraseMaskRecord
@@ -23,8 +24,6 @@ import java.util.LinkedHashMap
  */
 internal class CommittedRasterCache(
     private val documentSize: DocumentSize,
-    private val projector: OperationProjectionCache<RenderedRasterOperation> =
-        OperationProjectionCache(::projectOperation),
 ) {
     private val renderer = CanvasStrokeRenderer.create()
     private val identity = Matrix()
@@ -38,59 +37,69 @@ internal class CommittedRasterCache(
         strokeJoin = Paint.Join.ROUND
         xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
     }
+    private val projectedOperationCache = LinkedHashMap<String, RenderedRasterOperation>()
     private val checkpoints = LinkedHashMap<Int, Bitmap>()
     private var documentId: String? = null
     private var operationIds: List<String> = emptyList()
 
     fun bitmap(): Bitmap = bitmap
 
-    fun reconcile(documentId: String, operations: List<DocumentOperation>) {
+    fun reconcile(newDocumentId: String, operations: List<DocumentOperation>) {
         val ids = operations.map { it.operationId }
-        if (this.documentId != documentId) {
-            resetForDocument(documentId)
+        if (documentId != newDocumentId) {
+            resetForDocument(newDocumentId)
             rebuild(operations)
             operationIds = ids
             return
         }
 
         val commonPrefix = commonPrefixLength(operationIds, ids)
-        val sameTimelinePrefix = commonPrefix == minOf(operationIds.size, ids.size)
-
-        if (!sameTimelinePrefix) {
-            // A branch edit or restored document invalidates checkpoints beyond the shared prefix.
+        if (commonPrefix < minOf(operationIds.size, ids.size)) {
             trimCheckpointsAfter(commonPrefix)
         }
 
         restoreNearestCheckpoint(commonPrefix)
-        val projected = projector.projectOperations(operations)
         val start = currentCheckpointCursor(commonPrefix)
-        for (index in start until projected.size) {
-            apply(projected[index])
-            val cursor = index + 1
-            maybeCheckpoint(cursor, projected.size)
+        for (index in start until operations.size) {
+            apply(project(operations[index]))
+            maybeCheckpoint(index + 1, operations.size)
         }
         operationIds = ids
+        retainLiveProjectedOperations(operations)
     }
 
     private fun rebuild(operations: List<DocumentOperation>) {
         clearBitmap()
-        checkpoints.values.forEach(Bitmap::recycle)
-        checkpoints.clear()
-        val projected = projector.projectOperations(operations)
-        projected.forEachIndexed { index, operation ->
-            apply(operation)
-            maybeCheckpoint(index + 1, projected.size)
+        recycleCheckpoints()
+        operations.forEachIndexed { index, operation ->
+            apply(project(operation))
+            maybeCheckpoint(index + 1, operations.size)
         }
+        retainLiveProjectedOperations(operations)
+    }
+
+    private fun project(operation: DocumentOperation): RenderedRasterOperation =
+        projectedOperationCache.getOrPut(operation.operationId) {
+            when (operation) {
+                is DocumentOperation.AddInkStroke -> RenderedRasterOperation.Ink(
+                    InkStrokeRehydrator.rehydrate(operation.stroke),
+                )
+                is DocumentOperation.AddEraseMask -> RenderedRasterOperation.Erase(operation.mask)
+                is DocumentOperation.ClearDocument -> RenderedRasterOperation.Clear
+            }
+        }
+
+    private fun retainLiveProjectedOperations(operations: List<DocumentOperation>) {
+        val live = operations.mapTo(HashSet(operations.size)) { it.operationId }
+        projectedOperationCache.keys.retainAll(live)
     }
 
     private fun restoreNearestCheckpoint(targetPrefix: Int) {
         val checkpointCursor = checkpoints.keys.filter { it <= targetPrefix }.maxOrNull()
-        if (checkpointCursor == null) {
-            clearBitmap()
-            return
-        }
         clearBitmap()
-        canvas.drawBitmap(checkpoints.getValue(checkpointCursor), 0f, 0f, null)
+        if (checkpointCursor != null) {
+            canvas.drawBitmap(checkpoints.getValue(checkpointCursor), 0f, 0f, null)
+        }
     }
 
     private fun currentCheckpointCursor(targetPrefix: Int): Int =
@@ -146,9 +155,13 @@ internal class CommittedRasterCache(
         documentId = newDocumentId
         operationIds = emptyList()
         clearBitmap()
+        recycleCheckpoints()
+        projectedOperationCache.clear()
+    }
+
+    private fun recycleCheckpoints() {
         checkpoints.values.forEach(Bitmap::recycle)
         checkpoints.clear()
-        projector.reset()
     }
 
     private fun commonPrefixLength(a: List<String>, b: List<String>): Int {
@@ -158,24 +171,15 @@ internal class CommittedRasterCache(
         return index
     }
 
-    companion object {
-        private const val CHECKPOINT_INTERVAL = 8
-        private const val RECENT_HISTORY_WINDOW = 48
-        private const val MAX_CHECKPOINTS = 8
-
-        private fun projectOperation(operation: DocumentOperation): RenderedRasterOperation =
-            when (operation) {
-                is DocumentOperation.AddInkStroke -> RenderedRasterOperation.Ink(
-                    InkStrokeRehydrator.rehydrate(operation.stroke),
-                )
-                is DocumentOperation.AddEraseMask -> RenderedRasterOperation.Erase(operation.mask)
-                is DocumentOperation.ClearDocument -> RenderedRasterOperation.Clear
-            }
+    private companion object {
+        const val CHECKPOINT_INTERVAL = 8
+        const val RECENT_HISTORY_WINDOW = 48
+        const val MAX_CHECKPOINTS = 8
     }
 }
 
 internal sealed interface RenderedRasterOperation {
-    data class Ink(val stroke: androidx.ink.strokes.Stroke) : RenderedRasterOperation
+    data class Ink(val stroke: Stroke) : RenderedRasterOperation
     data class Erase(val mask: EraseMaskRecord) : RenderedRasterOperation
     data object Clear : RenderedRasterOperation
 }

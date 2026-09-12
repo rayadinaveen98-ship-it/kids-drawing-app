@@ -67,11 +67,14 @@ class AtomicLessonSessionStoreTest {
         val second = snapshot(savedAt = 200L, stepIndex = 1, stepId = "ears")
         runBlocking { AtomicLessonSessionStore(root).save(first) }
 
-        val failing = AtomicLessonSessionStore(root) { stage ->
-            if (stage == AtomicLessonSessionStore.SaveStage.BACKUP_READY) {
-                throw IOException("Injected failure after session backup rotation.")
-            }
-        }
+        val failing = AtomicLessonSessionStore(
+            rootDirectory = root,
+            faultInjector = { stage ->
+                if (stage == AtomicLessonSessionStore.SaveStage.BACKUP_READY) {
+                    throw IOException("Injected failure after session backup rotation.")
+                }
+            },
+        )
 
         assertThrows(IOException::class.java) {
             runBlocking { failing.save(second) }

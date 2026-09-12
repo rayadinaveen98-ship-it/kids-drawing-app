@@ -216,6 +216,7 @@ data class LessonSessionSnapshot(
     val pace: TeachingPace? = null,
     val phase: LessonSnapshotPhase,
     val pausedResumePhase: LessonSnapshotPhase? = null,
+    val transientRuntimePhase: LessonSnapshotPhase? = null,
     val currentStepIndex: Int? = null,
     val currentStepId: String? = null,
     val helpLevel: Int = 0,
@@ -251,6 +252,7 @@ enum class LessonRestoreIncompatibilityCode {
     INVALID_STEP,
     INVALID_HELP_LEVEL,
     INVALID_PAUSED_PHASE,
+    INVALID_TRANSIENT_PHASE,
     INVALID_RUNTIME_GENERATION,
 }
 

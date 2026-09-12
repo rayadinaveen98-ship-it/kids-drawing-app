@@ -74,6 +74,8 @@ class ProductColoringRuntime(
      * failure signal; the completed drawing is never replaced or deleted.
      */
     suspend fun beginFromLesson(mode: ColoringSessionMode): ProductColoringStartResult {
+        var initializedSessionId: String? = null
+        var handoffAcknowledged = false
         return try {
             // Freeze a known-good completed drawing before asking Lesson Engine to leave its
             // post-drawing state. This is the cross-engine safety boundary.
@@ -112,19 +114,43 @@ class ProductColoringRuntime(
             syncToolEngine(coloringEngine.state.value)
 
             persistColoringState()
+            initializedSessionId = coloringEngine.state.value.sessionId
+
             // Acknowledge only after both the editable document and semantic coloring session are
-            // known-good. The actual LessonSessionEngine then moves to Finished(COMPLETED).
+            // known-good. If this typed acknowledgement fails, the just-created coloring snapshot
+            // is rolled back so Home can never surface an orphan Continue Coloring route.
             lessonRuntime.acknowledgeColoringInitialized()
-            lessonRuntime.saveNow()
+            handoffAcknowledged = true
+
+            // The acknowledgement path already runs Lesson Engine semantic autosave. This explicit
+            // save remains a best-effort stable boundary and must not invalidate a successful
+            // handoff if storage subsequently becomes unavailable.
+            runCatching { lessonRuntime.saveNow() }
             ProductColoringStartResult.Ready(coloringEngine.state.value)
         } catch (failure: Throwable) {
-            runCatching { lessonRuntime.rejectColoringInitialization() }
-            runCatching { lessonRuntime.saveNow() }
-            engine = null
-            _sessionState.value = null
-            ProductColoringStartResult.Failed(
-                failure.message ?: "Coloring could not open, but your drawing is safe.",
-            )
+            if (!handoffAcknowledged) {
+                initializedSessionId?.let { sessionId ->
+                    runCatching { coloringStore.delete(sessionId) }
+                }
+                runCatching { lessonRuntime.rejectColoringInitialization() }
+                runCatching { lessonRuntime.saveNow() }
+                engine = null
+                _sessionState.value = null
+            }
+            if (handoffAcknowledged) {
+                val current = engine
+                if (current != null) {
+                    ProductColoringStartResult.Ready(current.state.value)
+                } else {
+                    ProductColoringStartResult.Failed(
+                        failure.message ?: "Coloring could not open, but your drawing is safe.",
+                    )
+                }
+            } else {
+                ProductColoringStartResult.Failed(
+                    failure.message ?: "Coloring could not open, but your drawing is safe.",
+                )
+            }
         }
     }
 

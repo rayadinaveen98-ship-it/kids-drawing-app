@@ -15,7 +15,7 @@ Development model: **Core-engine + vertical-slice** — Specify → build capabi
 ## Current state
 
 **Phase 0 — COMPLETE.**  
-**Phase 1 — ACTIVE.** Target: `0.1.0-art-lab`.
+**Phase 1 — FINAL PACKAGING.** Target: `0.1.0-art-lab`.
 
 Progression:
 - #8 P1.1 scaffold/CI — **COMPLETE**
@@ -24,39 +24,60 @@ Progression:
 - #11 P1.4 persistence/recovery — **COMPLETE**
 - #12 P1.5 deterministic teacher playback/five paces — **COMPLETE**
 - #13 P1.6 Art Lab controls/debug metrics — **COMPLETE**
-- #14 P1.7 tests/benchmarks/stress — **ACTIVE**
-- #15 P1.8 `0.1.0-art-lab` packaging/verification — **PENDING**
+- #14 P1.7 tests/benchmarks/stress — **COMPLETE**
+- #15 P1.8 `0.1.0-art-lab` packaging/verification — **ACTIVE**
 
-## Last stable milestone — P1.6
+## Last stable engineering gate — P1.7
 
-PR **#21** squash-merged as `3f09716ed8db11520a6f045010a361a1819105d7`.
+PR **#22** squash-merged to `main` as `e7cefac6a0705838f209bf591dd253618325719b`.
 
-Physically verified build:
-- `0.0.5-p1.6-test` / versionCode 5;
-- exact branch head `ada65e4bdc30e2689c51e819e208d85e2b4ec2da`;
-- CI run #64 / `34636448915` — green;
-- artifact ID `10278896739`;
-- APK size `18,226,354` bytes;
-- APK SHA-256 `3ff4b1fbb3e00459d0430a6f02341b5e3170626b5d8d38647772feec200b7db3`;
-- user physically verified all requested P1.6 behavior as working.
+### Proven physical behavior
 
-Capabilities now proven on-device include low-latency drawing, product-owned Pencil/Eraser/color/width state, non-destructive erase masks with Undo/Redo, Clear + Undo, New/Save/Reload/reopen, captured teacher strokes, five playback speeds, Pause/Resume/Replay, responsive phone layout and live debug diagnostics.
+Samsung SM-A546E / API 36 / ~7.4 GB RAM / 120 Hz:
+- input dispatch upper bound P95/P99 2–3 ms — PASS;
+- W2 save P95 360 ms worst recorded — PASS;
+- W2 load→editable P95 500 ms — PASS;
+- W2 visible Undo/Redo P95 19 ms / P99 36 ms — PASS;
+- W3 5,000-op document editable without crash/OOM — PASS;
+- W1 committed raster frame gate: 603 frames, 0 native jank, 0.5% >16.7 ms — PASS;
+- 30-minute soak: 4,587 cycles, 0 failures, final persistence verified, ~55.4 MiB Java / 58.5 MiB native end memory — PASS.
 
-## Active task — P1.7
+### Explicit pending-device coverage
 
-Issue **#14** turns the Drawing Engine contracts into repeatable quality evidence.
+Stylus-specific pressure/tilt/palm/inverted-eraser behavior and externally instrumented input-to-visible latency remain **PENDING-HARDWARE**. Do not silently convert these to PASS.
 
-Required work:
-- generated 2,000 and 5,000 operation documents;
-- long-history undo/redo stress;
-- save/load/recovery/corruption stress;
-- deterministic playback stress at all five speeds;
-- instrumentation/performance measurement where useful;
-- frame/input/memory evidence against `docs/18_DRAWING_PERFORMANCE_GATES.md`;
-- 30-minute soak procedure/template;
-- low-end/mainstream/stylus device class results recorded only as `PASS`, `FAIL`, or `PENDING-HARDWARE`.
+## Active task — P1.8
 
-Do not silently pass hardware-only gates from CI.
+Issue **#15** packages the completed Drawing Engine 0.1 work into the first formal milestone.
+
+Release branch: `phase1/p1.8-art-lab-release`  
+Version: `0.1.0-art-lab`  
+versionCode: `11`
+
+Required before P1.8 close:
+1. final release notes + changelog/status synchronization;
+2. exact release commit passes CI;
+3. release-like profile APK artifact recorded with size/SHA-256;
+4. release PR merged;
+5. known-good milestone commit tagged;
+6. #15 and Epic #7 closed with full evidence.
+
+## Proven milestone capabilities
+
+- AndroidX Ink-backed low-latency finger drawing behind owned engine abstractions;
+- 1000×1000 logical document coordinates;
+- product-owned Pencil/Eraser/color/width state;
+- non-destructive erase masks;
+- Undo/Redo/Clear/New;
+- editable operation-based document truth;
+- atomic save/reload/autosave + backup recovery;
+- deterministic teacher playback at 0.4× / 0.7× / 1× / 1.5× / 2×;
+- Pause/Resume/Replay and captured-child-stroke teacher playback;
+- teacher overlay isolated from child history/persistence;
+- responsive engineering Art Lab controls;
+- dedicated Quality Lab with stress, timing, memory, frame, and soak harnesses;
+- raster/checkpoint committed rendering for bounded normal-frame/history cost;
+- offline operation with no Internet/ads/behavioral analytics/sensitive permissions.
 
 ## Architecture constraints
 
@@ -79,17 +100,6 @@ Do not silently pass hardware-only gates from CI.
 - Engine boundaries: `docs/20_ENGINE_BOUNDARIES.md`
 - Visual system: `docs/21_VISUAL_SYSTEM.md`
 
-## Next executable sequence
-
-1. Create `phase1/p1.7-quality-stress` from current `main`.
-2. Add generated stress fixtures and automated high-volume domain/persistence/playback tests.
-3. Add benchmark/instrumentation support that can produce comparable evidence on physical hardware.
-4. Add soak and device-result templates.
-5. Run CI and resolve every P0/P1 failure.
-6. Record hardware results honestly.
-7. Close #14 only when acceptance evidence is complete or explicitly `PENDING-HARDWARE` where allowed.
-8. Start #15 and package/tag the formal `0.1.0-art-lab` APK.
-
 ## Resume protocol
 
 Inspect in order:
@@ -99,3 +109,5 @@ Inspect in order:
 4. `ROADMAP.md`
 5. Epic #7 and next incomplete dependency
 6. relevant specs/issues
+
+If the release branch is still active, finish #15 before starting Phase 2.

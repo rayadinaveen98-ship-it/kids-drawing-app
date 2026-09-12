@@ -611,7 +611,9 @@ private fun WorkspaceButton(
             TextButton(
                 onClick = onClick,
                 enabled = enabled,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = minimumHeight),
             ) {
                 Text(label, color = if (enabled) Color.White else StudioColors.Ink500, fontWeight = FontWeight.Bold)
             }

@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.viewinterop.AndroidView
 import com.navin.kidsdrawing.drawing.domain.DrawingDocument
+import com.navin.kidsdrawing.drawing.domain.DrawingSurfaceContentRole
 import com.navin.kidsdrawing.drawing.domain.DrawingSurfaceMetrics
 import com.navin.kidsdrawing.drawing.domain.DrawingToolSettings
 import com.navin.kidsdrawing.drawing.domain.EraseMaskRecord
@@ -41,13 +42,15 @@ class DrawingSurfaceController {
  * Compose boundary for the low-latency View-backed drawing surface.
  *
  * Feature UI deliberately sees only product-owned records/settings/metrics; all AndroidX Ink types
- * remain in drawing infrastructure.
+ * remain in drawing infrastructure. [contentRole] determines whether gestures edit protected line
+ * art or the isolated coloring projection; callers still receive the same owned stroke/mask records.
  */
 @Composable
 fun DrawingSurface(
     modifier: Modifier = Modifier,
     controller: DrawingSurfaceController? = null,
     toolSettings: DrawingToolSettings = DrawingToolSettings(),
+    contentRole: DrawingSurfaceContentRole = DrawingSurfaceContentRole.LINE_ART,
     onStrokeCommitted: (InkStrokeRecord) -> Unit = {},
     onEraseMaskCommitted: (EraseMaskRecord) -> Unit = {},
     onMetricsChanged: (DrawingSurfaceMetrics) -> Unit = {},
@@ -57,6 +60,7 @@ fun DrawingSurface(
         factory = { context ->
             InkDrawingSurfaceView(context).apply {
                 drawingToolSettings = toolSettings
+                this.contentRole = contentRole
                 this.onStrokeCommitted = onStrokeCommitted
                 this.onEraseMaskCommitted = onEraseMaskCommitted
                 this.onMetricsChanged = onMetricsChanged
@@ -65,6 +69,7 @@ fun DrawingSurface(
         },
         update = { surface ->
             surface.drawingToolSettings = toolSettings
+            surface.contentRole = contentRole
             surface.onStrokeCommitted = onStrokeCommitted
             surface.onEraseMaskCommitted = onEraseMaskCommitted
             surface.onMetricsChanged = onMetricsChanged

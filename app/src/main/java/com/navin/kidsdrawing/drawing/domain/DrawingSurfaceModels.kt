@@ -24,6 +24,46 @@ enum class PointerTool {
 }
 
 /**
+ * Selects which persisted artwork role a low-latency DrawingSurface gesture is editing.
+ *
+ * LINE_ART preserves the Drawing Engine 0.1 behavior. COLORING routes the same Ink gesture path
+ * into coloring-only operations while keeping protected line art visually above transient color.
+ */
+enum class DrawingSurfaceContentRole {
+    LINE_ART,
+    COLORING,
+}
+
+/** Semantic back-to-front composition order used by the production DrawingSurface. */
+enum class DrawingSurfaceRenderLayer {
+    COMMITTED_COLOR,
+    COMMITTED_LINE_ART,
+    IN_PROGRESS_CHILD_INPUT,
+    PROTECTED_LINE_ART_OVERLAY,
+}
+
+/**
+ * Pure, testable rendering contract for the View-backed surface.
+ *
+ * In coloring mode both committed and wet color stay below the protected line-art overlay. In the
+ * normal drawing editor, previously persisted color (if any) remains below line art and the active
+ * child drawing stroke stays on top as before.
+ */
+fun DrawingSurfaceContentRole.renderLayersBackToFront(): List<DrawingSurfaceRenderLayer> = when (this) {
+    DrawingSurfaceContentRole.LINE_ART -> listOf(
+        DrawingSurfaceRenderLayer.COMMITTED_COLOR,
+        DrawingSurfaceRenderLayer.COMMITTED_LINE_ART,
+        DrawingSurfaceRenderLayer.IN_PROGRESS_CHILD_INPUT,
+    )
+
+    DrawingSurfaceContentRole.COLORING -> listOf(
+        DrawingSurfaceRenderLayer.COMMITTED_COLOR,
+        DrawingSurfaceRenderLayer.IN_PROGRESS_CHILD_INPUT,
+        DrawingSurfaceRenderLayer.PROTECTED_LINE_ART_OVERLAY,
+    )
+}
+
+/**
  * Product-owned input sample in document coordinates.
  *
  * No AndroidX Ink type is allowed in this model. Optional stylus axes remain nullable when the

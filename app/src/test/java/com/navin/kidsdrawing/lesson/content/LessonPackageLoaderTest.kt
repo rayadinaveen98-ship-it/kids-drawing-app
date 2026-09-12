@@ -1,10 +1,12 @@
 package com.navin.kidsdrawing.lesson.content
 
+import com.navin.kidsdrawing.lesson.model.ColoringMode
 import com.navin.kidsdrawing.lesson.model.HelpKind
+import java.io.File
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 class LessonPackageLoaderTest {
     @Test
@@ -19,6 +21,58 @@ class LessonPackageLoaderTest {
         assertEquals(8, packageData.strokeCatalog.strokes.size)
         assertEquals(4, packageData.strokeCatalog.guides.size)
         assertEquals(3, packageData.lesson.supportedModes.size)
+
+        val coloring = packageData.lesson.coloring
+        assertTrue(coloring?.enabled == true)
+        assertEquals(ColoringMode.SELF, coloring?.defaultMode)
+        assertEquals(1, coloring?.steps?.size)
+        assertEquals("freehand_color", coloring?.steps?.single()?.id)
+        assertTrue(coloring?.steps?.single()?.regionIds?.isEmpty() == true)
+        assertNull(packageData.lesson.assets.coloringRegions)
+    }
+
+    @Test
+    fun freehandColoringStepDoesNotRequireInventedRegions() {
+        val result = loader().load(ROOT)
+
+        assertTrue(result is LessonLoadResult.Success)
+        val packageData = (result as LessonLoadResult.Success).packageData
+        val diagnostics = LessonPackageValidator.validate(
+            packageData.lesson,
+            packageData.strokeCatalog,
+            LessonPackageLoader.CURRENT_CONTENT_API,
+        )
+
+        assertTrue(
+            diagnostics.none { it.path.startsWith("coloring") },
+        )
+    }
+
+    @Test
+    fun coloringRegionIdsRequireAnAuthoredRegionAsset() {
+        val success = loader().load(ROOT) as LessonLoadResult.Success
+        val lesson = success.packageData.lesson
+        val coloring = requireNotNull(lesson.coloring)
+        val invalidLesson = lesson.copy(
+            coloring = coloring.copy(
+                steps = listOf(
+                    coloring.steps.single().copy(regionIds = listOf("cat_body")),
+                ),
+            ),
+        )
+
+        val diagnostics = LessonPackageValidator.validate(
+            invalidLesson,
+            success.packageData.strokeCatalog,
+            LessonPackageLoader.CURRENT_CONTENT_API,
+        )
+
+        assertTrue(
+            diagnostics.any {
+                it.code == LessonDiagnosticCode.INVALID_VALUE &&
+                    it.path == "coloring.steps[0].regionIds"
+            },
+        )
     }
 
     @Test

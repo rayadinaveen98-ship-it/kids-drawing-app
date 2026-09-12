@@ -123,17 +123,21 @@ class DrawingDocumentEngineTest {
     }
 
     @Test
+    fun teacherGeneratedStrokeCannotEnterColorHistory() = runBlocking {
+        val engine = fixture().engine
+        val teacherStroke = stroke(7).copy(authorRole = StrokeAuthorRole.TEACHER_GENERATED)
+
+        assertThrows(IllegalArgumentException::class.java) {
+            runBlocking { engine.commitColorStroke(teacherStroke) }
+        }
+        assertTrue(engine.state.value.document.operations.isEmpty())
+    }
+
+    @Test
     fun eraseMaskParticipatesInOperationHistoryWithoutBitmapState() = runBlocking {
         val engine = fixture().engine
         engine.commitChildStroke(stroke(1))
-        val mask = EraseMaskRecord(
-            maskId = "mask-1",
-            baseSize = 24f,
-            points = listOf(
-                point(1f, 1f, 0L),
-                point(2f, 2f, 16L),
-            ),
-        )
+        val mask = eraseMask("mask-1")
 
         engine.commitEraseMask(mask)
         assertTrue(engine.state.value.document.operations.last() is DocumentOperation.AddEraseMask)
@@ -144,10 +148,74 @@ class DrawingDocumentEngineTest {
     }
 
     @Test
+    fun coloringHistoryStopsAtProtectedLineArtBoundaryAndRedoRestoresOnlyColor() = runBlocking {
+        val engine = fixture().engine
+        engine.commitChildStroke(stroke(1))
+        engine.commitColorStroke(stroke(2).copy(colorArgb = 0xFFFFD54F.toInt()))
+        engine.commitColorEraseMask(eraseMask("color-mask"))
+
+        assertEquals(CURRENT_DOCUMENT_SCHEMA_VERSION, engine.state.value.document.documentSchemaVersion)
+        assertTrue(engine.state.value.canUndoColoring)
+        assertTrue(engine.undoColoring())
+        assertTrue(engine.state.value.document.operations.last() is DocumentOperation.AddColorStroke)
+        assertTrue(engine.undoColoring())
+
+        // The protected drawing stroke remains the last operation and coloring Undo must stop.
+        assertTrue(engine.state.value.document.operations.single() is DocumentOperation.AddInkStroke)
+        assertFalse(engine.state.value.canUndoColoring)
+        assertFalse(engine.undoColoring())
+        assertEquals(listOf("stroke-1"), engine.state.value.document.activeInkStrokes().map { it.strokeId })
+
+        assertTrue(engine.state.value.canRedoColoring)
+        assertTrue(engine.redoColoring())
+        assertTrue(engine.redoColoring())
+        assertFalse(engine.redoColoring())
+        assertEquals(listOf("stroke-2"), engine.state.value.document.activeColorStrokes().map { it.strokeId })
+        assertTrue(engine.state.value.document.operations.last() is DocumentOperation.AddColorEraseMask)
+    }
+
+    @Test
+    fun newColorEditAfterColorUndoInvalidatesColorRedoWithoutChangingLineArt() = runBlocking {
+        val engine = fixture().engine
+        engine.commitChildStroke(stroke(1))
+        engine.commitColorStroke(stroke(2))
+        engine.commitColorStroke(stroke(3))
+        assertTrue(engine.undoColoring())
+        assertTrue(engine.state.value.canRedoColoring)
+
+        engine.commitColorStroke(stroke(4))
+
+        assertFalse(engine.state.value.canRedoColoring)
+        assertFalse(engine.redoColoring())
+        assertEquals(listOf("stroke-1"), engine.state.value.document.activeInkStrokes().map { it.strokeId })
+        assertEquals(
+            listOf("stroke-2", "stroke-4"),
+            engine.state.value.document.activeColorStrokes().map { it.strokeId },
+        )
+    }
+
+    @Test
+    fun schemaOneDocumentMigratesOnlyWhenNewMutationOccurs() = runBlocking {
+        val legacy = DrawingDocumentEngine.newDocument(
+            documentId = "legacy-document",
+            nowEpochMillis = 1_000L,
+        ).copy(documentSchemaVersion = 1)
+        val engine = DrawingDocumentEngine(legacy, clockMillis = { 2_000L }, idFactory = { "id" })
+
+        assertEquals(1, engine.state.value.document.documentSchemaVersion)
+        engine.commitColorStroke(stroke(5))
+
+        assertEquals(CURRENT_DOCUMENT_SCHEMA_VERSION, engine.state.value.document.documentSchemaVersion)
+        assertTrue(engine.state.value.document.operations.single() is DocumentOperation.AddColorStroke)
+    }
+
+    @Test
     fun emptyHistoryTransitionsAreNoOps() = runBlocking {
         val engine = fixture().engine
         assertFalse(engine.undo())
         assertFalse(engine.redo())
+        assertFalse(engine.undoColoring())
+        assertFalse(engine.redoColoring())
         assertFalse(engine.state.value.canUndo)
         assertFalse(engine.state.value.canRedo)
     }
@@ -178,6 +246,15 @@ class DrawingDocumentEngineTest {
         points = listOf(
             point(index.toFloat(), index.toFloat(), 0L),
             point(index + 1f, index + 1f, 16L),
+        ),
+    )
+
+    private fun eraseMask(id: String): EraseMaskRecord = EraseMaskRecord(
+        maskId = id,
+        baseSize = 24f,
+        points = listOf(
+            point(1f, 1f, 0L),
+            point(2f, 2f, 16L),
         ),
     )
 

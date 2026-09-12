@@ -28,9 +28,19 @@ class ProductLessonRuntime private constructor(
     val packageData: LessonRuntimePackage?
         get() = (contentResult as? LessonLoadResult.Success)?.packageData
 
+    /** Product-facing name for the already-verified typed ColoringHandoffCompleted bridge. */
+    suspend fun acknowledgeColoringInitialized() {
+        simulateColoringContractAck()
+    }
+
+    /** Product-facing failure path; Lesson Engine returns to AwaitingPostDrawingChoice safely. */
+    suspend fun rejectColoringInitialization() {
+        simulateColoringUnavailable()
+    }
+
     companion object {
-        private const val DOCUMENT_DIRECTORY = "lesson-lab-documents"
-        private const val SESSION_DIRECTORY = "lesson-lab-sessions"
+        const val DOCUMENT_DIRECTORY = "lesson-lab-documents"
+        const val SESSION_DIRECTORY = "lesson-lab-sessions"
 
         private fun loadContent(context: Context): LessonLoadResult = LessonPackageLoader(
             AndroidAssetLessonSource(context.assets),

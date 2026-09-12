@@ -122,11 +122,17 @@ class AtomicGalleryCatalogStore(
             faultInjector(SaveStage.TEMP_SYNCED)
 
             if (files.target.exists()) {
-                if (files.backup.exists() && !files.backup.delete()) {
-                    throw IOException("Unable to rotate Gallery catalog backup.")
-                }
-                if (!files.target.renameTo(files.backup)) {
-                    throw IOException("Unable to preserve previous Gallery catalog.")
+                if (decode(files.target) is DecodeResult.Success) {
+                    if (files.backup.exists() && !files.backup.delete()) {
+                        throw IOException("Unable to rotate Gallery catalog backup.")
+                    }
+                    if (!files.target.renameTo(files.backup)) {
+                        throw IOException("Unable to preserve previous Gallery catalog.")
+                    }
+                } else if (!files.target.delete()) {
+                    // A valid backup, when present, is deliberately retained. Never replace the
+                    // last known-good catalog with a corrupt primary during recovery mutation.
+                    throw IOException("Unable to remove corrupt Gallery catalog primary.")
                 }
             }
             faultInjector(SaveStage.BACKUP_READY)

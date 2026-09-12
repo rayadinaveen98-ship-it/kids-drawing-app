@@ -1,0 +1,31 @@
+name: P2.4 Compatibility Patch
+
+on:
+  push:
+    branches:
+      - phase2/watch-trace-help
+    paths:
+      - scripts/p2_4_patch_compat_test.py
+      - .github/workflows/p2-4-compat-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: phase2/watch-trace-help
+      - name: Apply compatibility test patch
+        run: python scripts/p2_4_patch_compat_test.py
+      - name: Remove temporary patch machinery
+        run: rm scripts/p2_4_patch_compat_test.py .github/workflows/p2-4-compat-patch.yml
+      - name: Commit product-only result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/test/java/com/navin/kidsdrawing/lesson/session/LessonSessionEngineTest.kt scripts/p2_4_patch_compat_test.py .github/workflows/p2-4-compat-patch.yml
+          git commit -m "test(lesson): update trace start expectation for P2.4"
+          git push origin HEAD:phase2/watch-trace-help

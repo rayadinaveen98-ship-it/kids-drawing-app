@@ -49,7 +49,7 @@ Record `PASS`, `FAIL`, or `BLOCKED` plus a concise observation for every row.
 | 12 | Watch overview Skip → child pass | PASS | Skip Overview intentionally cancelled overview playback (`playback CANCELLED`) and transitioned deterministically to `AwaitingChild` on step `head` with `overview true`; child history remained empty and isolation stayed `0 · PASS`. |
 | 13 | Trace guide visible during child turn | PASS | Trace & Learn child turn showed `guide TRACE_MODE` and a visible authored head trace on the canvas after teacher playback completed. |
 | 14 | Trace/help guide does not increase child operation count | PASS | With the Trace guide visibly active, runtime remained `operations 0 · child ink 0` and `teacher/guide in child history: 0 · PASS`, physically proving the guide stays outside child artwork/history. |
-| 15 | Replay during valid child turn | PENDING | |
+| 15 | Replay during valid child turn | PASS | In Trace & Learn `AwaitingChild`, Replay re-ran teacher playback to `COMPLETED`, then restored the authored `TRACE_MODE` guide. Child history remained `operations 0 · child ink 0` and isolation stayed `0 · PASS`. |
 | 16 | Help escalation skips missing authored levels correctly | PENDING | |
 | 17 | Reduce Help | PENDING | |
 | 18 | Dismiss Help | PENDING | |
@@ -63,7 +63,7 @@ Record `PASS`, `FAIL`, or `BLOCKED` plus a concise observation for every row.
 | 26 | Drawing complete reaches post-drawing choice | PENDING | |
 | 27 | Coloring handoff unavailable → returns to retryable choice | PENDING | |
 | 28 | Post-drawing state survives recreation | PENDING | |
-| 29 | Persisted child artwork contains zero TEACHER_GENERATED ink operations | PENDING | Live history remains isolated after Draw With Me, Watch Then Draw overview cancellation, and a visible Trace guide; persistence/relaunch proof still required. |
+| 29 | Persisted child artwork contains zero TEACHER_GENERATED ink operations | PENDING | Live history remains isolated after Draw With Me, Watch Then Draw overview cancellation, Trace guide display, and Replay; persistence/relaunch proof still required. |
 | 30 | Art Lab launcher still opens and draws | PENDING | |
 | 31 | Quality Lab launcher still opens | PENDING | |
 | 32 | No crash/deadlock during full matrix | PENDING | |
@@ -82,6 +82,7 @@ Current evidence:
 - Draw With Me after one committed child stroke: `operations 1 · child ink 1`, `teacher/guide in child history: 0 · PASS`;
 - Watch Then Draw after Skip Overview: `operations 0 · child ink 0`, `teacher/guide in child history: 0 · PASS`;
 - Trace & Learn with a visible `TRACE_MODE` guide: `operations 0 · child ink 0`, `teacher/guide in child history: 0 · PASS`;
+- Trace & Learn Replay completed and rehydrated the trace guide with history still `operations 0 · child ink 0`, isolation `0 · PASS`;
 - Help-level plus save/relaunch isolation audit remains **PENDING**.
 
 ## Lifecycle audit

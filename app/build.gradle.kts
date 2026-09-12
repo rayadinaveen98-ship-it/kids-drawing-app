@@ -12,8 +12,8 @@ android {
         applicationId = "com.navin.kidsdrawing"
         minSdk = 23
         targetSdk = 36
-        versionCode = 12
-        versionName = "0.2.0-lesson-engine"
+        versionCode = 13
+        versionName = "0.3.0-vertical-slice"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

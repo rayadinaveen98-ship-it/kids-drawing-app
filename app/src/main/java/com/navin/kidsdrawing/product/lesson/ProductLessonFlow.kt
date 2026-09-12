@@ -7,17 +7,21 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.navin.kidsdrawing.drawing.domain.TeachingPace
 import com.navin.kidsdrawing.lesson.model.TeachingMode
+import com.navin.kidsdrawing.product.coloring.ColoringWorkspaceScreen
+import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
 import com.navin.kidsdrawing.product.home.LessonRecommendation
 import com.navin.kidsdrawing.product.profile.ChildProfile
 
 private enum class ProductLessonStage {
     PREVIEW,
     WORKSPACE,
+    COLORING,
 }
 
 @Composable
 fun ProductLessonFlow(
     runtime: ProductLessonRuntime,
+    coloringRuntime: ProductColoringRuntime,
     profile: ChildProfile,
     recommendation: LessonRecommendation,
     resumeRequested: Boolean,
@@ -55,13 +59,24 @@ fun ProductLessonFlow(
 
         ProductLessonStage.WORKSPACE -> GuidedLessonScreen(
             runtime = runtime,
+            coloringRuntime = coloringRuntime,
             ageBand = profile.ageBand,
             startMode = mode,
             startPace = pace,
             startFreshRequested = startFreshRequested,
             onFreshSessionStarted = { startFreshRequested = false },
+            onColoringReady = { stageName = ProductLessonStage.COLORING.name },
             onExitToHome = onExitToHome,
             onFinishedForNow = onExitToHome,
+        )
+
+        ProductLessonStage.COLORING -> ColoringWorkspaceScreen(
+            runtime = coloringRuntime,
+            ageBand = profile.ageBand,
+            // After Activity/process recreation the saveable stage survives but the in-memory
+            // runtime does not; the screen therefore restores from the semantic coloring store.
+            recoverRequested = coloringRuntime.sessionState.value == null,
+            onExitToHome = onExitToHome,
         )
     }
 }

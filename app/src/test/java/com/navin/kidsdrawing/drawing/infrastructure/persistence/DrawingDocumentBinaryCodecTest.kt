@@ -1,5 +1,6 @@
 package com.navin.kidsdrawing.drawing.infrastructure.persistence
 
+import com.navin.kidsdrawing.drawing.domain.CURRENT_DOCUMENT_SCHEMA_VERSION
 import com.navin.kidsdrawing.drawing.domain.DocumentOperation
 import com.navin.kidsdrawing.drawing.domain.DocumentSize
 import com.navin.kidsdrawing.drawing.domain.DrawingDocument
@@ -25,6 +26,41 @@ class DrawingDocumentBinaryCodecTest {
         val original = sampleDocument()
         val decoded = roundTrip(original)
         assertDocumentEquivalent(original, decoded)
+    }
+
+    @Test
+    fun schemaOneDocumentRemainsReadableWithoutMigration() {
+        val original = sampleDocument().copy(documentSchemaVersion = 1)
+
+        val decoded = roundTrip(original)
+
+        assertEquals(1, decoded.documentSchemaVersion)
+        assertDocumentEquivalent(original, decoded)
+    }
+
+    @Test
+    fun schemaTwoColorOperationsRoundTripWithoutFlatteningLineArt() {
+        val lineStroke = sampleStroke("line", 0xFF242321.toInt())
+        val colorStroke = sampleStroke("color", 0xFFFFC857.toInt()).copy(
+            brushPresetId = "marker.standard",
+            baseSize = 32f,
+        )
+        val colorErase = sampleErase("color-erase", 40f)
+        val original = sampleDocument().copy(
+            documentSchemaVersion = CURRENT_DOCUMENT_SCHEMA_VERSION,
+            operations = listOf(
+                DocumentOperation.AddInkStroke("line-op", 1_100L, lineStroke),
+                DocumentOperation.AddColorStroke("color-op", 1_200L, colorStroke),
+                DocumentOperation.AddColorEraseMask("color-erase-op", 1_300L, colorErase),
+            ),
+        )
+
+        val decoded = roundTrip(original)
+
+        assertDocumentEquivalent(original, decoded)
+        assertEquals(listOf("line"), decoded.activeInkStrokes().map { it.strokeId })
+        assertEquals(listOf("color"), decoded.activeColorStrokes().map { it.strokeId })
+        assertTrue(decoded.operations.last() is DocumentOperation.AddColorEraseMask)
     }
 
     @Test
@@ -100,14 +136,7 @@ class DrawingDocumentBinaryCodecTest {
                 point(110f, 205f, 20L, 1f),
             ),
         )
-        val erase = EraseMaskRecord(
-            maskId = "erase-1",
-            baseSize = 24f,
-            points = listOf(
-                point(40f, 50f, 0L, 1f),
-                point(42f, 54f, 12L, 1f),
-            ),
-        )
+        val erase = sampleErase("erase-1", 24f)
 
         return DrawingDocument(
             documentId = "artwork-123",
@@ -126,6 +155,29 @@ class DrawingDocumentBinaryCodecTest {
             ),
         )
     }
+
+    private fun sampleStroke(id: String, color: Int): InkStrokeRecord = InkStrokeRecord(
+        strokeId = id,
+        brushPresetId = "pencil.standard",
+        colorArgb = color,
+        opacity = 1f,
+        baseSize = 10f,
+        tool = PointerTool.FINGER,
+        authorRole = StrokeAuthorRole.CHILD,
+        points = listOf(
+            point(10f, 10f, 0L, 1f),
+            point(20f, 20f, 16L, 1f),
+        ),
+    )
+
+    private fun sampleErase(id: String, width: Float): EraseMaskRecord = EraseMaskRecord(
+        maskId = id,
+        baseSize = width,
+        points = listOf(
+            point(40f, 50f, 0L, 1f),
+            point(42f, 54f, 12L, 1f),
+        ),
+    )
 
     private fun point(
         x: Float,
@@ -161,15 +213,22 @@ class DrawingDocumentBinaryCodecTest {
             when {
                 left is DocumentOperation.AddInkStroke && right is DocumentOperation.AddInkStroke ->
                     assertStrokeEquivalent(left.stroke, right.stroke)
-                left is DocumentOperation.AddEraseMask && right is DocumentOperation.AddEraseMask -> {
-                    assertEquals(left.mask.maskId, right.mask.maskId)
-                    assertClose(left.mask.baseSize, right.mask.baseSize)
-                    assertPointsEquivalent(left.mask.points, right.mask.points)
-                }
+                left is DocumentOperation.AddEraseMask && right is DocumentOperation.AddEraseMask ->
+                    assertEraseEquivalent(left.mask, right.mask)
+                left is DocumentOperation.AddColorStroke && right is DocumentOperation.AddColorStroke ->
+                    assertStrokeEquivalent(left.stroke, right.stroke)
+                left is DocumentOperation.AddColorEraseMask && right is DocumentOperation.AddColorEraseMask ->
+                    assertEraseEquivalent(left.mask, right.mask)
                 left is DocumentOperation.ClearDocument && right is DocumentOperation.ClearDocument -> Unit
                 else -> throw AssertionError("Operation type mismatch.")
             }
         }
+    }
+
+    private fun assertEraseEquivalent(expected: EraseMaskRecord, actual: EraseMaskRecord) {
+        assertEquals(expected.maskId, actual.maskId)
+        assertClose(expected.baseSize, actual.baseSize)
+        assertPointsEquivalent(expected.points, actual.points)
     }
 
     private fun assertStrokeEquivalent(expected: InkStrokeRecord, actual: InkStrokeRecord) {

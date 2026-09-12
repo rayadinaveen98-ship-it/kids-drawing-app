@@ -47,7 +47,9 @@ object ArtLabQualityWorkloadFactory {
         return base.copy(
             modifiedAtEpochMillis = 1_000L + operationCount,
             operations = List(operationCount) { index ->
-                if (index % 10 == 9) eraseOperation(index, samplesPerOperation) else inkOperation(index, samplesPerOperation)
+                // Keep 10% representative erase operations while leaving the final operation as
+                // ink, so the history benchmark measures the contract's single-stroke Undo/Redo.
+                if (index % 10 == 8) eraseOperation(index, samplesPerOperation) else inkOperation(index, samplesPerOperation)
             },
         )
     }

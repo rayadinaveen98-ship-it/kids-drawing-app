@@ -2,12 +2,14 @@ package com.navin.kidsdrawing.lesson.execution
 
 import com.navin.kidsdrawing.drawing.domain.DocumentSize
 import com.navin.kidsdrawing.drawing.domain.DrawingDocument
+import com.navin.kidsdrawing.drawing.domain.DrawingDocumentEngine
 import com.navin.kidsdrawing.drawing.domain.DrawingDocumentMetadata
 import com.navin.kidsdrawing.drawing.domain.StrokeAuthorRole
 import com.navin.kidsdrawing.lesson.content.LessonLoadResult
 import com.navin.kidsdrawing.lesson.content.LessonPackageLoader
 import com.navin.kidsdrawing.lesson.content.LessonPackageSource
 import com.navin.kidsdrawing.lesson.model.LessonRuntimePackage
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -56,9 +58,9 @@ class LessonTeacherSequenceFactoryTest {
     }
 
     @Test
-    fun creatingTeacherSequenceCannotMutateChildDocument() {
+    fun teacherSequenceIsRejectedByRealChildDocumentEngine() = runBlocking {
         val packageData = packageData()
-        val before = DrawingDocument(
+        val childDocument = DrawingDocument(
             documentId = "child-doc",
             logicalSize = DocumentSize(1000f, 1000f),
             createdAtEpochMillis = 10L,
@@ -68,14 +70,28 @@ class LessonTeacherSequenceFactoryTest {
                 lessonRevision = packageData.lesson.revision,
             ),
         )
-        val step = packageData.lesson.drawing.steps.first()
+        val childEngine = DrawingDocumentEngine(
+            initialDocument = childDocument,
+            clockMillis = { 20L },
+            idFactory = { "should-not-be-used" },
+        )
+        val sequence = LessonTeacherSequenceFactory.create(
+            packageData,
+            packageData.lesson.drawing.steps.first(),
+        )
+        val teacherStroke = sequence.strokes.single().stroke
 
-        val sequence = LessonTeacherSequenceFactory.create(packageData, step)
+        var rejected = false
+        try {
+            childEngine.commitChildStroke(teacherStroke)
+        } catch (_: IllegalArgumentException) {
+            rejected = true
+        }
 
-        val after = before
-        assertEquals(before, after)
-        assertTrue(before.operations.isEmpty())
-        assertTrue(sequence.strokes.all { it.stroke.authorRole == StrokeAuthorRole.TEACHER_GENERATED })
+        assertTrue("Teacher-generated stroke must be rejected by child history.", rejected)
+        assertEquals(childDocument, childEngine.state.value.document)
+        assertTrue(childEngine.state.value.document.operations.isEmpty())
+        assertEquals(StrokeAuthorRole.TEACHER_GENERATED, teacherStroke.authorRole)
     }
 
     private fun packageData(): LessonRuntimePackage {

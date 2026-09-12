@@ -8,6 +8,7 @@ import com.navin.kidsdrawing.coloring.session.ColoringSessionPhase
 import com.navin.kidsdrawing.coloring.session.ColoringSessionState
 import com.navin.kidsdrawing.coloring.session.ColoringSessionTool
 import com.navin.kidsdrawing.drawing.domain.DrawingTool
+import com.navin.kidsdrawing.drawing.domain.DrawingToolEngine
 import com.navin.kidsdrawing.drawing.domain.DrawingToolSettings
 import com.navin.kidsdrawing.drawing.domain.EraseMaskRecord
 import com.navin.kidsdrawing.drawing.domain.InkStrokeRecord
@@ -40,9 +41,9 @@ enum class ProductColoringRecoveryResult {
 /**
  * Production vertical-slice coordinator for coloring.
  *
- * DrawingDocumentEngine remains the sole artwork authority. This runtime owns only the semantic
- * ColoringSessionEngine + persistence and the typed cross-engine handoff ordering. It deliberately
- * shares the ProductLessonRuntime's document/tool engines rather than constructing a second editor.
+ * DrawingDocumentEngine remains the sole artwork authority. Coloring deliberately shares the
+ * editable document with ProductLessonRuntime, but owns an independent DrawingToolEngine so
+ * coloring palette/brush choices can never leak back into lesson drawing tools.
  */
 class ProductColoringRuntime(
     context: Context,
@@ -56,6 +57,7 @@ class ProductColoringRuntime(
     private val coloringStore = AtomicColoringSessionStore(
         File(appContext.filesDir, COLORING_SESSION_DIRECTORY),
     )
+    private val coloringToolEngine = DrawingToolEngine()
 
     private var engine: ColoringSessionEngine? = null
     private val _sessionState = MutableStateFlow<ColoringSessionState?>(null)
@@ -64,8 +66,8 @@ class ProductColoringRuntime(
     val documentEngine
         get() = lessonRuntime.documentEngine
 
-    val toolEngine
-        get() = lessonRuntime.toolEngine
+    val toolEngine: DrawingToolEngine
+        get() = coloringToolEngine
 
     /**
      * Executes the complete drawing→coloring handoff transaction in product order.
@@ -77,8 +79,6 @@ class ProductColoringRuntime(
         var initializedSessionId: String? = null
         var handoffAcknowledged = false
         return try {
-            // Freeze a known-good completed drawing before asking Lesson Engine to leave its
-            // post-drawing state. This is the cross-engine safety boundary.
             lessonRuntime.saveNow()
 
             val commandResult = lessonRuntime.dispatch(
@@ -116,15 +116,9 @@ class ProductColoringRuntime(
             persistColoringState()
             initializedSessionId = coloringEngine.state.value.sessionId
 
-            // Acknowledge only after both the editable document and semantic coloring session are
-            // known-good. If this typed acknowledgement fails, the just-created coloring snapshot
-            // is rolled back so Home can never surface an orphan Continue Coloring route.
             lessonRuntime.acknowledgeColoringInitialized()
             handoffAcknowledged = true
 
-            // The acknowledgement path already runs Lesson Engine semantic autosave. This explicit
-            // save remains a best-effort stable boundary and must not invalidate a successful
-            // handoff if storage subsequently becomes unavailable.
             runCatching { lessonRuntime.saveNow() }
             ProductColoringStartResult.Ready(coloringEngine.state.value)
         } catch (failure: Throwable) {
@@ -301,7 +295,7 @@ class ProductColoringRuntime(
     }
 
     private fun syncToolEngine(state: ColoringSessionState) {
-        lessonRuntime.toolEngine.replace(
+        toolEngine.replace(
             DrawingToolSettings(
                 tool = when (state.selectedTool) {
                     ColoringSessionTool.BRUSH -> DrawingTool.PENCIL

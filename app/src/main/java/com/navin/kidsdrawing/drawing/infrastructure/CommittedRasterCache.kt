@@ -78,11 +78,13 @@ internal class CommittedRasterCache(
         restoreNearestCheckpoint(commonPrefix)
         val start = currentCheckpointCursor(commonPrefix)
         for (index in start until operations.size) {
-            apply(project(operations[index]))
+            val operation = operations[index]
+            apply(project(operation))
             maybeCheckpoint(index + 1, operations.size)
+            dropProjectionIfOutsideRecentWindow(index, operations.size, operation.operationId)
         }
         operationIds = ids
-        retainLiveProjectedOperations(operations)
+        retainRecentProjectedOperations(operations)
     }
 
     private fun rebuild(operations: List<DocumentOperation>) {
@@ -91,8 +93,9 @@ internal class CommittedRasterCache(
         operations.forEachIndexed { index, operation ->
             apply(project(operation))
             maybeCheckpoint(index + 1, operations.size)
+            dropProjectionIfOutsideRecentWindow(index, operations.size, operation.operationId)
         }
-        retainLiveProjectedOperations(operations)
+        retainRecentProjectedOperations(operations)
     }
 
     private fun project(operation: DocumentOperation): RenderedRasterOperation =
@@ -106,9 +109,23 @@ internal class CommittedRasterCache(
             }
         }
 
-    private fun retainLiveProjectedOperations(operations: List<DocumentOperation>) {
-        val live = operations.mapTo(HashSet(operations.size)) { it.operationId }
-        projectedOperationCache.keys.retainAll(live)
+    private fun dropProjectionIfOutsideRecentWindow(
+        index: Int,
+        totalSize: Int,
+        operationId: String,
+    ) {
+        val recentStart = (totalSize - PROJECTED_OPERATION_WINDOW).coerceAtLeast(0)
+        if (index < recentStart) {
+            projectedOperationCache.remove(operationId)
+        }
+    }
+
+    private fun retainRecentProjectedOperations(operations: List<DocumentOperation>) {
+        val recentStart = (operations.size - PROJECTED_OPERATION_WINDOW).coerceAtLeast(0)
+        val liveRecent = operations
+            .subList(recentStart, operations.size)
+            .mapTo(HashSet(PROJECTED_OPERATION_WINDOW)) { it.operationId }
+        projectedOperationCache.keys.retainAll(liveRecent)
     }
 
     private fun restoreNearestCheckpoint(targetPrefix: Int) {
@@ -193,10 +210,13 @@ internal class CommittedRasterCache(
 
     internal fun checkpointCount(): Int = checkpoints.size
 
+    internal fun projectedOperationCount(): Int = projectedOperationCache.size
+
     private companion object {
         const val CHECKPOINT_INTERVAL = 8
         const val RECENT_HISTORY_WINDOW = 48
         const val MAX_CHECKPOINTS = 8
+        const val PROJECTED_OPERATION_WINDOW = RECENT_HISTORY_WINDOW + CHECKPOINT_INTERVAL
         const val BYTES_PER_ARGB_8888_PIXEL = 4L
     }
 }

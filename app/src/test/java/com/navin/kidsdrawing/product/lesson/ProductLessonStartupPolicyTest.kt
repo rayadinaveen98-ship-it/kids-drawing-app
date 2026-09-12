@@ -1,15 +1,16 @@
 package com.navin.kidsdrawing.product.lesson
 
 import com.navin.kidsdrawing.lesson.lab.LessonLabRecoveryOutcome
+import com.navin.kidsdrawing.lesson.session.LessonFinishReason
 import com.navin.kidsdrawing.lesson.session.LessonSessionState
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class ProductLessonStartupPolicyTest {
     @Test
-    fun fresh_start_always_starts_new_session_even_if_old_session_was_restored() {
+    fun preview_start_replaces_old_session_exactly_once() {
         val result = ProductLessonStartupPolicy.decide(
-            resumeRequested = false,
+            startFreshRequested = true,
             recoveryOutcome = LessonLabRecoveryOutcome.RESTORED,
             recoveredState = LessonSessionState.Ready,
         )
@@ -18,9 +19,9 @@ class ProductLessonStartupPolicyTest {
     }
 
     @Test
-    fun continue_resumes_only_a_restored_active_session() {
+    fun recreation_resumes_restored_active_session_after_fresh_intent_is_cleared() {
         val result = ProductLessonStartupPolicy.decide(
-            resumeRequested = true,
+            startFreshRequested = false,
             recoveryOutcome = LessonLabRecoveryOutcome.RESTORED,
             recoveredState = LessonSessionState.Ready,
         )
@@ -31,7 +32,7 @@ class ProductLessonStartupPolicyTest {
     @Test
     fun continue_never_silently_creates_new_session_when_recovery_is_missing() {
         val result = ProductLessonStartupPolicy.decide(
-            resumeRequested = true,
+            startFreshRequested = false,
             recoveryOutcome = LessonLabRecoveryOutcome.NONE,
             recoveredState = null,
         )
@@ -42,10 +43,10 @@ class ProductLessonStartupPolicyTest {
     @Test
     fun continue_does_not_treat_terminal_state_as_resumable() {
         val result = ProductLessonStartupPolicy.decide(
-            resumeRequested = true,
+            startFreshRequested = false,
             recoveryOutcome = LessonLabRecoveryOutcome.RESTORED,
             recoveredState = LessonSessionState.Finished(
-                reason = com.navin.kidsdrawing.lesson.session.LessonFinishReason.FINISHED_FOR_NOW,
+                reason = LessonFinishReason.FINISHED_FOR_NOW,
             ),
         )
 

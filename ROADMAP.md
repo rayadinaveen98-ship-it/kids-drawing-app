@@ -37,7 +37,7 @@ All Phase 0 workstreams are locked in Git. Completion evidence: `docs/14_PHASE0_
 
 ### 0.5 Core Engine Contracts — COMPLETE
 - Drawing Engine 0.1 contract
-- stable AndroidX Ink 1.0.0 substrate behind owned interfaces
+- stable AndroidX Ink substrate behind owned interfaces
 - performance/reference-device gates
 - Lesson Engine state machine
 - Coloring Engine V1 contract
@@ -51,63 +51,94 @@ All Phase 0 workstreams are locked in Git. Completion evidence: `docs/14_PHASE0_
 - Figma workspace established; automated frame generation can resume when free Starter MCP quota permits
 
 ### 0.7 Safety / Quality / Release Review — COMPLETE
-- current 2026 Play/Families baseline
+- current Play/Families baseline
 - permission and third-party SDK admission rules
 - analytics/crash-reporting Alpha policy
 - Parent Gate/export policy
 - reconciled test/quality gates
 - APK/AAB/versioning strategy
-- Phase 1 Art Lab issue set prepared
+- Phase 1 issue set prepared
 
 ---
 
-## Phase 1 — Art Lab / Drawing Engine 0.1 — ACTIVE
+## Phase 1 — Art Lab / Drawing Engine 0.1 — COMPLETE
 
 **Milestone:** `0.1.0-art-lab`  
-**GitHub Epic:** #7
+**GitHub Epic:** #7  
+**Tag:** `v0.1.0-art-lab`
 
-Implementation backlog:
-1. #8 — scaffold Android project/modules/CI
-2. #9 — low-latency DrawingSurface + Ink adapter
-3. #10 — document model + undo/redo history
-4. #11 — atomic persistence/recovery
-5. #12 — deterministic teacher playback + five pace profiles
-6. #13 — Art Lab controls + debug metrics
-7. #14 — tests/benchmarks/recovery stress
-8. #15 — package/verify milestone APK
-
-### Phase 1 proof target
+Proven baseline:
 - low-latency finger drawing;
-- basic stylus support;
 - Pencil/Eraser/color/width;
 - operation-based undo/redo and undoable clear;
 - structured editable document;
-- save/load/recovery;
-- deterministic teacher playback;
-- Extra Slow / Slow / Normal / Fast / Very Fast;
-- playback pause/resume/replay/mid-play pace change;
+- atomic save/load/recovery;
+- deterministic teacher playback at five paces;
 - lifecycle persistence;
-- debug metrics;
-- automated tests and physical-device quality evidence;
-- installable APK tied to known Git commit/tag and release evidence.
+- Art Lab + Quality Lab;
+- automated and physical-device quality evidence;
+- installable milestone APK tied to known Git evidence.
 
-### Deliverable
-An installable `0.1.0-art-lab` internal APK and Drawing Engine quality evidence. No polished production child UI is required in this phase.
+The Phase 1 Drawing Engine is frozen as the foundation for later phases.
 
 ---
 
-## Phase 2 — Lesson Engine 0.1
+## Phase 2 — Lesson Engine 0.2 — IMPLEMENTATION + PHYSICAL QA COMPLETE
 
-Prove structured lesson execution, child-turn boundaries, all three teaching modes, replay, speed switching, Help Ladder hooks, narration hooks and session restoration.
+**Milestone:** `0.2.0-lesson-engine`  
+**GitHub Epic:** #28  
+**Target tag:** `v0.2.0-lesson-engine`
 
-## Phase 3 — First Vertical Slice
+Proven:
+- strict structured lesson content loading/validation;
+- deterministic lesson-session state machine and semantic snapshots;
+- Draw With Me;
+- Watch Then Draw;
+- Trace & Learn;
+- replay and five-speed switching;
+- Help Ladder hooks and authored guide overlays;
+- lifecycle/session restoration;
+- child-document-first recovery;
+- fresh runtime generations and stale callback protection;
+- recoverable teacher playback failure + retry;
+- post-drawing/coloring handoff recovery;
+- real Lesson Lab over the real Drawing Engine + bundled Cute Cat lesson;
+- physical Samsung SM-A546E/API 36 verification: **32/32 required scenarios PASS**;
+- no observed crash/deadlock in the full physical matrix;
+- installable verified APK, SHA-256 and CI evidence recorded.
 
-One end-to-end high-quality lesson:
-Onboarding → recommendation → companion intro → guided drawing → assistance → coloring → completion → gallery.
+Release evidence: `docs/releases/0.2.0-lesson-engine.md`.
+
+Repository tag/GitHub Release administration remains a separate final operation if `v0.2.0-lesson-engine` is not yet present, because the connected GitHub tool cannot create tags/releases.
+
+---
+
+## Phase 3 — First Vertical Slice — NEXT
+
+**Milestone target:** `0.3.0-vertical-slice`
+
+Build one end-to-end premium child journey using the frozen Drawing + Lesson Engine foundation:
+
+Onboarding → age/profile setup → recommendation → companion intro → guided drawing → adaptive assistance → coloring → completion → gallery.
+
+Phase 3 should prove product integration and child-facing quality, not redesign the already-proven engine architecture.
+
+Key goals:
+- production child shell and navigation;
+- age-prioritized onboarding/recommendation;
+- one premium authored lesson presented as a real child experience rather than an engineering lab;
+- companion presentation integrated with lesson events;
+- coloring handoff integrated with a usable first coloring experience;
+- completion/reward/gallery flow;
+- lifecycle continuity across the full journey;
+- accessibility, child-safe interaction and premium visual polish;
+- installable APK and real-device QA.
+
+---
 
 ## Phase 4 — Coloring Engine
 
-Implement and validate the defined V1 guided/self-color contract with authored fills, freehand color, persistence and age-appropriate teaching.
+Productionize and broaden the V1 guided/self-color contract with authored fills, freehand color, persistence and age-appropriate teaching.
 
 ## Phase 5 — Companion Engine
 

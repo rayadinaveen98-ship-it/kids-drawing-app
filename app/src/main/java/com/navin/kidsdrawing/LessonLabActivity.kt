@@ -4,16 +4,19 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -137,78 +140,90 @@ private fun LessonLabScreen(runtime: LessonLabRuntime) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .safeDrawingPadding()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(7.dp),
         ) {
             Text(
-                "Kids Drawing · Lesson Lab 0.2",
+                "Kids Drawing · Lesson Lab",
                 color = LabInk,
-                fontSize = 22.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
             )
             Text(
-                "Real Cute Cat package · Lesson Engine + Drawing Engine + recovery integration",
+                "0.2 · Cute Cat · Lesson Engine + Drawing Engine + recovery",
                 color = LabMuted,
-                fontSize = 12.sp,
+                fontSize = 11.sp,
             )
 
             DiagnosticStrip(diagnostics)
 
-            SelectorRow(
-                title = "Mode",
-                values = TeachingMode.entries,
-                selected = selectedMode,
-                label = TeachingMode::labLabel,
-                onSelected = { selectedMode = it },
-            )
-            SelectorRow(
-                title = "Pace",
-                values = TeachingPace.entries,
-                selected = selectedPace,
-                label = { pace -> "${pace.name.lowercase().replace('_', ' ')} · ${pace.multiplier}×" },
-                onSelected = {
-                    selectedPace = it
-                    scope.launch { runtime.dispatch(LessonCommand.SetPace(it)) }
-                },
-            )
-
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    .weight(0.56f)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(9.dp),
             ) {
-                Button(onClick = {
-                    scope.launch {
-                        runtime.start(selectedMode, selectedPace)
-                        surfaceController.reconcileDocument(runtime.documentEngine.state.value.document)
-                    }
-                }) { Text("Start") }
-                OutlinedButton(onClick = {
-                    scope.launch {
-                        runtime.newSessionDocument()
-                        surfaceController.reconcileDocument(runtime.documentEngine.state.value.document)
-                    }
-                }) { Text("New") }
-                OutlinedButton(onClick = {
-                    scope.launch {
-                        runtime.recover()
-                        surfaceController.reconcileDocument(runtime.documentEngine.state.value.document)
-                    }
-                }) { Text("Recover") }
-                OutlinedButton(onClick = { scope.launch { runtime.saveNow() } }) { Text("Save") }
-                OutlinedButton(onClick = { scope.launch { runtime.dispatch(LessonCommand.SaveAndExit) } }) {
-                    Text("Save & Exit")
-                }
-            }
+                SelectorGrid(
+                    title = "Mode",
+                    values = TeachingMode.entries,
+                    selected = selectedMode,
+                    label = TeachingMode::labLabel,
+                    onSelected = { selectedMode = it },
+                )
+                SelectorGrid(
+                    title = "Pace",
+                    values = TeachingPace.entries,
+                    selected = selectedPace,
+                    label = { pace -> pace.labLabel() },
+                    onSelected = {
+                        selectedPace = it
+                        scope.launch { runtime.dispatch(LessonCommand.SetPace(it)) }
+                    },
+                )
 
-            SessionCommandRows(runtime, sessionState)
-            DrawingToolRow(toolSettings, runtime)
+                Text("Session", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = LabInk)
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        scope.launch {
+                            runtime.start(selectedMode, selectedPace)
+                            surfaceController.reconcileDocument(runtime.documentEngine.state.value.document)
+                        }
+                    },
+                ) {
+                    Text("Start lesson", fontSize = 11.sp)
+                }
+                ResponsiveActionGrid(
+                    actions = listOf(
+                        LabActionSpec("New") {
+                            scope.launch {
+                                runtime.newSessionDocument()
+                                surfaceController.reconcileDocument(runtime.documentEngine.state.value.document)
+                            }
+                        },
+                        LabActionSpec("Recover") {
+                            scope.launch {
+                                runtime.recover()
+                                surfaceController.reconcileDocument(runtime.documentEngine.state.value.document)
+                            }
+                        },
+                        LabActionSpec("Save") { scope.launch { runtime.saveNow() } },
+                        LabActionSpec("Save & Exit") {
+                            scope.launch { runtime.dispatch(LessonCommand.SaveAndExit) }
+                        },
+                    ),
+                )
+
+                SessionCommandRows(runtime, sessionState)
+                DrawingToolRow(toolSettings, runtime)
+            }
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .weight(0.44f)
                     .clip(RoundedCornerShape(18.dp))
                     .background(Color.White),
                 contentAlignment = Alignment.Center,
@@ -254,8 +269,14 @@ private fun LessonLabScreen(runtime: LessonLabRuntime) {
                     ) {
                         Text("Runtime diagnostics", fontWeight = FontWeight.Bold, fontSize = 11.sp)
                         Text("surface ${metrics.viewportWidthPx}×${metrics.viewportHeightPx}", fontSize = 10.sp)
-                        Text("playback ${teacherFrame?.status ?: "idle"} · guide ${guideOverlay?.purpose ?: "none"}", fontSize = 10.sp)
-                        Text("operations ${diagnostics.childOperationCount} · child ink ${diagnostics.activeChildInkCount}", fontSize = 10.sp)
+                        Text(
+                            "playback ${teacherFrame?.status ?: "idle"} · guide ${guideOverlay?.purpose ?: "none"}",
+                            fontSize = 10.sp,
+                        )
+                        Text(
+                            "operations ${diagnostics.childOperationCount} · child ink ${diagnostics.activeChildInkCount}",
+                            fontSize = 10.sp,
+                        )
                         Text(
                             "teacher/guide in child history: ${diagnostics.nonChildInkOperationCount} · " +
                                 if (diagnostics.overlayIsolationPass) "PASS" else "FAIL",
@@ -275,37 +296,51 @@ private fun SessionCommandRows(
     sessionState: LessonSessionState?,
 ) {
     val scope = rememberCoroutineScope()
-    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
-        ) {
-            LabAction("Pause") { scope.launch { runtime.dispatch(LessonCommand.Pause) } }
-            LabAction("Resume") { scope.launch { runtime.dispatch(LessonCommand.Resume) } }
-            LabAction("Replay") { scope.launch { runtime.dispatch(ReplayDemonstration) } }
-            LabAction("Help +") { scope.launch { runtime.dispatch(RequestHelp) } }
-            LabAction("Help −") { scope.launch { runtime.dispatch(ReduceHelp) } }
-            LabAction("Dismiss Help") { scope.launch { runtime.dispatch(DismissHelp) } }
-            LabAction("Done") { scope.launch { runtime.dispatch(MarkChildTurnDone) } }
-            LabAction("Skip Step") { scope.launch { runtime.dispatch(SkipStep) } }
-            LabAction("Skip Overview") { scope.launch { runtime.dispatch(SkipOverview) } }
+    Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+        LabSection("Playback & help") {
+            ResponsiveActionGrid(
+                actions = listOf(
+                    LabActionSpec("Pause") { scope.launch { runtime.dispatch(LessonCommand.Pause) } },
+                    LabActionSpec("Resume") { scope.launch { runtime.dispatch(LessonCommand.Resume) } },
+                    LabActionSpec("Replay") { scope.launch { runtime.dispatch(ReplayDemonstration) } },
+                    LabActionSpec("Help +") { scope.launch { runtime.dispatch(RequestHelp) } },
+                    LabActionSpec("Help −") { scope.launch { runtime.dispatch(ReduceHelp) } },
+                    LabActionSpec("Dismiss Help") { scope.launch { runtime.dispatch(DismissHelp) } },
+                ),
+            )
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
-        ) {
-            LabAction("Inject Playback Failure") { scope.launch { runtime.injectTeacherFailure() } }
-            LabAction("Retry") { scope.launch { runtime.dispatch(RetryRecoverable) } }
-            LabAction("Color With Me") { scope.launch { runtime.dispatch(ChooseColorWithMe) } }
-            LabAction("Color Myself") { scope.launch { runtime.dispatch(ChooseColorMyself) } }
-            LabAction("Finish Now") { scope.launch { runtime.dispatch(FinishForNow) } }
-            LabAction("Coloring Unavailable") { scope.launch { runtime.simulateColoringUnavailable() } }
-            LabAction("Handoff ACK") { scope.launch { runtime.simulateColoringContractAck() } }
+
+        LabSection("Lesson progression") {
+            ResponsiveActionGrid(
+                actions = listOf(
+                    LabActionSpec("Done") { scope.launch { runtime.dispatch(MarkChildTurnDone) } },
+                    LabActionSpec("Skip Step") { scope.launch { runtime.dispatch(SkipStep) } },
+                    LabActionSpec("Skip Overview") { scope.launch { runtime.dispatch(SkipOverview) } },
+                ),
+            )
         }
+
+        LabSection("Failure & retry") {
+            ResponsiveActionGrid(
+                actions = listOf(
+                    LabActionSpec("Inject Playback Failure") { scope.launch { runtime.injectTeacherFailure() } },
+                    LabActionSpec("Retry") { scope.launch { runtime.dispatch(RetryRecoverable) } },
+                ),
+            )
+        }
+
+        LabSection("Post-drawing handoff") {
+            ResponsiveActionGrid(
+                actions = listOf(
+                    LabActionSpec("Color With Me") { scope.launch { runtime.dispatch(ChooseColorWithMe) } },
+                    LabActionSpec("Color Myself") { scope.launch { runtime.dispatch(ChooseColorMyself) } },
+                    LabActionSpec("Finish Now") { scope.launch { runtime.dispatch(FinishForNow) } },
+                    LabActionSpec("Coloring Unavailable") { scope.launch { runtime.simulateColoringUnavailable() } },
+                    LabActionSpec("Handoff ACK") { scope.launch { runtime.simulateColoringContractAck() } },
+                ),
+            )
+        }
+
         Text(
             text = "Engine state: ${sessionState?.let { it::class.simpleName } ?: "No session"}. " +
                 "Invalid controls intentionally exercise deterministic command rejection.",
@@ -317,19 +352,26 @@ private fun SessionCommandRows(
 
 @Composable
 private fun DrawingToolRow(settings: DrawingToolSettings, runtime: LessonLabRuntime) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            LabAction(if (settings.tool == DrawingTool.PENCIL) "✓ Pencil" else "Pencil") {
-                runtime.toolEngine.selectTool(DrawingTool.PENCIL)
-            }
-            LabAction(if (settings.tool == DrawingTool.ERASER) "✓ Eraser" else "Eraser") {
-                runtime.toolEngine.selectTool(DrawingTool.ERASER)
-            }
-            listOf(0xFF202124.toInt(), 0xFF1565C0.toInt(), 0xFFC62828.toInt()).forEachIndexed { index, color ->
-                LabAction("Ink ${index + 1}") { runtime.toolEngine.setColor(color) }
-            }
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text("Drawing tools", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = LabInk)
+        ResponsiveActionGrid(
+            actions = listOf(
+                LabActionSpec(if (settings.tool == DrawingTool.PENCIL) "✓ Pencil" else "Pencil") {
+                    runtime.toolEngine.selectTool(DrawingTool.PENCIL)
+                },
+                LabActionSpec(if (settings.tool == DrawingTool.ERASER) "✓ Eraser" else "Eraser") {
+                    runtime.toolEngine.selectTool(DrawingTool.ERASER)
+                },
+                LabActionSpec("Ink 1") { runtime.toolEngine.setColor(0xFF202124.toInt()) },
+                LabActionSpec("Ink 2") { runtime.toolEngine.setColor(0xFF1565C0.toInt()) },
+                LabActionSpec("Ink 3") { runtime.toolEngine.setColor(0xFFC62828.toInt()) },
+            ),
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             Text("Width ${settings.width.roundToOne()}", fontSize = 10.sp, color = LabMuted)
             Slider(
                 value = settings.width,
@@ -359,7 +401,8 @@ private fun DiagnosticStrip(diagnostics: LessonLabDiagnostics) {
             color = LabMuted,
         )
         Text(
-            "teacher ${diagnostics.activeTeacherRequestId?.takeLast(26) ?: "—"} · guide ${diagnostics.activeGuideId ?: "—"}",
+            "teacher ${diagnostics.activeTeacherRequestId?.takeLast(22) ?: "—"} · " +
+                "guide ${diagnostics.activeGuideId ?: "—"}",
             fontSize = 10.sp,
             color = LabMuted,
         )
@@ -368,40 +411,114 @@ private fun DiagnosticStrip(diagnostics: LessonLabDiagnostics) {
 }
 
 @Composable
-private fun <T> SelectorRow(
+private fun <T> SelectorGrid(
     title: String,
     values: List<T>,
     selected: T,
     label: (T) -> String,
     onSelected: (T) -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(5.dp),
-    ) {
+    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
         Text(title, fontWeight = FontWeight.Bold, fontSize = 11.sp, color = LabInk)
-        values.forEach { value ->
-            if (value == selected) {
-                Button(onClick = { onSelected(value) }) { Text(label(value), fontSize = 10.sp) }
-            } else {
-                OutlinedButton(onClick = { onSelected(value) }) { Text(label(value), fontSize = 10.sp) }
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val columns = responsiveColumnCount(maxWidth.value)
+            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                values.chunked(columns).forEach { rowValues ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                    ) {
+                        rowValues.forEach { value ->
+                            if (value == selected) {
+                                Button(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { onSelected(value) },
+                                ) {
+                                    Text(label(value), fontSize = 10.sp)
+                                }
+                            } else {
+                                OutlinedButton(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { onSelected(value) },
+                                ) {
+                                    Text(label(value), fontSize = 10.sp)
+                                }
+                            }
+                        }
+                        repeat(columns - rowValues.size) {
+                            Spacer(modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun LabAction(label: String, action: () -> Unit) {
-    OutlinedButton(onClick = action) { Text(label, fontSize = 10.sp) }
+private fun ResponsiveActionGrid(actions: List<LabActionSpec>) {
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val columns = responsiveColumnCount(maxWidth.value)
+        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            actions.chunked(columns).forEach { rowActions ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                ) {
+                    rowActions.forEach { action ->
+                        LabAction(
+                            label = action.label,
+                            action = action.action,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    repeat(columns - rowActions.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LabSection(title: String, content: @Composable () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Text(title, fontWeight = FontWeight.Bold, fontSize = 11.sp, color = LabInk)
+        content()
+    }
+}
+
+@Composable
+private fun LabAction(label: String, action: () -> Unit, modifier: Modifier = Modifier) {
+    OutlinedButton(modifier = modifier, onClick = action) {
+        Text(label, fontSize = 10.sp)
+    }
+}
+
+private data class LabActionSpec(
+    val label: String,
+    val action: () -> Unit,
+)
+
+private fun responsiveColumnCount(widthDp: Float): Int = when {
+    widthDp >= 720f -> 4
+    widthDp >= 480f -> 3
+    else -> 2
 }
 
 private fun TeachingMode.labLabel(): String = when (this) {
     TeachingMode.DRAW_WITH_ME -> "Draw With Me"
     TeachingMode.WATCH_THEN_DRAW -> "Watch Then Draw"
     TeachingMode.TRACE_AND_LEARN -> "Trace & Learn"
+}
+
+private fun TeachingPace.labLabel(): String = when (this) {
+    TeachingPace.EXTRA_SLOW -> "Extra slow · 0.4×"
+    TeachingPace.SLOW -> "Slow · 0.7×"
+    TeachingPace.NORMAL -> "Normal · 1.0×"
+    TeachingPace.FAST -> "Fast · 1.35×"
+    TeachingPace.EXTRA_FAST -> "Extra fast · 1.8×"
 }
 
 private fun Float.roundToOne(): String = "%.1f".format(this)

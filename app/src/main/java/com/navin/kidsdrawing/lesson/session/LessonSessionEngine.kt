@@ -8,7 +8,6 @@ import com.navin.kidsdrawing.lesson.execution.LessonOverviewSequenceFactory
 import com.navin.kidsdrawing.lesson.execution.LessonTeacherSequenceFactory
 import com.navin.kidsdrawing.lesson.model.ChildCompletionPolicy
 import com.navin.kidsdrawing.lesson.model.DrawingStep
-import com.navin.kidsdrawing.lesson.model.HelpKind
 import com.navin.kidsdrawing.lesson.model.LessonRuntimePackage
 import com.navin.kidsdrawing.lesson.model.TeachingMode
 
@@ -16,10 +15,17 @@ class LessonSessionEngine private constructor(
     val lessonPackage: LessonRuntimePackage,
     val identity: LessonSessionIdentity,
     private val clock: () -> Long,
+    private val runtimeGeneration: Int,
     initialState: LessonSessionState,
+    private var restoreActivationAvailable: Boolean = false,
 ) {
     private var teacherRequestOrdinal: Long = 0L
     private var activeOverviewRequestId: String? = null
+    private var pendingResumeNormalization: LessonRestoreNormalization? = null
+
+    init {
+        require(runtimeGeneration >= 0) { "runtimeGeneration cannot be negative." }
+    }
 
     var state: LessonSessionState = initialState
         private set
@@ -46,6 +52,52 @@ class LessonSessionEngine private constructor(
     }
 
     fun createSnapshot(): LessonSnapshotResult = snapshotForState(state, clock())
+
+    /**
+     * Rehydrates only transient runtime work after the child document and semantic lesson state have
+     * already been restored. This is intentionally separate from [restore] so callers can enforce
+     * child-document-first recovery ordering.
+     */
+    internal fun activateRestoredRuntime(
+        normalization: LessonRestoreNormalization,
+    ): List<LessonSessionEvent> {
+        if (!restoreActivationAvailable) return emptyList()
+        restoreActivationAvailable = false
+
+        val events = mutableListOf<LessonSessionEvent>(LessonRuntimeResetRequested)
+        val current = state
+        if (current is LessonSessionState.Paused) {
+            pendingResumeNormalization = normalization
+            return events
+        }
+
+        when (normalization) {
+            LessonRestoreNormalization.RESTART_OVERVIEW -> {
+                val overview = current as? LessonSessionState.OverviewDemonstrating
+                if (overview != null) {
+                    launchOverview(overview.context, events)
+                }
+            }
+
+            LessonRestoreNormalization.RESTART_CURRENT_TEACHER_DEMONSTRATION -> {
+                val preparing = current as? LessonSessionState.PreparingStep
+                if (preparing != null) {
+                    launchTeacherDemonstration(
+                        context = preparing.context,
+                        replay = false,
+                        events = events,
+                    )
+                }
+            }
+
+            LessonRestoreNormalization.RETURN_TO_CHILD_TURN,
+            LessonRestoreNormalization.NONE,
+            -> refreshRestoredChildTurnIfNeeded(current, events)
+
+            LessonRestoreNormalization.RETRY_POST_DRAWING_CHOICE -> Unit
+        }
+        return events
+    }
 
     private fun startLesson(mode: TeachingMode, pace: TeachingPace): LessonCommandResult {
         if (state != LessonSessionState.Ready) {
@@ -125,6 +177,38 @@ class LessonSessionEngine private constructor(
         val events = mutableListOf<LessonSessionEvent>()
         events += moveTo(resumed)
         events += LessonSessionEvent.SessionResumed(runtimePhaseOf(resumed))
+
+        val restoreNormalization = pendingResumeNormalization
+        if (restoreNormalization != null) {
+            pendingResumeNormalization = null
+            when (restoreNormalization) {
+                LessonRestoreNormalization.RESTART_OVERVIEW -> {
+                    val overview = resumed as? LessonSessionState.OverviewDemonstrating
+                    if (overview != null) {
+                        launchOverview(overview.context, events)
+                    }
+                }
+
+                LessonRestoreNormalization.RESTART_CURRENT_TEACHER_DEMONSTRATION -> {
+                    val preparing = resumed as? LessonSessionState.PreparingStep
+                    if (preparing != null) {
+                        launchTeacherDemonstration(
+                            context = preparing.context,
+                            replay = false,
+                            events = events,
+                        )
+                    }
+                }
+
+                LessonRestoreNormalization.RETURN_TO_CHILD_TURN,
+                LessonRestoreNormalization.NONE,
+                -> refreshRestoredChildTurnIfNeeded(resumed, events)
+
+                LessonRestoreNormalization.RETRY_POST_DRAWING_CHOICE -> Unit
+            }
+            return accepted(events)
+        }
+
         activeTeacherRequestId(resumed)?.let { requestId ->
             events += TeacherPlaybackResumeRequested(requestId)
         }
@@ -526,6 +610,20 @@ class LessonSessionEngine private constructor(
         emitGuideForChildTurn(context, events)
     }
 
+    private fun refreshRestoredChildTurnIfNeeded(
+        current: LessonSessionState,
+        events: MutableList<LessonSessionEvent>,
+    ) {
+        val context = when (current) {
+            is LessonSessionState.AwaitingChild -> current.context
+            is LessonSessionState.HelpActive -> current.context
+            else -> null
+        } ?: return
+
+        events += ChildTurnStarted(context.currentStepIndex, context.currentStepId)
+        emitGuideForChildTurn(context, events)
+    }
+
     private fun guideOverlayFor(context: LessonActiveContext): GuideOverlayRequest? {
         val step = currentStep(context)
         val authoredHelp = step.help.firstOrNull {
@@ -650,20 +748,19 @@ class LessonSessionEngine private constructor(
 
     private fun nextTeacherRequestId(step: DrawingStep): String {
         teacherRequestOrdinal += 1
-        return "${identity.sessionId}:r${identity.lessonRevision}:${step.id}:teacher:$teacherRequestOrdinal"
+        return "${identity.sessionId}:r${identity.lessonRevision}:g$runtimeGeneration:${step.id}:teacher:$teacherRequestOrdinal"
     }
 
     private fun nextOverviewRequestId(): String {
         teacherRequestOrdinal += 1
-        return "${identity.sessionId}:r${identity.lessonRevision}:overview:teacher:$teacherRequestOrdinal"
+        return "${identity.sessionId}:r${identity.lessonRevision}:g$runtimeGeneration:overview:teacher:$teacherRequestOrdinal"
     }
 
     private fun activeTeacherRequestId(current: LessonSessionState): String? = when (current) {
         is LessonSessionState.TeacherDemonstrating -> current.requestId
         is LessonSessionState.OverviewDemonstrating -> activeOverviewRequestId
         is LessonSessionState.Paused -> when (current.previousStableState) {
-            is LessonSessionState.TeacherDemonstrating ->
-                current.previousStableState.requestId
+            is LessonSessionState.TeacherDemonstrating -> current.previousStableState.requestId
             is LessonSessionState.OverviewDemonstrating -> activeOverviewRequestId
             else -> null
         }
@@ -718,19 +815,26 @@ class LessonSessionEngine private constructor(
 
         val persistedPhase: LessonSnapshotPhase
         var pausedResumePhase: LessonSnapshotPhase? = null
+        var transientRuntimePhase: LessonSnapshotPhase? = null
         var finishReason: LessonFinishReason? = null
 
         when (current) {
             LessonSessionState.Ready -> persistedPhase = LessonSnapshotPhase.READY
             is LessonSessionState.OverviewDemonstrating -> persistedPhase = LessonSnapshotPhase.OVERVIEW_DEMONSTRATING
             is LessonSessionState.PreparingStep -> persistedPhase = LessonSnapshotPhase.PREPARING_STEP
-            is LessonSessionState.TeacherDemonstrating -> persistedPhase = LessonSnapshotPhase.PREPARING_STEP
+            is LessonSessionState.TeacherDemonstrating -> {
+                persistedPhase = LessonSnapshotPhase.PREPARING_STEP
+                transientRuntimePhase = LessonSnapshotPhase.TEACHER_DEMONSTRATING
+            }
             is LessonSessionState.AwaitingChild -> persistedPhase = LessonSnapshotPhase.AWAITING_CHILD
             is LessonSessionState.HelpActive -> persistedPhase = LessonSnapshotPhase.HELP_ACTIVE
             is LessonSessionState.CompletingStep -> persistedPhase = LessonSnapshotPhase.AWAITING_CHILD
             is LessonSessionState.Paused -> {
                 persistedPhase = LessonSnapshotPhase.PAUSED
                 pausedResumePhase = safeResumePhase(current.previousStableState)
+                if (current.previousStableState is LessonSessionState.TeacherDemonstrating) {
+                    transientRuntimePhase = LessonSnapshotPhase.TEACHER_DEMONSTRATING
+                }
             }
             is LessonSessionState.DrawingComplete -> persistedPhase = LessonSnapshotPhase.DRAWING_COMPLETE
             is LessonSessionState.AwaitingPostDrawingChoice -> persistedPhase = LessonSnapshotPhase.AWAITING_POST_DRAWING_CHOICE
@@ -753,11 +857,13 @@ class LessonSessionEngine private constructor(
                 pace = context?.pace,
                 phase = persistedPhase,
                 pausedResumePhase = pausedResumePhase,
+                transientRuntimePhase = transientRuntimePhase,
                 currentStepIndex = context?.currentStepIndex,
                 currentStepId = context?.currentStepId,
                 helpLevel = context?.helpLevel ?: 0,
                 overviewCompleted = context?.overviewCompleted ?: false,
                 finishReason = finishReason,
+                runtimeGeneration = runtimeGeneration,
                 savedAtEpochMillis = savedAtEpochMillis,
             ),
         )
@@ -785,6 +891,7 @@ class LessonSessionEngine private constructor(
                     childDocumentId = childDocumentId,
                 ),
                 clock = clock,
+                runtimeGeneration = 0,
                 initialState = LessonSessionState.Ready,
             )
         }
@@ -819,7 +926,9 @@ class LessonSessionEngine private constructor(
                     childDocumentId = snapshot.childDocumentId,
                 ),
                 clock = clock,
+                runtimeGeneration = snapshot.runtimeGeneration + 1,
                 initialState = restored.state,
+                restoreActivationAvailable = true,
             )
             val event = LessonSessionEvent.SessionRestored(restored.normalization)
             return LessonRestoreResult.Restored(
@@ -837,6 +946,29 @@ class LessonSessionEngine private constructor(
                 return incompatibility(
                     LessonRestoreIncompatibilityCode.UNSUPPORTED_SNAPSHOT_VERSION,
                     "Snapshot format ${snapshot.formatVersion} is not supported.",
+                )
+            }
+            if (snapshot.runtimeGeneration == Int.MAX_VALUE) {
+                return incompatibility(
+                    LessonRestoreIncompatibilityCode.INVALID_RUNTIME_GENERATION,
+                    "Snapshot runtime generation cannot be advanced safely.",
+                )
+            }
+            val transientRuntimePhase = snapshot.transientRuntimePhase
+            if (transientRuntimePhase != null && transientRuntimePhase != LessonSnapshotPhase.TEACHER_DEMONSTRATING) {
+                return incompatibility(
+                    LessonRestoreIncompatibilityCode.INVALID_TRANSIENT_PHASE,
+                    "Snapshot transient phase $transientRuntimePhase is not supported.",
+                )
+            }
+            if (
+                transientRuntimePhase == LessonSnapshotPhase.TEACHER_DEMONSTRATING &&
+                snapshot.phase != LessonSnapshotPhase.PREPARING_STEP &&
+                snapshot.phase != LessonSnapshotPhase.PAUSED
+            ) {
+                return incompatibility(
+                    LessonRestoreIncompatibilityCode.INVALID_TRANSIENT_PHASE,
+                    "Teacher restart intent is only valid from preparing or paused snapshots.",
                 )
             }
             if (snapshot.lessonId != lessonPackage.lesson.lessonId) {
@@ -944,7 +1076,11 @@ class LessonSessionEngine private constructor(
                 )
                 LessonSnapshotPhase.PREPARING_STEP -> RestoreStateResult.Valid(
                     LessonSessionState.PreparingStep(requireContext()),
-                    LessonRestoreNormalization.NONE,
+                    if (snapshot.transientRuntimePhase == LessonSnapshotPhase.TEACHER_DEMONSTRATING) {
+                        LessonRestoreNormalization.RESTART_CURRENT_TEACHER_DEMONSTRATION
+                    } else {
+                        LessonRestoreNormalization.NONE
+                    },
                 )
                 LessonSnapshotPhase.TEACHER_DEMONSTRATING -> RestoreStateResult.Valid(
                     LessonSessionState.PreparingStep(requireContext()),
@@ -1001,6 +1137,24 @@ class LessonSessionEngine private constructor(
             snapshot: LessonSessionSnapshot,
             context: LessonActiveContext,
         ): RestoreStateResult {
+            if (snapshot.transientRuntimePhase == LessonSnapshotPhase.TEACHER_DEMONSTRATING) {
+                if (
+                    snapshot.pausedResumePhase != LessonSnapshotPhase.PREPARING_STEP &&
+                    snapshot.pausedResumePhase != LessonSnapshotPhase.TEACHER_DEMONSTRATING
+                ) {
+                    return RestoreStateResult.Invalid(
+                        incompatibility(
+                            LessonRestoreIncompatibilityCode.INVALID_PAUSED_PHASE,
+                            "Paused teacher restart intent requires a preparing/teacher resume phase.",
+                        ),
+                    )
+                }
+                return RestoreStateResult.Valid(
+                    LessonSessionState.Paused(LessonSessionState.PreparingStep(context)),
+                    LessonRestoreNormalization.RESTART_CURRENT_TEACHER_DEMONSTRATION,
+                )
+            }
+
             return when (snapshot.pausedResumePhase) {
                 LessonSnapshotPhase.OVERVIEW_DEMONSTRATING -> RestoreStateResult.Valid(
                     LessonSessionState.Paused(LessonSessionState.OverviewDemonstrating(context)),

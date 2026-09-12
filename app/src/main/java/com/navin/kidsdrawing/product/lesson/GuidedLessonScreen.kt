@@ -4,8 +4,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -38,6 +40,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -48,6 +51,7 @@ import com.navin.kidsdrawing.drawing.domain.TeachingPace
 import com.navin.kidsdrawing.drawing.ui.DrawingSurface
 import com.navin.kidsdrawing.drawing.ui.DrawingSurfaceController
 import com.navin.kidsdrawing.drawing.ui.TeacherPlaybackOverlay
+import com.navin.kidsdrawing.lesson.model.TeachingMode
 import com.navin.kidsdrawing.lesson.session.DismissHelp
 import com.navin.kidsdrawing.lesson.session.FinishForNow
 import com.navin.kidsdrawing.lesson.session.LessonCommand
@@ -60,12 +64,14 @@ import com.navin.kidsdrawing.lesson.session.RetryRecoverable
 import com.navin.kidsdrawing.lesson.session.SkipOverview
 import com.navin.kidsdrawing.lesson.session.SkipStep
 import com.navin.kidsdrawing.product.design.StudioColors
+import com.navin.kidsdrawing.product.profile.AgeBand
 import kotlinx.coroutines.launch
 
 @Composable
 fun GuidedLessonScreen(
     runtime: ProductLessonRuntime,
-    startMode: com.navin.kidsdrawing.lesson.model.TeachingMode,
+    ageBand: AgeBand,
+    startMode: TeachingMode,
     startPace: TeachingPace,
     resumeOnly: Boolean,
     onExitToHome: () -> Unit,
@@ -74,6 +80,7 @@ fun GuidedLessonScreen(
 ) {
     val scope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
+    val layout = lessonLayoutPolicyFor(ageBand)
     val surfaceController = remember { DrawingSurfaceController() }
     val documentState by runtime.documentEngine.state.collectAsState()
     val toolSettings by runtime.toolEngine.state.collectAsState()
@@ -159,6 +166,7 @@ fun GuidedLessonScreen(
             ) {
                 WorkspaceTopBar(
                     presentation = presentation,
+                    minimumControlHeight = layout.minimumControlHeight,
                     onSaveAndExit = {
                         scope.launch {
                             runtime.saveNow()
@@ -222,6 +230,7 @@ fun GuidedLessonScreen(
 
                 if (presentation.showPostDrawingChoices) {
                     PostDrawingBoundary(
+                        minimumControlHeight = layout.minimumControlHeight,
                         onFinish = {
                             scope.launch {
                                 runtime.dispatch(FinishForNow)
@@ -234,8 +243,14 @@ fun GuidedLessonScreen(
                         runtime = runtime,
                         presentation = presentation,
                         currentPace = (sessionState as? LessonSessionState.Contextual)?.context?.pace ?: startPace,
+                        minimumControlHeight = layout.minimumControlHeight,
+                        maxColumns = layout.maxCompactActionColumns,
                     )
-                    DrawingToolControls(runtime = runtime, childCanDraw = childCanDraw)
+                    DrawingToolControls(
+                        runtime = runtime,
+                        childCanDraw = childCanDraw,
+                        minimumControlHeight = layout.minimumControlHeight,
+                    )
                 }
             }
         }
@@ -254,6 +269,7 @@ private fun Modifier.consumeDrawingInput(): Modifier = pointerInput(Unit) {
 @Composable
 private fun WorkspaceTopBar(
     presentation: LessonWorkspacePresentation,
+    minimumControlHeight: Dp,
     onSaveAndExit: () -> Unit,
 ) {
     Row(
@@ -263,7 +279,7 @@ private fun WorkspaceTopBar(
         TextButton(
             onClick = onSaveAndExit,
             modifier = Modifier
-                .heightIn(min = 48.dp)
+                .heightIn(min = minimumControlHeight)
                 .semantics { contentDescription = "Save drawing and return to studio" },
         ) {
             Text("← Save & leave", color = StudioColors.Ink700)
@@ -350,85 +366,88 @@ private fun EssentialLessonControls(
     runtime: ProductLessonRuntime,
     presentation: LessonWorkspacePresentation,
     currentPace: TeachingPace,
+    minimumControlHeight: Dp,
+    maxColumns: Int,
 ) {
     val scope = rememberCoroutineScope()
+    val actions = buildList {
+        if (presentation.showPause) add(WorkspaceActionSpec("Pause") { scope.launch { runtime.dispatch(LessonCommand.Pause) } })
+        if (presentation.showResume) add(WorkspaceActionSpec("Resume") { scope.launch { runtime.dispatch(LessonCommand.Resume) } })
+        if (presentation.showReplay) add(WorkspaceActionSpec("Replay") { scope.launch { runtime.dispatch(ReplayDemonstration) } })
+        if (presentation.showHelp) add(WorkspaceActionSpec("Help") { scope.launch { runtime.dispatch(RequestHelp) } })
+        if (presentation.showRetry) add(WorkspaceActionSpec("Try again") { scope.launch { runtime.dispatch(RetryRecoverable) } })
+        if (presentation.showReduceHelp) add(WorkspaceActionSpec("Less help") { scope.launch { runtime.dispatch(ReduceHelp) } })
+        if (presentation.showDismissHelp) add(WorkspaceActionSpec("Hide help") { scope.launch { runtime.dispatch(DismissHelp) } })
+        if (presentation.showSkipOverview) add(WorkspaceActionSpec("I’m ready") { scope.launch { runtime.dispatch(SkipOverview) } })
+        if (presentation.showSkipStep) add(WorkspaceActionSpec("Skip this part") { scope.launch { runtime.dispatch(SkipStep) } })
+        if (presentation.showDone) add(
+            WorkspaceActionSpec("Done", primary = true) {
+                scope.launch { runtime.dispatch(MarkChildTurnDone) }
+            },
+        )
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(7.dp),
-        ) {
-            if (presentation.showPause) {
-                WorkspaceButton("Pause", Modifier.weight(1f)) {
-                    scope.launch { runtime.dispatch(LessonCommand.Pause) }
-                }
-            }
-            if (presentation.showResume) {
-                WorkspaceButton("Resume", Modifier.weight(1f)) {
-                    scope.launch { runtime.dispatch(LessonCommand.Resume) }
-                }
-            }
-            if (presentation.showReplay) {
-                WorkspaceButton("Replay", Modifier.weight(1f)) {
-                    scope.launch { runtime.dispatch(ReplayDemonstration) }
-                }
-            }
-            if (presentation.showHelp) {
-                WorkspaceButton("Help", Modifier.weight(1f)) {
-                    scope.launch { runtime.dispatch(RequestHelp) }
-                }
-            }
-            if (presentation.showRetry) {
-                WorkspaceButton("Try again", Modifier.weight(1f)) {
-                    scope.launch { runtime.dispatch(RetryRecoverable) }
-                }
-            }
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(7.dp),
-        ) {
-            if (presentation.showReduceHelp) {
-                WorkspaceButton("Less help", Modifier.weight(1f)) {
-                    scope.launch { runtime.dispatch(ReduceHelp) }
-                }
-            }
-            if (presentation.showDismissHelp) {
-                WorkspaceButton("Hide help", Modifier.weight(1f)) {
-                    scope.launch { runtime.dispatch(DismissHelp) }
-                }
-            }
-            if (presentation.showSkipOverview) {
-                WorkspaceButton("I’m ready", Modifier.weight(1f)) {
-                    scope.launch { runtime.dispatch(SkipOverview) }
-                }
-            }
-            if (presentation.showSkipStep) {
-                WorkspaceButton("Skip this part", Modifier.weight(1f)) {
-                    scope.launch { runtime.dispatch(SkipStep) }
-                }
-            }
-            if (presentation.showDone) {
-                WorkspaceButton("Done", Modifier.weight(1f), primary = true) {
-                    scope.launch { runtime.dispatch(MarkChildTurnDone) }
-                }
-            }
-        }
-
+        WorkspaceActionGrid(
+            actions = actions,
+            minimumControlHeight = minimumControlHeight,
+            maxColumns = maxColumns,
+        )
         if (!presentation.isTerminal) {
-            PaceControl(runtime = runtime, currentPace = currentPace)
+            PaceControl(
+                runtime = runtime,
+                currentPace = currentPace,
+                minimumControlHeight = minimumControlHeight,
+            )
         }
     }
 }
 
 @Composable
-private fun PaceControl(runtime: ProductLessonRuntime, currentPace: TeachingPace) {
+private fun WorkspaceActionGrid(
+    actions: List<WorkspaceActionSpec>,
+    minimumControlHeight: Dp,
+    maxColumns: Int,
+) {
+    if (actions.isEmpty()) return
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val columns = if (maxWidth < 420.dp) 2 else maxColumns.coerceAtLeast(2)
+        Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            actions.chunked(columns).forEach { rowActions ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(7.dp),
+                ) {
+                    rowActions.forEach { action ->
+                        WorkspaceButton(
+                            label = action.label,
+                            modifier = Modifier.weight(1f),
+                            primary = action.primary,
+                            minimumHeight = minimumControlHeight,
+                            onClick = action.action,
+                        )
+                    }
+                    repeat(columns - rowActions.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PaceControl(
+    runtime: ProductLessonRuntime,
+    currentPace: TeachingPace,
+    minimumControlHeight: Dp,
+) {
     val scope = rememberCoroutineScope()
     val next = TeachingPace.entries[(currentPace.ordinal + 1) % TeachingPace.entries.size]
     TextButton(
         onClick = { scope.launch { runtime.dispatch(LessonCommand.SetPace(next)) } },
         modifier = Modifier
-            .heightIn(min = 44.dp)
+            .heightIn(min = minimumControlHeight)
             .semantics { contentDescription = "Drawing speed ${currentPace.childLabel()}. Tap for ${next.childLabel()}" },
     ) {
         Text(
@@ -440,7 +459,11 @@ private fun PaceControl(runtime: ProductLessonRuntime, currentPace: TeachingPace
 }
 
 @Composable
-private fun DrawingToolControls(runtime: ProductLessonRuntime, childCanDraw: Boolean) {
+private fun DrawingToolControls(
+    runtime: ProductLessonRuntime,
+    childCanDraw: Boolean,
+    minimumControlHeight: Dp,
+) {
     val settings by runtime.toolEngine.state.collectAsState()
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -450,17 +473,22 @@ private fun DrawingToolControls(runtime: ProductLessonRuntime, childCanDraw: Boo
             label = if (settings.tool == DrawingTool.PENCIL) "✓ Pencil" else "Pencil",
             modifier = Modifier.weight(1f),
             enabled = childCanDraw,
+            minimumHeight = minimumControlHeight,
         ) { runtime.toolEngine.selectTool(DrawingTool.PENCIL) }
         WorkspaceButton(
             label = if (settings.tool == DrawingTool.ERASER) "✓ Eraser" else "Eraser",
             modifier = Modifier.weight(1f),
             enabled = childCanDraw,
+            minimumHeight = minimumControlHeight,
         ) { runtime.toolEngine.selectTool(DrawingTool.ERASER) }
     }
 }
 
 @Composable
-private fun PostDrawingBoundary(onFinish: () -> Unit) {
+private fun PostDrawingBoundary(
+    minimumControlHeight: Dp,
+    onFinish: () -> Unit,
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -484,6 +512,7 @@ private fun PostDrawingBoundary(onFinish: () -> Unit) {
                 label = "Finish for now",
                 modifier = Modifier.fillMaxWidth(),
                 primary = true,
+                minimumHeight = minimumControlHeight,
                 onClick = onFinish,
             )
         }
@@ -496,12 +525,13 @@ private fun WorkspaceButton(
     modifier: Modifier = Modifier,
     primary: Boolean = false,
     enabled: Boolean = true,
+    minimumHeight: Dp = 52.dp,
     onClick: () -> Unit,
 ) {
     if (primary) {
         Surface(
             modifier = modifier
-                .heightIn(min = 52.dp)
+                .heightIn(min = minimumHeight)
                 .clip(RoundedCornerShape(16.dp))
                 .background(if (enabled) StudioColors.Studio600 else StudioColors.Line200),
             color = Color.Transparent,
@@ -518,7 +548,7 @@ private fun WorkspaceButton(
         OutlinedButton(
             onClick = onClick,
             enabled = enabled,
-            modifier = modifier.heightIn(min = 52.dp),
+            modifier = modifier.heightIn(min = minimumHeight),
             shape = RoundedCornerShape(16.dp),
             border = BorderStroke(1.dp, StudioColors.Line200),
         ) {
@@ -558,6 +588,12 @@ private fun LessonStartupMessage(message: String, onBack: () -> Unit) {
         }
     }
 }
+
+private data class WorkspaceActionSpec(
+    val label: String,
+    val primary: Boolean = false,
+    val action: () -> Unit,
+)
 
 private fun TeachingPace.childLabel(): String = when (this) {
     TeachingPace.EXTRA_SLOW -> "extra slow"

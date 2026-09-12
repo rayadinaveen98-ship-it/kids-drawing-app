@@ -7,16 +7,21 @@
 
 ## Candidate record
 
-- Device class/model: PENDING
-- Android/API: PENDING
-- RAM: PENDING
-- Refresh rate: PENDING
-- Candidate commit: PENDING
-- CI run: PENDING
-- Profile artifact ID: PENDING
-- APK byte size: PENDING
-- APK SHA-256: PENDING
-- Tester/date: PENDING
+- Device class/model: PENDING physical test confirmation
+- Android/API: PENDING physical test confirmation
+- RAM: PENDING physical test confirmation
+- Refresh rate: PENDING physical test confirmation
+- Executable candidate commit: `670b0f81d716ca4c150d426f09ec5171f4cfbb2a`
+- Version: `0.3.0-vertical-slice` / versionCode `13`
+- CI: Android CI #300 / run `34702119721` — **GREEN**
+- Profile artifact ID: `10300369347`
+- Profile artifact name: `kids-drawing-0.3.0-vertical-slice-profile`
+- APK filename: `Kids_Drawing_0.3.0_Vertical_Slice-profile.apk`
+- APK byte size: `16080882`
+- APK SHA-256: `b4ec499f221512a464ed96b269733317fe395377952e0ebec3a14e8f6246187d`
+- Tester/date: PENDING physical validation / 2026-09-12
+
+The executable candidate above is frozen for physical QA. Later documentation-only commits on this branch do not change the candidate APK and must not be substituted for this executable SHA unless a code/build change intentionally creates a replacement candidate.
 
 ## Required scenarios
 

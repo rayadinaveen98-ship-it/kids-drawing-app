@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -289,26 +288,29 @@ private fun ColorPalette(
             fontWeight = FontWeight.Bold,
             color = StudioColors.Ink700,
         )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-        ) {
-            palette.forEachIndexed { index, argb ->
-                Surface(
-                    modifier = Modifier
-                        .size(minimumTarget.coerceAtMost(58.dp))
-                        .clip(CircleShape)
-                        .semantics {
-                            contentDescription = "Color ${index + 1}${if (argb == selectedColorArgb) ", selected" else ""}"
-                        }
-                        .clickable { onSelect(argb) },
-                    shape = CircleShape,
-                    color = Color(argb),
-                    border = BorderStroke(
-                        if (argb == selectedColorArgb) 4.dp else 1.dp,
-                        if (argb == selectedColorArgb) StudioColors.Ink900 else StudioColors.Line200,
-                    ),
-                ) {}
+        palette.chunked(3).forEachIndexed { rowIndex, rowColors ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ) {
+                rowColors.forEachIndexed { columnIndex, argb ->
+                    val index = rowIndex * 3 + columnIndex
+                    Surface(
+                        modifier = Modifier
+                            .size(minimumTarget.coerceAtMost(68.dp))
+                            .clip(CircleShape)
+                            .semantics {
+                                contentDescription = "Color ${index + 1}${if (argb == selectedColorArgb) ", selected" else ""}"
+                            }
+                            .clickable { onSelect(argb) },
+                        shape = CircleShape,
+                        color = Color(argb),
+                        border = BorderStroke(
+                            if (argb == selectedColorArgb) 4.dp else 1.dp,
+                            if (argb == selectedColorArgb) StudioColors.Ink900 else StudioColors.Line200,
+                        ),
+                    ) {}
+                }
             }
         }
     }
@@ -351,6 +353,11 @@ private fun ColoringTools(
                 modifier = Modifier.weight(1f),
                 onClick = onEraser,
             )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(7.dp),
+        ) {
             ColoringActionButton(
                 label = "Undo",
                 enabled = canUndo,

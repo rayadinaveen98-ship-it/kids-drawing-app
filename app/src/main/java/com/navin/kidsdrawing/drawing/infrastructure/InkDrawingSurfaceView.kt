@@ -148,7 +148,7 @@ class InkDrawingSurfaceView(
         cancelTransientInput()
 
         val activeOperations = document.activeOperations()
-        committedInkView.replaceDocumentOperations(activeOperations)
+        committedInkView.replaceDocument(document)
         committedInkView.invalidate()
 
         val inkCount = activeOperations.count { it is DocumentOperation.AddInkStroke }
@@ -595,6 +595,16 @@ class InkDrawingSurfaceView(
         private val documentSize: DocumentSize,
     ) : View(context) {
         private val operations = mutableListOf<RenderedOperation>()
+        private val projectionCache = OperationProjectionCache<RenderedOperation> { operation ->
+            when (operation) {
+                is DocumentOperation.AddInkStroke -> RenderedOperation.Ink(
+                    strokeId = operation.stroke.strokeId,
+                    stroke = InkStrokeRehydrator.rehydrate(operation.stroke),
+                )
+                is DocumentOperation.AddEraseMask -> RenderedOperation.Erase(operation.mask)
+                is DocumentOperation.ClearDocument -> error("Clear operations do not have renderer payloads.")
+            }
+        }
         private val renderer = ViewStrokeRenderer(CanvasStrokeRenderer.create(), this)
         private val erasePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
@@ -613,18 +623,9 @@ class InkDrawingSurfaceView(
             operations += RenderedOperation.Erase(mask)
         }
 
-        fun replaceDocumentOperations(documentOperations: List<DocumentOperation>) {
+        fun replaceDocument(document: DrawingDocument) {
             operations.clear()
-            documentOperations.forEach { operation ->
-                when (operation) {
-                    is DocumentOperation.AddInkStroke -> operations += RenderedOperation.Ink(
-                        strokeId = operation.stroke.strokeId,
-                        stroke = InkStrokeRehydrator.rehydrate(operation.stroke),
-                    )
-                    is DocumentOperation.AddEraseMask -> operations += RenderedOperation.Erase(operation.mask)
-                    is DocumentOperation.ClearDocument -> operations.clear()
-                }
-            }
+            operations += projectionCache.project(document)
         }
 
         override fun onDraw(canvas: Canvas) {

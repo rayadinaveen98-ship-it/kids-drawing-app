@@ -5,6 +5,7 @@ composeBom = "2026.06.00"
 activityCompose = "1.13.0"
 lifecycle = "2.10.0"
 coroutines = "1.11.0"
+serialization = "1.9.0"
 ink = "1.0.0"
 inputMotionPrediction = "1.0.0"
 metricsPerformance = "1.0.0"
@@ -21,6 +22,7 @@ compose-material3 = { module = "androidx.compose.material3:material3" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
 lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 metrics-performance = { module = "androidx.metrics:metrics-performance", version.ref = "metricsPerformance" }
 
 ink-authoring = { module = "androidx.ink:ink-authoring", version.ref = "ink" }
@@ -41,3 +43,4 @@ compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

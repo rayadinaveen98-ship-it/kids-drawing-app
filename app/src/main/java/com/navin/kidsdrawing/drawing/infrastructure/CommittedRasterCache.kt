@@ -17,11 +17,11 @@ import java.util.LinkedHashMap
 import java.util.LinkedHashSet
 
 /**
- * Flattened committed-artwork cache used by the production renderer.
+ * Protected line-art committed projection used by the production renderer.
  *
- * The editable/vector document remains authoritative. This cache only accelerates projection:
- * normal frames draw one bitmap, and recent Undo/Redo restores the nearest checkpoint then
- * replays a small tail instead of redrawing thousands of operations.
+ * The editable/vector document remains authoritative. Coloring operations are intentionally
+ * filtered out before they reach this cache, so coloring and coloring erases cannot mutate the
+ * protected drawing projection. The existing checkpoint/recent-window optimization remains intact.
  */
 internal class CommittedRasterCache(
     private val documentSize: DocumentSize,
@@ -47,7 +47,7 @@ internal class CommittedRasterCache(
     fun bitmap(): Bitmap = bitmap
 
     /**
-     * Immediate wet→dry handoff for a just-finished live pencil stroke.
+     * Immediate wet→dry handoff for a just-finished live line-art stroke.
      *
      * The pixels are provisional until the document engine publishes the matching operation.
      * Reconcile can confirm that exact append without drawing it a second time.
@@ -57,24 +57,24 @@ internal class CommittedRasterCache(
         provisionalVisualIds += recordId
     }
 
-    /** Immediate visual erase; authoritative erase ordering is confirmed on reconcile. */
+    /** Immediate line-art erase; authoritative erase ordering is confirmed on reconcile. */
     fun appendLiveErase(mask: EraseMaskRecord) {
         drawEraseMask(mask)
         provisionalVisualIds += mask.maskId
     }
 
     fun reconcile(newDocumentId: String, operations: List<DocumentOperation>) {
-        val ids = operations.map { it.operationId }
+        val lineOperations = operations.filter(::belongsToLineProjection)
+        val ids = lineOperations.map { it.operationId }
         if (documentId != newDocumentId) {
             resetForDocument(newDocumentId)
-            rebuild(operations)
+            rebuild(lineOperations)
             operationIds = ids
             return
         }
 
-        if (acceptMatchingProvisionalExtension(operations, ids)) {
-            return
-        }
+        if (ids == operationIds && provisionalVisualIds.isEmpty()) return
+        if (acceptMatchingProvisionalExtension(lineOperations, ids)) return
 
         val commonPrefix = commonPrefixLength(operationIds, ids)
         if (commonPrefix < minOf(operationIds.size, ids.size)) {
@@ -83,20 +83,20 @@ internal class CommittedRasterCache(
 
         restoreNearestCheckpoint(commonPrefix)
         val start = currentCheckpointCursor(commonPrefix)
-        for (index in start until operations.size) {
-            val operation = operations[index]
+        for (index in start until lineOperations.size) {
+            val operation = lineOperations[index]
             apply(project(operation))
-            maybeCheckpoint(index + 1, operations.size)
-            dropProjectionIfOutsideRecentWindow(index, operations.size, operation.operationId)
+            maybeCheckpoint(index + 1, lineOperations.size)
+            dropProjectionIfOutsideRecentWindow(index, lineOperations.size, operation.operationId)
         }
         operationIds = ids
         provisionalVisualIds.clear()
-        retainRecentProjectedOperations(operations)
+        retainRecentProjectedOperations(lineOperations)
     }
 
     /**
-     * Confirms a live visual append when the authoritative timeline extends by the exact same
-     * stroke/mask record IDs in the exact same order. No bitmap redraw is needed in this case.
+     * Confirms a live visual append when the authoritative line-art timeline extends by the exact
+     * same stroke/mask record IDs in the exact same order. No bitmap redraw is needed.
      */
     private fun acceptMatchingProvisionalExtension(
         operations: List<DocumentOperation>,
@@ -115,6 +115,9 @@ internal class CommittedRasterCache(
                 is DocumentOperation.AddInkStroke -> operation.stroke.strokeId
                 is DocumentOperation.AddEraseMask -> operation.mask.maskId
                 is DocumentOperation.ClearDocument -> return false
+                is DocumentOperation.AddColorStroke,
+                is DocumentOperation.AddColorEraseMask,
+                -> return false
             }
             tailVisualIds += visualId
         }
@@ -145,8 +148,12 @@ internal class CommittedRasterCache(
                 is DocumentOperation.AddInkStroke -> RenderedRasterOperation.Ink(
                     InkStrokeRehydrator.rehydrate(operation.stroke),
                 )
+
                 is DocumentOperation.AddEraseMask -> RenderedRasterOperation.Erase(operation.mask)
                 is DocumentOperation.ClearDocument -> RenderedRasterOperation.Clear
+                is DocumentOperation.AddColorStroke,
+                is DocumentOperation.AddColorEraseMask,
+                -> error("Coloring operation cannot enter protected line-art projection.")
             }
         }
 
@@ -255,6 +262,17 @@ internal class CommittedRasterCache(
     internal fun projectedOperationCount(): Int = projectedOperationCache.size
 
     internal fun provisionalVisualCount(): Int = provisionalVisualIds.size
+
+    private fun belongsToLineProjection(operation: DocumentOperation): Boolean = when (operation) {
+        is DocumentOperation.AddInkStroke,
+        is DocumentOperation.AddEraseMask,
+        is DocumentOperation.ClearDocument,
+        -> true
+
+        is DocumentOperation.AddColorStroke,
+        is DocumentOperation.AddColorEraseMask,
+        -> false
+    }
 
     private companion object {
         const val CHECKPOINT_INTERVAL = 8

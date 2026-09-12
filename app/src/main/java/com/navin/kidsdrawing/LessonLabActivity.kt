@@ -46,9 +46,22 @@ import com.navin.kidsdrawing.drawing.domain.TeachingPace
 import com.navin.kidsdrawing.drawing.ui.DrawingSurface
 import com.navin.kidsdrawing.drawing.ui.DrawingSurfaceController
 import com.navin.kidsdrawing.drawing.ui.TeacherPlaybackOverlay
+import com.navin.kidsdrawing.lesson.lab.LessonLabDiagnostics
 import com.navin.kidsdrawing.lesson.lab.LessonLabRuntime
 import com.navin.kidsdrawing.lesson.model.TeachingMode
-import com.navin.kidsdrawing.lesson.session.*
+import com.navin.kidsdrawing.lesson.session.ChooseColorMyself
+import com.navin.kidsdrawing.lesson.session.ChooseColorWithMe
+import com.navin.kidsdrawing.lesson.session.DismissHelp
+import com.navin.kidsdrawing.lesson.session.FinishForNow
+import com.navin.kidsdrawing.lesson.session.LessonCommand
+import com.navin.kidsdrawing.lesson.session.LessonSessionState
+import com.navin.kidsdrawing.lesson.session.MarkChildTurnDone
+import com.navin.kidsdrawing.lesson.session.ReduceHelp
+import com.navin.kidsdrawing.lesson.session.ReplayDemonstration
+import com.navin.kidsdrawing.lesson.session.RequestHelp
+import com.navin.kidsdrawing.lesson.session.RetryRecoverable
+import com.navin.kidsdrawing.lesson.session.SkipOverview
+import com.navin.kidsdrawing.lesson.session.SkipStep
 import kotlinx.coroutines.launch
 
 class LessonLabActivity : ComponentActivity() {
@@ -91,6 +104,14 @@ private fun LessonLabScreen(runtime: LessonLabRuntime) {
         runtime.recover()
         surfaceController.reconcileDocument(runtime.documentEngine.state.value.document)
         recoveryReady = true
+    }
+
+    // The engine remains authoritative after process recreation. Mirror restored mode/pace back into
+    // the engineering selectors so the controls never imply a different session configuration.
+    LaunchedEffect(sessionState) {
+        val contextual = sessionState as? LessonSessionState.Contextual ?: return@LaunchedEffect
+        selectedMode = contextual.context.mode
+        selectedPace = contextual.context.pace
     }
 
     LaunchedEffect(documentState.document.operations.size, documentState.document.modifiedAtEpochMillis) {
@@ -313,7 +334,7 @@ private fun DrawingToolRow(settings: DrawingToolSettings, runtime: LessonLabRunt
             Slider(
                 value = settings.width,
                 onValueChange = runtime.toolEngine::setWidth,
-                valueRange = 1f..24f,
+                valueRange = DrawingToolSettings.MIN_TOOL_WIDTH..DrawingToolSettings.MAX_TOOL_WIDTH,
                 modifier = Modifier.weight(1f),
             )
         }
@@ -321,7 +342,7 @@ private fun DrawingToolRow(settings: DrawingToolSettings, runtime: LessonLabRunt
 }
 
 @Composable
-private fun DiagnosticStrip(diagnostics: com.navin.kidsdrawing.lesson.lab.LessonLabDiagnostics) {
+private fun DiagnosticStrip(diagnostics: LessonLabDiagnostics) {
     Column(
         modifier = Modifier
             .fillMaxWidth()

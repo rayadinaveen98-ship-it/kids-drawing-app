@@ -6,6 +6,8 @@ import com.navin.kidsdrawing.lesson.model.AuthoredStroke
 import com.navin.kidsdrawing.lesson.model.ChildCompletionPolicy
 import com.navin.kidsdrawing.lesson.model.ChildTurn
 import com.navin.kidsdrawing.lesson.model.DrawingStep
+import com.navin.kidsdrawing.lesson.model.HelpEntry
+import com.navin.kidsdrawing.lesson.model.HelpKind
 import com.navin.kidsdrawing.lesson.model.LessonAssets
 import com.navin.kidsdrawing.lesson.model.LessonCanvas
 import com.navin.kidsdrawing.lesson.model.LessonDrawing
@@ -47,6 +49,20 @@ class ProductLessonPresentationPolicyTest {
     }
 
     @Test
+    fun any_stroke_step_hides_manual_done_because_engine_completes_from_stroke_signal() {
+        val packageData = packageData(
+            headCompletionPolicy = ChildCompletionPolicy.ANY_STROKE,
+        )
+        val state = LessonSessionState.AwaitingChild(context(stepIndex = 0, stepId = "head"))
+
+        val result = ProductLessonPresentationPolicy.from(state, packageData)
+
+        assertFalse(result.showDone)
+        assertTrue(result.showReplay)
+        assertTrue(result.showHelp)
+    }
+
+    @Test
     fun help_state_is_semantic_and_keeps_child_in_control() {
         val state = LessonSessionState.HelpActive(
             context(stepIndex = 0, stepId = "head").copy(helpLevel = 4),
@@ -59,6 +75,7 @@ class ProductLessonPresentationPolicyTest {
         assertTrue(result.showDismissHelp)
         assertTrue(result.showDone)
         assertTrue(result.instruction.contains("Tracing"))
+        assertFalse(result.showHelp)
     }
 
     @Test
@@ -78,7 +95,7 @@ class ProductLessonPresentationPolicyTest {
     }
 
     @Test
-    fun post_drawing_choice_becomes_calm_artwork_celebration() {
+    fun post_drawing_choice_becomes_calm_artwork_celebration_without_fake_coloring() {
         val state = LessonSessionState.AwaitingPostDrawingChoice(
             context(stepIndex = 3, stepId = "body_tail"),
         )
@@ -87,6 +104,7 @@ class ProductLessonPresentationPolicyTest {
         assertEquals(CompanionSemanticState.CELEBRATING_ARTWORK, result.companionState)
         assertEquals(1f, result.progress)
         assertTrue(result.showPostDrawingChoices)
+        assertFalse(result.instruction.contains("color", ignoreCase = true))
     }
 
     private fun context(stepIndex: Int, stepId: String) = LessonActiveContext(
@@ -98,9 +116,11 @@ class ProductLessonPresentationPolicyTest {
         overviewCompleted = true,
     )
 
-    private fun packageData(): LessonRuntimePackage {
+    private fun packageData(
+        headCompletionPolicy: ChildCompletionPolicy = ChildCompletionPolicy.MANUAL_DONE,
+    ): LessonRuntimePackage {
         val steps = listOf(
-            step("head", allowSkip = false),
+            step("head", allowSkip = false, completionPolicy = headCompletionPolicy),
             step("ears", allowSkip = false),
             step("face", allowSkip = true),
             step("body_tail", allowSkip = false),
@@ -139,14 +159,22 @@ class ProductLessonPresentationPolicyTest {
         )
     }
 
-    private fun step(id: String, allowSkip: Boolean) = DrawingStep(
+    private fun step(
+        id: String,
+        allowSkip: Boolean,
+        completionPolicy: ChildCompletionPolicy = ChildCompletionPolicy.MANUAL_DONE,
+    ) = DrawingStep(
         id = id,
         objectiveSkillIds = listOf("curves"),
         teacher = TeacherDemo(strokeRefs = listOf("stroke-$id")),
         childTurn = ChildTurn(
-            completionPolicy = ChildCompletionPolicy.MANUAL_DONE,
+            completionPolicy = completionPolicy,
             allowReplay = true,
             allowSkip = allowSkip,
+        ),
+        help = listOf(
+            HelpEntry(level = 1, kind = HelpKind.GENTLE_HINT),
+            HelpEntry(level = 4, kind = HelpKind.TRACE_PATH),
         ),
     )
 }

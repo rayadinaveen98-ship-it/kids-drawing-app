@@ -55,7 +55,7 @@ Record `PASS`, `FAIL`, or `BLOCKED` plus a concise observation for every row.
 | 18 | Dismiss Help | PASS | Dismiss Help returned the engine to `AwaitingChild · help 0` and restored the base `TRACE_MODE` guide without altering child history. |
 | 19 | Invalid Skip rejected on non-skippable step | PASS | On `step 1: head`, Skip Step was rejected with `SKIP_NOT_ALLOWED`; state remained `AwaitingChild`, the Trace guide stayed active, child history stayed empty, and isolation remained `0 · PASS`. |
 | 20 | Valid Skip accepted on `face` step | PASS | On the fresh Trace & Learn run, Skip Step was accepted on the authored skippable `face` step and advanced to `step 4: body_tail`; next teacher playback completed, base Trace guide appeared for `body_tail`, history stayed `operations 0 · child ink 0`, and isolation remained `0 · PASS`. |
-| 21 | Invalid Done/command path rejected without state corruption | PENDING | |
+| 21 | Invalid Done/command path rejected without state corruption | PASS | At `AwaitingChild · step 4: body_tail · help 0`, Dismiss Help was intentionally invoked with no active Help level. Device showed the expected `HELP_NOT_AVAILABLE` rejection; the step/session remained intact with no observed history corruption. |
 | 22 | Background → foreground preserves artwork/session | PENDING | |
 | 23 | Process recreation/relaunch preserves child artwork/session progress | PENDING | |
 | 24 | Recreated teacher request is fresh; stale callback cannot advance | PENDING | |
@@ -63,7 +63,7 @@ Record `PASS`, `FAIL`, or `BLOCKED` plus a concise observation for every row.
 | 26 | Drawing complete reaches post-drawing choice | PENDING | |
 | 27 | Coloring handoff unavailable → returns to retryable choice | PENDING | |
 | 28 | Post-drawing state survives recreation | PENDING | |
-| 29 | Persisted child artwork contains zero TEACHER_GENERATED ink operations | PENDING | Live history remains isolated after Draw With Me, Watch Then Draw overview cancellation, Trace guide display, Replay, Help level 4, invalid Skip rejection, and valid Skip advancement; persistence/relaunch proof still required. |
+| 29 | Persisted child artwork contains zero TEACHER_GENERATED ink operations | PENDING | Live history remains isolated after Draw With Me, Watch Then Draw overview cancellation, Trace guide display, Replay, Help level 4, invalid Skip rejection, valid Skip advancement, and invalid-command rejection; persistence/relaunch proof still required. |
 | 30 | Art Lab launcher still opens and draws | PENDING | |
 | 31 | Quality Lab launcher still opens | PENDING | |
 | 32 | No crash/deadlock during full matrix | PENDING | |
@@ -86,6 +86,7 @@ Current evidence:
 - Help level 4 displayed `guide HELP` / authored `...head-help-h4` while history remained `operations 0 · child ink 0` and isolation stayed `0 · PASS`;
 - Help− returned to authored level 1 and Dismiss Help returned to base trace mode, both with history still isolated;
 - invalid Skip rejection on `head` and valid Skip advancement from `face` to `body_tail` both preserved `operations 0 · child ink 0` and isolation `0 · PASS`;
+- invalid-command rejection at `body_tail` preserved the active lesson state without observed history corruption;
 - save/relaunch isolation proof remains **PENDING**.
 
 ## Lifecycle audit

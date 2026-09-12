@@ -73,11 +73,17 @@ class OperationProjectionCacheTest {
             operation.operationId
         }
         val operation = inkOperation("same-id", 3_001L)
-        val first = DrawingDocumentEngine.newDocument("doc-one", 3_000L).copy(
+        val first = DrawingDocumentEngine.newDocument(
+            documentId = "doc-one",
+            nowEpochMillis = 3_000L,
+        ).copy(
             modifiedAtEpochMillis = 3_001L,
             operations = listOf(operation),
         )
-        val second = DrawingDocumentEngine.newDocument("doc-two", 4_000L).copy(
+        val second = DrawingDocumentEngine.newDocument(
+            documentId = "doc-two",
+            nowEpochMillis = 4_000L,
+        ).copy(
             modifiedAtEpochMillis = 4_001L,
             operations = listOf(operation.copy(createdAtEpochMillis = 4_001L)),
         )

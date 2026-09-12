@@ -18,8 +18,8 @@ Development model: **Core-engine + vertical-slice** — Specify → build capabi
 **Phase 1 — COMPLETE.**  
 **Phase 2 — ACTIVE.** Target: `0.2.0-lesson-engine`.
 
-Active issue: **#30 — P2.2 deterministic lesson session state machine + snapshots**.  
-Active branch: **`phase2/session-state-machine`**.
+Active issue: **#34 — P2.6 Lesson Lab, physical verification + `0.2.0-lesson-engine` release**.  
+Starting baseline: **`main` after P2.5 merge `593c53f8a42e6749a0cf3e0a8b0a9f4c7f850e10` plus status-doc synchronization**.
 
 ## Frozen Phase 1 milestone
 
@@ -28,95 +28,99 @@ Release commit: `a448d664af8df2bb585326d726f0723461cd36c6`
 Tag: `v0.1.0-art-lab`  
 Main CI run: #130 / `34676120442` — GREEN  
 Profile artifact ID: `10292412312`  
-Artifact ZIP digest: `sha256:0ae691d29ed5b0aa68d35fe97563cb692b374148ef50b9739d829580163a59c8`  
-APK size: `14,718,726` bytes  
 APK SHA-256: `7dbefd0053656abb8e1db989d69a0475dab6cca326f7aaec86f1da6909578e7e`
 
 Release notes: `docs/releases/0.1.0-art-lab.md`.
 
-### Proven milestone capabilities
+### Proven Phase 1 capabilities
 
-- AndroidX Ink-backed low-latency finger drawing behind owned engine abstractions;
-- 1000×1000 logical document coordinates;
-- Pencil/Eraser/color/width;
-- non-destructive erase masks;
-- Undo/Redo/Clear/New;
-- editable operation-based document truth;
+- AndroidX Ink-backed low-latency finger drawing behind owned abstractions;
+- editable operation-based document truth with Pencil/Eraser/color/width, Undo/Redo/Clear/New;
 - atomic Save/Reload/autosave + backup recovery + stale-save protection;
-- deterministic teacher playback at 0.4× / 0.7× / 1× / 1.5× / 2×;
-- Pause/Resume/Replay and captured-child-stroke teacher playback;
+- deterministic teacher playback at five frozen pace profiles;
 - teacher overlay isolated from child history/persistence;
-- responsive engineering Art Lab controls and diagnostics;
-- dedicated Quality Lab with stress/timing/memory/frame/soak harnesses;
-- bounded raster/checkpoint committed renderer;
+- Art Lab + Quality Lab stress/timing/memory/frame/soak harnesses;
 - offline operation with no Internet/ads/behavioral analytics/sensitive permissions.
 
 ### Physical quality evidence
 
 Samsung SM-A546E / API 36 / ~7.4 GB RAM / 120 Hz:
 - input P95/P99 2–3 ms — PASS;
-- W2 Save×20 P95 360 ms worst recorded — PASS;
-- W2 Load→editable P95 500 ms — PASS;
-- W2 visible Undo/Redo P95 19 ms / P99 36 ms — PASS;
-- W3 5,000-op document editable without crash/OOM — PASS;
-- W1 committed frame gate: 603 frames, 0 native jank, 0.5% >16.7 ms — PASS;
-- 30-minute soak: 4,587 cycles, 0 failures, final persistence verified, ~55.4 MiB Java / 58.5 MiB native end memory — PASS.
+- Save×20 P95 360 ms — PASS;
+- Load→editable P95 500 ms — PASS;
+- visible Undo/Redo P95 19 ms / P99 36 ms — PASS;
+- 5,000-op document — PASS;
+- committed frame gate: 603 frames, 0 native jank, 0.5% >16.7 ms — PASS;
+- 30-minute soak: 4,587 cycles, 0 failures — PASS.
 
-### Explicit pending-device coverage
-
-Stylus-specific pressure/tilt/palm/inverted-eraser behavior and externally instrumented input-to-visible latency remain **PENDING-HARDWARE**. Do not silently convert these to PASS.
+Stylus pressure/tilt/palm/inverted-eraser and externally instrumented input-to-visible latency remain **PENDING-HARDWARE**.
 
 ## Phase 2 progress
 
-Epic: **#28 — Phase 2 Lesson Engine 0.2**.
-
+Epic: **#28 — Phase 2 Lesson Engine 0.2**.  
 Target: `0.2.0-lesson-engine`.
 
 ### P2.1 — COMPLETE
 
-Issue: **#29 — Lesson package loader + runtime validation**  
-PR: **#35**  
-Merged `main` commit: `74d0de35a705d41747f7bb47e0b4383905c0f806`  
-Exact hardened branch head: `dd9f0f86ebcb57afac09c0c079dfe62dd9c96634`  
-Android CI run #137 / `34677550750`: **GREEN**.
+Issue #29 / PR #35. Established runtime lesson models, strict package parsing/validation, typed diagnostics, asset adapter and bundled `lessons/cute-cat` authored reference package. Android CI #137 / `34677550750` GREEN.
 
-P2.1 established:
-- Kotlin serialization wiring;
-- product-owned runtime lesson models matching `schemas/lesson.schema.json`;
-- strict pure-Kotlin package parsing/validation;
-- typed diagnostics;
-- Android asset adapter only at the infrastructure boundary;
-- permanent bundled `lessons/cute-cat` reference package;
-- real authored teacher strokes and trace/help guides;
-- restored `docs/17_LESSON_CONTENT_SCHEMA.md`;
-- negative tests for malformed JSON, content API/version constraints, unsafe paths, duplicate IDs, missing refs, trace support and authored stroke validity.
+### P2.2 — COMPLETE
 
-### P2.2 — ACTIVE
+Issue #30 / PR #36. Established pure-Kotlin deterministic lesson session state, commands/rejections, mode/pace/cursor/help/overview context, pause/resume, semantic snapshots, transient normalization and exact lesson revision/step compatibility.
 
-Issue: **#30 — Deterministic lesson session state machine + snapshots**.
+### P2.3 — COMPLETE
 
-Current implementation direction:
-- pure Kotlin/session-domain code only;
-- UI dispatches commands but cannot set state;
-- reuses frozen Drawing Engine `TeachingPace`;
-- typed `Ready`, overview, drawing sub-phases, `Paused(previousStableState)`, post-drawing and terminal states;
-- deterministic accepted/rejected command results;
-- Start/Pause/Resume/SetPace/SaveAndExit foundation;
-- immutable active context carries mode, pace, step index/stable ID, help level and overview status;
-- snapshots store lesson revision/session/document identity plus semantic progress;
-- unsafe transient phases normalize before persistence/restore;
-- exact lesson revision and step identity are checked before restoration;
-- tests use the real bundled Cute Cat package and cover all three modes/all five paces/illegal commands/pause-resume/snapshot compatibility.
+Issue #31 / PR #37. Established real teacher-step execution and Draw With Me over the frozen Drawing Engine boundary, including deterministic teacher playback requests and child-turn progression without teacher strokes entering child artwork.
 
-Do not mark P2.2 complete until exact-head CI is green and the PR is merged.
+### P2.4 — COMPLETE
 
-## Remaining Phase 2 order
+Issue #32 / PR #38. Squash merge `16828eee0988b8143559857a892c7d927dfc1c0d`. Exact-head Android CI #146 GREEN.
 
-1. #30 — session state machine + snapshots — **ACTIVE**
-2. #31 — teacher step execution + Draw With Me
-3. #32 — Watch Then Draw + Trace & Learn + Help Ladder
-4. #33 — lifecycle/session persistence + failure recovery
-5. #34 — Lesson Lab + physical verification + `0.2.0-lesson-engine` release
+Established:
+- Watch Then Draw full-lesson overview + child drawing pass;
+- pause/resume/pace/skip overview semantics;
+- replay-on-demand;
+- Trace & Learn teacher execution + authored trace guides;
+- Help Ladder progression, missing-level skipping, Reduce/Dismiss Help;
+- guide clear/restore semantics;
+- mode-specific Cute Cat completion tests;
+- proof teacher/guide strokes remain outside child history.
+
+### P2.5 — COMPLETE
+
+Issue #33 / PR #39. Squash merge `593c53f8a42e6749a0cf3e0a8b0a9f4c7f850e10`. Exact PR head `aad7f1cffc1b3aa8ad465870d0f41f48f59ae201`. Android CI #180 / `34682787683` GREEN.
+
+Established:
+- versioned SHA-256 lesson-session snapshot envelope;
+- atomic session target/backup/temp store and per-session stale-save protection;
+- typed Missing / Loaded / Corrupt recovery;
+- lifecycle autosave on stable lesson/help/drawing/failure/post-drawing boundaries;
+- child-document-first recovery ordering;
+- fatal/incompatible lesson outcomes preserve any already recovered child artwork;
+- fresh runtime generation for restored teacher/overview request IDs;
+- stale pre-recreation callbacks reject deterministically;
+- trace/help guide rehydration without child-history contamination;
+- paused teacher restart deferred until Resume;
+- persisted teacher-restart intent across failure/process death/Save & Exit;
+- RetryRecoverable behavior for teacher/overview playback failures;
+- post-drawing `ChooseColorWithMe`, `ChooseColorMyself`, `FinishForNow` contracts;
+- coloring handoff failure returns safely to retryable post-drawing choice;
+- process recreation during handoff normalizes safely;
+- all-three-mode recreation, corruption/fault injection, stale callback, fatal-revision and post-drawing persistence tests.
+
+### P2.6 — ACTIVE / NEXT
+
+Issue **#34 — Lesson Lab + physical verification + `0.2.0-lesson-engine` milestone release**.
+
+Definition of done must include:
+- integrated Lesson Lab exercising the real Lesson Engine, Drawing Engine and authored Cute Cat package rather than mocks;
+- all three teaching modes and five pace profiles available to engineering verification;
+- lifecycle/recovery and overlay-isolation diagnostics exposed sufficiently for verification;
+- complete automated CI gates green;
+- installable milestone APK produced;
+- physical Android verification recorded for required P2.6 scenarios;
+- milestone version/tag/release evidence and implementation/QA report committed;
+- any hardware-only exclusions remain explicit, never silently marked PASS.
 
 ## Architecture constraints
 

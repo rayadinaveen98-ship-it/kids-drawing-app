@@ -3,9 +3,10 @@
 **Working project:** Kids Drawing App  
 **Authoritative repository:** `rayadinaveen98-ship-it/kids-drawing-app`  
 **Current phase:** Phase 4 — Content & Studio Expansion / `0.4.0-content-studio`  
-**Current slice:** P4.3 — Representative Content Set A (#60)  
-**Active branch:** `phase4/p4-3-representative-content-a`  
-**Latest verified product milestone:** `0.3.0-vertical-slice` / versionCode 13  
+**Current implementation slice:** P4.4 — Free Draw Studio V1 Core (#61 / PR #69)  
+**Active branch:** `phase4/p4-4-free-draw-studio`  
+**Current QA candidate identity:** `0.4.0-content-studio-p4.4-qa1` / versionCode 16  
+**Latest fully verified product milestone:** `0.3.0-vertical-slice` / versionCode 13  
 **Last updated:** 2026-09-13
 
 Git is authoritative when chat memory and repository state disagree.
@@ -33,7 +34,7 @@ Proven and physically verified:
 - Samsung SM-A546E/API 36 physical matrix: 32/32 PASS;
 - no observed crash/deadlock in that matrix.
 
-The milestone implementation/release evidence is in `docs/releases/0.2.0-lesson-engine.md`. Repository tag `v0.2.0-lesson-engine` is not currently present; do not claim otherwise.
+Evidence: `docs/releases/0.2.0-lesson-engine.md`. Repository tag `v0.2.0-lesson-engine` is not currently present.
 
 ## Phase 3 — First Vertical Slice 0.3 — COMPLETE
 
@@ -44,16 +45,16 @@ onboarding → personalized Studio → lesson preview/companion → guided Cute 
 
 Final executable candidate evidence:
 - executable commit `e54f8dabfd9a9f1a7dab5b382cedb73438f151cd`;
-- candidate Android CI #307 / run `34706767213` GREEN;
+- Android CI #307 / run `34706767213` GREEN;
 - profile artifact ID `10301836886`;
 - APK size `16,080,880` bytes;
 - SHA-256 `2f622c116813c7a5830109994c104d4bb1623dc41f57cb4f463c4d6e5e385961`;
 - physical QA: 41/41 PASS;
 - P3.6 merge commit `7aa53375ed4e0c248335ed26d93bc8cace72bdf2`.
 
-Detailed evidence: `docs/10-execution/P3_6_PHYSICAL_QA.md` and `docs/10-execution/P3_6_RELEASE_REPORT.md`.
+Evidence: `docs/10-execution/P3_6_PHYSICAL_QA.md` and `docs/10-execution/P3_6_RELEASE_REPORT.md`.
 
-Repository tag `v0.3.0-vertical-slice` is not currently present; do not claim otherwise.
+Repository tag `v0.3.0-vertical-slice` is not currently present.
 
 ## Phase 4 — Content & Studio Expansion 0.4 — ACTIVE
 
@@ -72,29 +73,41 @@ Epic #57. Objective: turn the proven one-lesson vertical slice into a reusable o
 - Multi-lesson Studio recommendations, category and Art Journey discovery, stable lesson-ID/revision routing, cross-lesson recovery scanning and deterministic resume precedence.
 - Cute Cat revision 1 retains exact Phase 3 session/document identity for save compatibility; new lessons use deterministic lesson-specific identities.
 
-### P4.3 — Representative Content Set A — ACTIVE
-Issue #60.
+### P4.3 — Representative Content Set A — IMPLEMENTATION MERGED; PHYSICAL ACCEPTANCE STILL OPEN
 
-Target production set added on the active branch:
-- `smiling-sun` — Trace & Learn + Draw With Me; Little/Creative; First Shapes to Pictures;
-- `friendly-owl` — Draw With Me with complete authored Help Ladder levels 1–5; Creative/Growing; Animal Artist;
-- `simple-rocket` — Watch Then Draw; Creative/Growing; Space Artist;
-- `easy-flower` — grouped multi-stroke demonstrations; Little/Creative/Growing; prerequisite Smiling Sun.
+- Issue #60 remains OPEN intentionally.
+- PR #67 implementation was merged into `main` at `99767b71a8e4ea20b6d587e4951c822a386019e5`.
+- Merged-main Android CI #342 / run `34751781698` GREEN.
+- Added Smiling Sun, Friendly Owl, Simple Rocket and Easy Flower through the generic catalog/Lesson Engine path.
+- Added content-driven coloring capability gating; new Set A lessons remain drawing-only while Cute Cat preserves its existing coloring route.
+- The focused user retest accepted the concrete P4.3 blocking fixes that led to integration.
+- The broader physical/content matrix from `docs/10-execution/P4_3_CONTENT_QA.md` was not fully re-run. Do not claim it was. Those remaining cross-mode/content checks stay open and must be covered no later than P4.7.
 
-Cute Cat r1 remains unchanged as the regression baseline. New P4.3 lessons intentionally keep prepared-region coloring disabled; that work belongs to P4.5.
+### P4.4 — Free Draw Studio V1 Core — ACTIVE
 
-Automated production-catalog acceptance and content QA tracking live in:
-- `app/src/test/java/com/navin/kidsdrawing/lesson/content/RepresentativeContentSetATest.kt`
-- `docs/10-execution/P4_3_EXECUTION_CONTRACT.md`
-- `docs/10-execution/P4_3_CONTENT_QA.md`
+Issue #61 / draft PR #69. Execution contract: `docs/10-execution/P4_4_EXECUTION_CONTRACT.md`.
 
-P4.3 is not complete until exact-head CI, real product/device checks required by #60, merge, and merged-main CI are complete.
+Implemented on the active branch:
+- Home → production Free Draw route with no lesson prerequisite;
+- one stable authoritative `DrawingDocument` working identity: `free-draw-working-v1`;
+- atomic save/recovery using the existing drawing-document store;
+- separate persisted tool state for Pencil, Crayon, Marker, Eraser, color and size;
+- Undo/Redo and confirmation-only, undoable Clear;
+- Save & leave / resume and lifecycle save boundaries;
+- explicit `GalleryArtworkSource.FREE_DRAW` promotion with null lesson provenance;
+- Free Draw Gallery reopen/delete and working-document isolation;
+- lesson-independent Gallery browsing;
+- age-adaptive control density with a bounded internally scrollable tool tray so the canvas remains usable on smaller phones;
+- P4.4-specific JVM/domain tests and existing full Android CI regression gates.
+
+QA1 identity is `0.4.0-content-studio-p4.4-qa1`, versionCode 16. QA record: `docs/10-execution/P4_4_FREE_DRAW_QA.md`.
+
+P4.4 is NOT complete until the final exact-head candidate is green and its physical/product Free Draw matrix is recorded. PR #69 must remain draft until then.
 
 ### Remaining Phase 4 slices
-- P4.4 — Free Draw Studio V1 Core (#61)
 - P4.5 — Coloring V1 Expansion (#62)
 - P4.6 — Representative Content Set B + cross-content QA (#63)
-- P4.7 — End-to-end QA + `0.4.0-content-studio` release (#64)
+- P4.7 — End-to-end QA + `0.4.0-content-studio` release (#64), including any still-open P4.3 physical/content coverage.
 
 ## Frozen architecture invariants
 
@@ -110,10 +123,12 @@ P4.3 is not complete until exact-head CI, real product/device checks required by
 
 ## Immediate next action
 
-1. Finish P4.3 branch and exact-head CI.
-2. Execute/record P4.3 product and physical content checks without overstating unperformed validation.
-3. Merge P4.3 only when #60 acceptance is satisfied; verify merged-main CI; close #60.
-4. Begin P4.4 Free Draw Studio V1 Core.
+1. Freeze one exact P4.4 QA1 commit and require exact-head Android CI green.
+2. Record its profile artifact ID, size and SHA-256 in `P4_4_FREE_DRAW_QA.md`.
+3. Physically execute the P4.4 Free Draw matrix without overstating unperformed checks.
+4. Fix any device defects, rerun exact-head CI, then mark PR #69 ready/merge only when #61 acceptance is actually demonstrated.
+5. Verify merged-main CI and close #61 only after that gate.
+6. Move to P4.5; retain P4.3's still-open physical/content coverage for P4.7 if it has not been completed earlier.
 
 ## Continuation rule
 
@@ -122,8 +137,9 @@ A new chat/developer session should inspect, in order:
 2. `docs/HANDOFF.md`
 3. `ROADMAP.md`
 4. Phase 4 epic #57
-5. current active slice issue/PR/contract (currently #60 / P4.3)
-6. `docs/05_CONTENT_ARCHITECTURE.md`, `docs/16_LESSON_PACKAGE_AND_AUTHORING.md`, `docs/17_TAXONOMY_AND_STARTER_CURRICULUM.md`
-7. relevant engine/visual specifications
+5. current active slice issue/PR/contract (currently #61 / PR #69 / P4.4)
+6. `docs/10-execution/P4_4_FREE_DRAW_QA.md`
+7. still-open P4.3 issue #60 and `docs/10-execution/P4_3_CONTENT_QA.md`
+8. relevant engine/visual specifications.
 
 Do not reopen frozen Drawing/Lesson Engine architecture without a concrete defect and explicit contract/ADR change.

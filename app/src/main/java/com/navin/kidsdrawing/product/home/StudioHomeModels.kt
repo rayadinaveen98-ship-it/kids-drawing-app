@@ -9,12 +9,16 @@ import com.navin.kidsdrawing.lesson.session.LessonSnapshotPhase
 import com.navin.kidsdrawing.product.profile.AgeBand
 import com.navin.kidsdrawing.product.profile.ChildInterest
 import com.navin.kidsdrawing.product.profile.ChildProfile
+import kotlin.math.abs
 
 enum class StudioDestination {
     HOME,
     LESSON_START,
     LESSON_RESUME,
     COLORING_RESUME,
+    LESSON_SELECTED,
+    CATEGORY,
+    JOURNEY,
     ART_JOURNEY,
     FREE_DRAW,
     GALLERY,
@@ -45,6 +49,9 @@ data class LessonRecommendation(
     val reason: RecommendationReason,
     val primarySkillIds: List<String>,
     val journeyIds: List<String>,
+    val categoryIds: List<String> = emptyList(),
+    val tags: List<String> = emptyList(),
+    val prerequisiteLessonIds: List<String> = emptyList(),
 ) {
     val actionLabel: String
         get() = when (defaultMode) {
@@ -91,11 +98,37 @@ data class ColoringResumeCandidate(
         get() = "Your drawing is safe · continue adding color"
 }
 
+data class StudioCategory(
+    val categoryId: String,
+    val title: String,
+    val lessons: List<LessonRecommendation>,
+) {
+    val lessonCount: Int
+        get() = lessons.size
+}
+
+data class StudioJourney(
+    val journeyId: String,
+    val title: String,
+    val lessons: List<LessonRecommendation>,
+    val activeLessonId: String? = null,
+) {
+    val progressLabel: String
+        get() = activeLessonId?.let { active ->
+            val index = lessons.indexOfFirst { it.lessonId == active }
+            if (index >= 0) "Lesson ${index + 1} of ${lessons.size} in progress"
+            else "${lessons.size} lessons"
+        } ?: "${lessons.size} lessons"
+}
+
 data class StudioHomeModel(
     val recommendation: LessonRecommendation?,
     val resumeCandidate: ResumeLessonCandidate?,
     val coloringResumeCandidate: ColoringResumeCandidate? = null,
     val contentMessage: String? = null,
+    val recommendations: List<LessonRecommendation> = listOfNotNull(recommendation),
+    val categories: List<StudioCategory> = emptyList(),
+    val journeys: List<StudioJourney> = emptyList(),
 )
 
 enum class HomeCardDensity {
@@ -109,6 +142,7 @@ data class HomePresentationPolicy(
     val showDifficulty: Boolean,
     val showSkills: Boolean,
     val twoColumnSecondaryCards: Boolean,
+    val recommendationLimit: Int = 3,
 )
 
 object StudioRecommendationPolicy {
@@ -151,8 +185,57 @@ object StudioRecommendationPolicy {
             reason = reason,
             primarySkillIds = lesson.metadata.skillIds.take(3),
             journeyIds = lesson.metadata.journeyIds,
+            categoryIds = lesson.metadata.categoryIds,
+            tags = lesson.metadata.tags,
+            prerequisiteLessonIds = lesson.metadata.prerequisiteLessonIds,
         )
     }
+
+    fun rank(
+        profile: ChildProfile,
+        recommendations: List<LessonRecommendation>,
+    ): List<LessonRecommendation> {
+        val targetDifficulty = targetDifficulty(profile.ageBand)
+        return recommendations.sortedWith(
+            compareByDescending<LessonRecommendation> { it.ageFit == LessonAgeFit.EXACT }
+                .thenByDescending { it.reason == RecommendationReason.INTEREST_MATCH }
+                .thenByDescending { it.defaultMode == profile.teachingMode }
+                .thenBy { abs(it.difficulty - targetDifficulty) }
+                .thenBy { it.lessonId }
+                .thenBy { it.lessonRevision },
+        )
+    }
+
+    fun categories(recommendations: List<LessonRecommendation>): List<StudioCategory> =
+        recommendations
+            .flatMap { recommendation -> recommendation.categoryIds.map { it to recommendation } }
+            .groupBy(keySelector = { it.first }, valueTransform = { it.second })
+            .toSortedMap()
+            .map { (categoryId, lessons) ->
+                StudioCategory(
+                    categoryId = categoryId,
+                    title = categoryId.toTaxonomyTitle(),
+                    lessons = lessons.distinctBy { it.lessonId to it.lessonRevision },
+                )
+            }
+
+    fun journeys(
+        recommendations: List<LessonRecommendation>,
+        activeLessonId: String? = null,
+    ): List<StudioJourney> = recommendations
+        .flatMap { recommendation -> recommendation.journeyIds.map { it to recommendation } }
+        .groupBy(keySelector = { it.first }, valueTransform = { it.second })
+        .toSortedMap()
+        .map { (journeyId, lessons) ->
+            StudioJourney(
+                journeyId = journeyId,
+                title = journeyId.toTaxonomyTitle(),
+                lessons = orderJourneyLessons(lessons.distinctBy { it.lessonId to it.lessonRevision }),
+                activeLessonId = activeLessonId?.takeIf { active ->
+                    lessons.any { it.lessonId == active }
+                },
+            )
+        }
 
     fun presentationFor(ageBand: AgeBand): HomePresentationPolicy = when (ageBand) {
         AgeBand.LITTLE_ARTIST -> HomePresentationPolicy(
@@ -160,6 +243,7 @@ object StudioRecommendationPolicy {
             showDifficulty = false,
             showSkills = false,
             twoColumnSecondaryCards = false,
+            recommendationLimit = 2,
         )
 
         AgeBand.CREATIVE_EXPLORER -> HomePresentationPolicy(
@@ -167,6 +251,7 @@ object StudioRecommendationPolicy {
             showDifficulty = true,
             showSkills = false,
             twoColumnSecondaryCards = false,
+            recommendationLimit = 3,
         )
 
         AgeBand.GROWING_ARTIST -> HomePresentationPolicy(
@@ -174,6 +259,7 @@ object StudioRecommendationPolicy {
             showDifficulty = true,
             showSkills = true,
             twoColumnSecondaryCards = true,
+            recommendationLimit = 4,
         )
 
         AgeBand.YOUNG_ARTIST -> HomePresentationPolicy(
@@ -181,6 +267,7 @@ object StudioRecommendationPolicy {
             showDifficulty = true,
             showSkills = true,
             twoColumnSecondaryCards = true,
+            recommendationLimit = 4,
         )
     }
 
@@ -208,6 +295,35 @@ object StudioRecommendationPolicy {
         )
     }
 
+    private fun orderJourneyLessons(
+        lessons: List<LessonRecommendation>,
+    ): List<LessonRecommendation> {
+        val remaining = lessons.associateBy { it.lessonId }.toMutableMap()
+        val ordered = mutableListOf<LessonRecommendation>()
+        while (remaining.isNotEmpty()) {
+            val remainingIds = remaining.keys
+            val ready = remaining.values
+                .filter { lesson -> lesson.prerequisiteLessonIds.none { it in remainingIds } }
+                .sortedWith(compareBy({ it.lessonId }, { it.lessonRevision }))
+            if (ready.isEmpty()) {
+                ordered += remaining.values.sortedWith(compareBy({ it.lessonId }, { it.lessonRevision }))
+                break
+            }
+            ready.forEach { lesson ->
+                ordered += lesson
+                remaining.remove(lesson.lessonId)
+            }
+        }
+        return ordered
+    }
+
+    private fun targetDifficulty(ageBand: AgeBand): Int = when (ageBand) {
+        AgeBand.LITTLE_ARTIST -> 1
+        AgeBand.CREATIVE_EXPLORER -> 2
+        AgeBand.GROWING_ARTIST -> 3
+        AgeBand.YOUNG_ARTIST -> 4
+    }
+
     private fun AgeBand.toLessonAgeBand(): LessonAgeBand = when (this) {
         AgeBand.LITTLE_ARTIST -> LessonAgeBand.LITTLE_ARTISTS
         AgeBand.CREATIVE_EXPLORER -> LessonAgeBand.CREATIVE_EXPLORERS
@@ -223,4 +339,8 @@ object StudioRecommendationPolicy {
         ChildInterest.SPACE -> setOf("space", "astronomy")
         ChildInterest.FANTASY -> setOf("fantasy", "magic")
     }
+
+    private fun String.toTaxonomyTitle(): String = split('-', '_', '.')
+        .filter(String::isNotBlank)
+        .joinToString(" ") { token -> token.replaceFirstChar { it.uppercaseChar() } }
 }

@@ -59,6 +59,7 @@ fun GalleryAwareGuidedLessonWorkspace(
     onExitToHome: () -> Unit,
 ) {
     val sessionState by lessonRuntime.sessionState.collectAsState()
+    val coloringAvailable = lessonRuntime.coloringAvailable
     val drawingCompletionBoundary = sessionState is LessonSessionState.DrawingComplete ||
         sessionState is LessonSessionState.AwaitingPostDrawingChoice ||
         (sessionState as? LessonSessionState.Finished)?.reason == LessonFinishReason.FINISHED_FOR_NOW
@@ -84,7 +85,8 @@ fun GalleryAwareGuidedLessonWorkspace(
                 artworkTitle = artworkTitle,
                 onColoringReady = onColoringReady,
                 onArtworkCompleted = onArtworkCompleted,
-                allowColoringChoices = sessionState !is LessonSessionState.Finished,
+                coloringAvailable = coloringAvailable,
+                allowColoringChoices = coloringAvailable && sessionState !is LessonSessionState.Finished,
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
         }
@@ -148,6 +150,7 @@ private fun DrawingCompletionOverlay(
     artworkTitle: String,
     onColoringReady: () -> Unit,
     onArtworkCompleted: (String) -> Unit,
+    coloringAvailable: Boolean,
     allowColoringChoices: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -170,15 +173,19 @@ private fun DrawingCompletionOverlay(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Text(
-                text = if (allowColoringChoices) "Your drawing is ready" else "Save your finished drawing",
+                text = when {
+                    allowColoringChoices -> "Your drawing is ready"
+                    !coloringAvailable -> "Your drawing is ready"
+                    else -> "Save your finished drawing"
+                },
                 style = MaterialTheme.typography.titleMedium,
                 color = StudioColors.Ink900,
             )
             Text(
-                text = if (allowColoringChoices) {
-                    "Add color, or save this drawing to your Gallery."
-                } else {
-                    "The drawing is finished. Try saving it to your Gallery again."
+                text = when {
+                    allowColoringChoices -> "Add color, or save this drawing to your Gallery."
+                    !coloringAvailable -> "This lesson ends with your drawing. Save it to your Gallery when you’re ready."
+                    else -> "The drawing is finished. Try saving it to your Gallery again."
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = StudioColors.Ink600,

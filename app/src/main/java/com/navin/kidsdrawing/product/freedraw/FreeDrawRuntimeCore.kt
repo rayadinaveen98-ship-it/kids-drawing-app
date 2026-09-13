@@ -129,9 +129,12 @@ internal class FreeDrawRuntimeCore(
     suspend fun onBackground() = saveNow()
 
     suspend fun resetAfterGalleryPromotion() {
+        // The promoted Gallery document is already independent at this point. Persist the fresh
+        // working canvas before exposing it in memory so a rare storage failure can never leave
+        // the UI blank while the durable resume file still contains the pre-finish artwork.
         val blank = newWorkingDocument()
-        documentEngine.replaceDocument(blank)
         documentStore.save(blank)
+        documentEngine.replaceDocument(blank)
     }
 
     fun hasVisibleArtwork(): Boolean = documentEngine.state.value.document.activeInkStrokes().isNotEmpty()

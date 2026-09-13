@@ -7,6 +7,7 @@ import com.navin.kidsdrawing.drawing.infrastructure.persistence.AtomicDrawingDoc
 import com.navin.kidsdrawing.gallery.domain.ArtworkCompletionCoordinator
 import com.navin.kidsdrawing.gallery.domain.ArtworkCompletionPort
 import com.navin.kidsdrawing.gallery.domain.ArtworkCompletionResult
+import com.navin.kidsdrawing.gallery.domain.GalleryArtworkSource
 import com.navin.kidsdrawing.gallery.domain.GalleryCompletionKind
 import com.navin.kidsdrawing.gallery.domain.GalleryDeleteResult
 import com.navin.kidsdrawing.gallery.domain.GalleryListResult
@@ -59,6 +60,7 @@ class ProductGalleryRuntime(
     fun previewFile(reference: String): File? = previewService.fileFor(reference)
 
     private inner class DrawingCompletionPort : ArtworkCompletionPort {
+        override val source: GalleryArtworkSource = GalleryArtworkSource.LESSON
         override val completionKind: GalleryCompletionKind = GalleryCompletionKind.DRAWING_ONLY
         override val currentDocument: DrawingDocument
             get() = lessonRuntime.documentEngine.state.value.document
@@ -81,6 +83,7 @@ class ProductGalleryRuntime(
     }
 
     private inner class ColoringCompletionPort : ArtworkCompletionPort {
+        override val source: GalleryArtworkSource = GalleryArtworkSource.LESSON
         override val completionKind: GalleryCompletionKind = GalleryCompletionKind.COLORED
         override val currentDocument: DrawingDocument
             get() = coloringRuntime.documentEngine.state.value.document

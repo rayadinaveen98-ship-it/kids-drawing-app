@@ -79,46 +79,46 @@ jobs:
 
           echo "Permission allowlist passed for debug and profile APKs."
 
-      - name: Package Lesson Engine 0.2 APK evidence
+      - name: Package Vertical Slice 0.3 APK evidence
         shell: bash
         run: |
           set -euo pipefail
-          EVIDENCE_DIR="app/build/outputs/milestone/0.2.0-lesson-engine"
+          EVIDENCE_DIR="app/build/outputs/milestone/0.3.0-vertical-slice"
           mkdir -p "$EVIDENCE_DIR"
           cp app/build/outputs/apk/debug/app-debug.apk \
-            "$EVIDENCE_DIR/Kids_Drawing_0.2.0_Lesson_Engine-debug.apk"
+            "$EVIDENCE_DIR/Kids_Drawing_0.3.0_Vertical_Slice-debug.apk"
           cp app/build/outputs/apk/profile/app-profile.apk \
-            "$EVIDENCE_DIR/Kids_Drawing_0.2.0_Lesson_Engine-profile.apk"
+            "$EVIDENCE_DIR/Kids_Drawing_0.3.0_Vertical_Slice-profile.apk"
           (
             cd "$EVIDENCE_DIR"
             sha256sum \
-              Kids_Drawing_0.2.0_Lesson_Engine-debug.apk \
-              Kids_Drawing_0.2.0_Lesson_Engine-profile.apk \
+              Kids_Drawing_0.3.0_Vertical_Slice-debug.apk \
+              Kids_Drawing_0.3.0_Vertical_Slice-profile.apk \
               | tee SHA256SUMS.txt
             stat -c '%n %s bytes' \
-              Kids_Drawing_0.2.0_Lesson_Engine-debug.apk \
-              Kids_Drawing_0.2.0_Lesson_Engine-profile.apk \
+              Kids_Drawing_0.3.0_Vertical_Slice-debug.apk \
+              Kids_Drawing_0.3.0_Vertical_Slice-profile.apk \
               | tee APK_SIZES.txt
           )
 
-      - name: Upload Lesson Engine 0.2 debug APK
+      - name: Upload Vertical Slice 0.3 debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-0.2.0-lesson-engine-debug
+          name: kids-drawing-0.3.0-vertical-slice-debug
           path: |
-            app/build/outputs/milestone/0.2.0-lesson-engine/Kids_Drawing_0.2.0_Lesson_Engine-debug.apk
-            app/build/outputs/milestone/0.2.0-lesson-engine/SHA256SUMS.txt
-            app/build/outputs/milestone/0.2.0-lesson-engine/APK_SIZES.txt
+            app/build/outputs/milestone/0.3.0-vertical-slice/Kids_Drawing_0.3.0_Vertical_Slice-debug.apk
+            app/build/outputs/milestone/0.3.0-vertical-slice/SHA256SUMS.txt
+            app/build/outputs/milestone/0.3.0-vertical-slice/APK_SIZES.txt
           if-no-files-found: error
           retention-days: 14
 
-      - name: Upload Lesson Engine 0.2 release-like profile APK
+      - name: Upload Vertical Slice 0.3 release-like profile APK
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-0.2.0-lesson-engine-profile
+          name: kids-drawing-0.3.0-vertical-slice-profile
           path: |
-            app/build/outputs/milestone/0.2.0-lesson-engine/Kids_Drawing_0.2.0_Lesson_Engine-profile.apk
-            app/build/outputs/milestone/0.2.0-lesson-engine/SHA256SUMS.txt
-            app/build/outputs/milestone/0.2.0-lesson-engine/APK_SIZES.txt
+            app/build/outputs/milestone/0.3.0-vertical-slice/Kids_Drawing_0.3.0_Vertical_Slice-profile.apk
+            app/build/outputs/milestone/0.3.0-vertical-slice/SHA256SUMS.txt
+            app/build/outputs/milestone/0.3.0-vertical-slice/APK_SIZES.txt
           if-no-files-found: error
           retention-days: 14

@@ -74,8 +74,6 @@ fun GalleryAwareGuidedLessonWorkspace(
             onFreshSessionStarted = onFreshSessionStarted,
             onColoringReady = onColoringReady,
             onExitToHome = onExitToHome,
-            // Covered by the product-owned completion overlay below whenever this callback could be
-            // reached. Keeping it inert prevents a second semantic FinishForNow path.
             onFinishedForNow = {},
         )
 
@@ -93,7 +91,7 @@ fun GalleryAwareGuidedLessonWorkspace(
     }
 }
 
-/** Product wrapper that replaces only the final coloring action while leaving canvas/tools intact. */
+/** Product wrapper that owns the final coloring→Gallery transaction. */
 @Composable
 fun GalleryAwareColoringWorkspace(
     coloringRuntime: ProductColoringRuntime,
@@ -105,21 +103,38 @@ fun GalleryAwareColoringWorkspace(
     onExitToHome: () -> Unit,
 ) {
     val semantic by coloringRuntime.sessionState.collectAsState()
+    var completionInFlight by remember { mutableStateOf(false) }
+
     Box(modifier = Modifier.fillMaxSize()) {
         ColoringWorkspaceScreen(
             runtime = coloringRuntime,
             ageBand = ageBand,
             recoverRequested = recoverRequested,
             onExitToHome = onExitToHome,
+            onFinishColoring = {
+                if (completionInFlight) {
+                    false
+                } else {
+                    completionInFlight = true
+                    when (val result = galleryRuntime.finishColoring(artworkTitle)) {
+                        is ArtworkCompletionResult.Saved -> {
+                            onArtworkCompleted(result.record.entryId)
+                            true
+                        }
+                        is ArtworkCompletionResult.Failed -> {
+                            completionInFlight = false
+                            false
+                        }
+                    }
+                }
+            },
         )
-        if (semantic?.phase == ColoringSessionPhase.ACTIVE ||
-            semantic?.phase == ColoringSessionPhase.FINISHED
-        ) {
+
+        if (semantic?.phase == ColoringSessionPhase.FINISHED && !completionInFlight) {
             ColoringCompletionOverlay(
                 galleryRuntime = galleryRuntime,
                 artworkTitle = artworkTitle,
                 onArtworkCompleted = onArtworkCompleted,
-                retryingFinishedState = semantic?.phase == ColoringSessionPhase.FINISHED,
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
         }
@@ -243,7 +258,6 @@ private fun ColoringCompletionOverlay(
     galleryRuntime: ProductGalleryRuntime,
     artworkTitle: String,
     onArtworkCompleted: (String) -> Unit,
-    retryingFinishedState: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
@@ -263,13 +277,11 @@ private fun ColoringCompletionOverlay(
             modifier = Modifier.padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            if (retryingFinishedState) {
-                Text(
-                    text = "Your coloring is finished. Try saving it to your Gallery again.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = StudioColors.Ink600,
-                )
-            }
+            Text(
+                text = "Your coloring is finished. Try saving it to your Gallery again.",
+                style = MaterialTheme.typography.bodySmall,
+                color = StudioColors.Ink600,
+            )
             message?.let {
                 Text(it, style = MaterialTheme.typography.bodySmall, color = StudioColors.Coral500)
             }
@@ -292,7 +304,7 @@ private fun ColoringCompletionOverlay(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 52.dp),
-            ) { Text(if (busy) "Saving artwork…" else "Finish coloring") }
+            ) { Text(if (busy) "Saving artwork…" else "Try saving again") }
         }
     }
 }

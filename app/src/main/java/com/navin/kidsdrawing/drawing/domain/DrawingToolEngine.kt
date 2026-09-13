@@ -9,8 +9,31 @@ enum class DrawingTool {
     ERASER,
 }
 
+enum class DrawingBrushPreset(
+    val persistedPresetId: String,
+    val defaultWidth: Float,
+    val opacity: Float,
+) {
+    PENCIL(
+        persistedPresetId = "pencil.standard",
+        defaultWidth = 10f,
+        opacity = 1f,
+    ),
+    CRAYON(
+        persistedPresetId = "crayon.standard",
+        defaultWidth = 18f,
+        opacity = 0.62f,
+    ),
+    MARKER(
+        persistedPresetId = "marker.standard",
+        defaultWidth = 24f,
+        opacity = 1f,
+    ),
+}
+
 data class DrawingToolSettings(
     val tool: DrawingTool = DrawingTool.PENCIL,
+    val brushPreset: DrawingBrushPreset = DrawingBrushPreset.PENCIL,
     val colorArgb: Int = DEFAULT_PENCIL_COLOR_ARGB,
     val width: Float = DEFAULT_PENCIL_WIDTH,
 ) {
@@ -31,7 +54,10 @@ data class DrawingToolSettings(
 
 /**
  * Product-owned tool state. Feature UI observes this engine and sends commands; it never owns the
- * authoritative tool/color/width values used by the low-level drawing surface.
+ * authoritative tool/color/width/brush values used by the low-level drawing surface.
+ *
+ * [DrawingBrushPreset.PENCIL] deliberately preserves the pre-P4.4 default so guided lessons keep
+ * their verified rendering behavior. Free Draw explicitly selects the child-facing preset.
  */
 class DrawingToolEngine(
     initialSettings: DrawingToolSettings = DrawingToolSettings(),
@@ -44,10 +70,22 @@ class DrawingToolEngine(
         val nextWidth = when {
             tool == current.tool -> current.width
             tool == DrawingTool.ERASER && current.width < 16f -> DrawingToolSettings.DEFAULT_ERASER_WIDTH
-            tool == DrawingTool.PENCIL && current.width > 40f -> DrawingToolSettings.DEFAULT_PENCIL_WIDTH
+            tool == DrawingTool.PENCIL && current.width > 40f -> current.brushPreset.defaultWidth
             else -> current.width
         }
         _state.value = current.copy(tool = tool, width = nextWidth)
+    }
+
+    fun selectBrushPreset(preset: DrawingBrushPreset) {
+        val current = _state.value
+        _state.value = current.copy(
+            tool = DrawingTool.PENCIL,
+            brushPreset = preset,
+            width = preset.defaultWidth.coerceIn(
+                DrawingToolSettings.MIN_TOOL_WIDTH,
+                DrawingToolSettings.MAX_TOOL_WIDTH,
+            ),
+        )
     }
 
     fun setColor(colorArgb: Int) {

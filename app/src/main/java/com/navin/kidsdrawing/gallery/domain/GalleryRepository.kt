@@ -29,6 +29,7 @@ object NoOpGalleryPreviewService : GalleryPreviewService {
 
 enum class GalleryPromotionFailureCode {
     EMPTY_ARTWORK,
+    INVALID_PROVENANCE,
     DOCUMENT_SAVE_FAILED,
     CATALOG_SAVE_FAILED,
 }
@@ -88,6 +89,7 @@ class GalleryRepository(
     suspend fun promoteCompletedArtwork(
         workingDocument: DrawingDocument,
         title: String,
+        source: GalleryArtworkSource,
         completionKind: GalleryCompletionKind,
     ): GalleryPromotionResult {
         if (workingDocument.activeInkStrokes().isEmpty()) {
@@ -95,6 +97,23 @@ class GalleryRepository(
                 GalleryPromotionFailureCode.EMPTY_ARTWORK,
                 "There is no finished child drawing to save to Gallery.",
             )
+        }
+
+        val lessonId = workingDocument.metadata.lessonId
+        val lessonRevision = workingDocument.metadata.lessonRevision
+        when (source) {
+            GalleryArtworkSource.LESSON -> if (lessonId == null || lessonRevision == null) {
+                return GalleryPromotionResult.Failed(
+                    GalleryPromotionFailureCode.INVALID_PROVENANCE,
+                    "Lesson artwork is missing its lesson identity. Your drawing is still safe.",
+                )
+            }
+            GalleryArtworkSource.FREE_DRAW -> if (lessonId != null || lessonRevision != null) {
+                return GalleryPromotionResult.Failed(
+                    GalleryPromotionFailureCode.INVALID_PROVENANCE,
+                    "Free Draw artwork cannot be saved with lesson identity attached.",
+                )
+            }
         }
 
         val completedAt = clockMillis().coerceAtLeast(0L)
@@ -116,9 +135,9 @@ class GalleryRepository(
             entryId = entryId,
             documentId = galleryDocumentId,
             title = title,
-            source = GalleryArtworkSource.LESSON,
-            lessonId = promoted.metadata.lessonId,
-            lessonRevision = promoted.metadata.lessonRevision,
+            source = source,
+            lessonId = lessonId,
+            lessonRevision = lessonRevision,
             completionKind = completionKind,
             completedAtEpochMillis = completedAt,
         )
@@ -193,12 +212,18 @@ class GalleryRepository(
             ?: return GalleryReopenResult.ArtworkMissing
         val document = loadedDocument.document
         if (document.documentId != record.documentId) return GalleryReopenResult.ArtworkIncompatible
-        if (record.lessonId != null && (
+        when (record.source) {
+            GalleryArtworkSource.LESSON -> if (
                 document.metadata.lessonId != record.lessonId ||
-                    document.metadata.lessonRevision != record.lessonRevision
-                )
-        ) {
-            return GalleryReopenResult.ArtworkIncompatible
+                document.metadata.lessonRevision != record.lessonRevision
+            ) {
+                return GalleryReopenResult.ArtworkIncompatible
+            }
+            GalleryArtworkSource.FREE_DRAW -> if (
+                document.metadata.lessonId != null || document.metadata.lessonRevision != null
+            ) {
+                return GalleryReopenResult.ArtworkIncompatible
+            }
         }
         return GalleryReopenResult.Ready(record, document)
     }

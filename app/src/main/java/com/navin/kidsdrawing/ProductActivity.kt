@@ -29,6 +29,8 @@ import com.navin.kidsdrawing.lesson.content.LessonCatalogIdentity
 import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
 import com.navin.kidsdrawing.product.design.StudioColors
 import com.navin.kidsdrawing.product.design.StudioTheme
+import com.navin.kidsdrawing.product.freedraw.FreeDrawScreen
+import com.navin.kidsdrawing.product.freedraw.ProductFreeDrawRuntime
 import com.navin.kidsdrawing.product.gallery.ArtworkCompletionScreen
 import com.navin.kidsdrawing.product.gallery.GalleryArtworkDetailScreen
 import com.navin.kidsdrawing.product.gallery.GalleryAwareColoringWorkspace
@@ -112,6 +114,13 @@ private fun ProductRoot(store: ChildProfileStore) {
 private fun ProductStudio(profile: ChildProfile) {
     val context = LocalContext.current
     val repository = remember(context) { StudioHomeRepository(context) }
+    val freeDrawRuntime = remember(context) { ProductFreeDrawRuntime(context) }
+    val galleryBrowserRuntime = remember(context) {
+        ProductGalleryRuntime(
+            context = context,
+            protectedWorkingDocumentId = ProductFreeDrawRuntime.WORKING_DOCUMENT_ID,
+        )
+    }
     var routeName by rememberSaveable { mutableStateOf(StudioDestination.HOME.name) }
     val route = runCatching { StudioDestination.valueOf(routeName) }
         .getOrDefault(StudioDestination.HOME)
@@ -184,25 +193,20 @@ private fun ProductStudio(profile: ChildProfile) {
     }
 
     completionEntryId?.let { entryId ->
-        val gallery = galleryRuntime
-        if (gallery != null) {
-            ArtworkCompletionScreen(
-                runtime = gallery,
-                entryId = entryId,
-                onSeeGallery = {
-                    completionEntryId = null
-                    selectedGalleryEntryId = null
-                    routeName = StudioDestination.GALLERY.name
-                },
-                onBackToStudio = {
-                    completionEntryId = null
-                    selectedGalleryEntryId = null
-                    routeName = StudioDestination.HOME.name
-                },
-            )
-        } else {
-            LoadingStudio()
-        }
+        ArtworkCompletionScreen(
+            runtime = galleryBrowserRuntime,
+            entryId = entryId,
+            onSeeGallery = {
+                completionEntryId = null
+                selectedGalleryEntryId = null
+                routeName = StudioDestination.GALLERY.name
+            },
+            onBackToStudio = {
+                completionEntryId = null
+                selectedGalleryEntryId = null
+                routeName = StudioDestination.HOME.name
+            },
+        )
         return
     }
 
@@ -322,29 +326,28 @@ private fun ProductStudio(profile: ChildProfile) {
             }
         }
 
+        StudioDestination.FREE_DRAW -> FreeDrawScreen(
+            runtime = freeDrawRuntime,
+            ageBand = profile.ageBand,
+            onExitToHome = { routeName = StudioDestination.HOME.name },
+            onArtworkCompleted = { entryId -> completionEntryId = entryId },
+        )
+
         StudioDestination.GALLERY -> {
-            val gallery = galleryRuntime
-            if (gallery == null) {
-                StudioPlaceholderRoute(
-                    destination = StudioDestination.GALLERY,
+            val selected = selectedGalleryEntryId
+            if (selected == null) {
+                GalleryScreen(
+                    runtime = galleryBrowserRuntime,
+                    onOpenArtwork = { entryId -> selectedGalleryEntryId = entryId },
                     onBack = { routeName = StudioDestination.HOME.name },
                 )
             } else {
-                val selected = selectedGalleryEntryId
-                if (selected == null) {
-                    GalleryScreen(
-                        runtime = gallery,
-                        onOpenArtwork = { entryId -> selectedGalleryEntryId = entryId },
-                        onBack = { routeName = StudioDestination.HOME.name },
-                    )
-                } else {
-                    GalleryArtworkDetailScreen(
-                        runtime = gallery,
-                        entryId = selected,
-                        onBack = { selectedGalleryEntryId = null },
-                        onDeleted = { selectedGalleryEntryId = null },
-                    )
-                }
+                GalleryArtworkDetailScreen(
+                    runtime = galleryBrowserRuntime,
+                    entryId = selected,
+                    onBack = { selectedGalleryEntryId = null },
+                    onDeleted = { selectedGalleryEntryId = null },
+                )
             }
         }
 

@@ -35,7 +35,9 @@ internal object InkStrokeRehydrator {
     private fun brushFor(record: InkStrokeRecord): Brush {
         val family = when (record.brushPresetId) {
             "pencil.standard" -> StockBrushes.pressurePen(StockBrushes.PressurePenVersion.V1)
-            "marker.standard" -> StockBrushes.marker(StockBrushes.MarkerVersion.V1)
+            "crayon.standard",
+            "marker.standard",
+            -> StockBrushes.marker(StockBrushes.MarkerVersion.V1)
             else -> when (record.tool) {
                 PointerTool.STYLUS,
                 PointerTool.STYLUS_ERASER,

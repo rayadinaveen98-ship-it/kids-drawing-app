@@ -33,6 +33,7 @@ class ArtworkCompletionCoordinatorTest {
 
             assertTrue(result is ArtworkCompletionResult.Saved)
             result as ArtworkCompletionResult.Saved
+            assertEquals(GalleryArtworkSource.LESSON, result.record.source)
             assertEquals(GalleryCompletionKind.DRAWING_ONLY, result.record.completionKind)
             assertEquals(listOf("save-before", "finish-semantic", "save-after"), events)
             val catalog = catalogStore.load() as AtomicGalleryCatalogStore.LoadResult.Loaded
@@ -50,6 +51,7 @@ class ArtworkCompletionCoordinatorTest {
 
             val result = coordinator.complete(port, "Cute Cat") as ArtworkCompletionResult.Saved
 
+            assertEquals(GalleryArtworkSource.LESSON, result.record.source)
             assertEquals(GalleryCompletionKind.COLORED, result.record.completionKind)
             assertTrue(result.document.hasColoringOperations())
             assertEquals(2, result.document.operations.size)
@@ -121,6 +123,7 @@ class ArtworkCompletionCoordinatorTest {
     private class FakePort(
         override val completionKind: GalleryCompletionKind,
         override val currentDocument: DrawingDocument,
+        override val source: GalleryArtworkSource = GalleryArtworkSource.LESSON,
         private val finishAccepted: Boolean = true,
         val events: MutableList<String> = mutableListOf(),
     ) : ArtworkCompletionPort {

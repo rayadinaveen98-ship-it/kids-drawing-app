@@ -39,6 +39,14 @@ data class GalleryArtworkRecord(
             "Lesson provenance must include both lesson ID and revision or neither."
         }
         lessonRevision?.let { require(it >= 1) { "Lesson revision must be positive." } }
+        when (source) {
+            GalleryArtworkSource.LESSON -> require(lessonId != null && lessonRevision != null) {
+                "Lesson Gallery artwork requires lesson ID and revision provenance."
+            }
+            GalleryArtworkSource.FREE_DRAW -> require(lessonId == null && lessonRevision == null) {
+                "Free Draw Gallery artwork cannot carry lesson provenance."
+            }
+        }
         when (previewStatus) {
             GalleryPreviewStatus.READY -> require(!previewReference.isNullOrBlank()) {
                 "Ready Gallery preview requires a reference."

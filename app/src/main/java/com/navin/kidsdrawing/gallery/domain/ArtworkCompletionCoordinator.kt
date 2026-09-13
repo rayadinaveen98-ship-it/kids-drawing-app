@@ -4,13 +4,14 @@ import com.navin.kidsdrawing.drawing.domain.DrawingDocument
 
 /** Engine-facing completion port. UI must never implement completion ordering itself. */
 interface ArtworkCompletionPort {
+    val source: GalleryArtworkSource
     val completionKind: GalleryCompletionKind
     val currentDocument: DrawingDocument
 
     /** Durable working-artwork/session boundary before semantic completion. */
     suspend fun saveBeforeFinish()
 
-    /** Returns true only when the owning Lesson/Coloring engine accepts completion. */
+    /** Returns true only when the owning product runtime accepts completion. */
     suspend fun finishSemanticState(): Boolean
 
     /** Persists the finished semantic snapshot before Gallery promotion begins. */
@@ -44,6 +45,7 @@ class ArtworkCompletionCoordinator(
             when (val promoted = galleryRepository.promoteCompletedArtwork(
                 workingDocument = port.currentDocument,
                 title = title,
+                source = port.source,
                 completionKind = port.completionKind,
             )) {
                 is GalleryPromotionResult.Saved -> ArtworkCompletionResult.Saved(

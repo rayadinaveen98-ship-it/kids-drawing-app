@@ -29,7 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
@@ -37,13 +37,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.navin.kidsdrawing.lesson.model.TeachingMode
 import com.navin.kidsdrawing.product.design.StudioColors
 import com.navin.kidsdrawing.product.design.StudioPrimaryButton
 import com.navin.kidsdrawing.product.design.densityPolicyFor
 import com.navin.kidsdrawing.product.profile.AgeBand
-import com.navin.kidsdrawing.product.profile.ChildInterest
 import com.navin.kidsdrawing.product.profile.ChildProfile
+import kotlin.math.absoluteValue
 
 @Composable
 fun StudioHomeScreen(
@@ -53,6 +52,9 @@ fun StudioHomeScreen(
     onOpenRecommendation: () -> Unit,
     onOpenDestination: (StudioDestination) -> Unit,
     modifier: Modifier = Modifier,
+    onOpenLesson: ((LessonRecommendation) -> Unit)? = null,
+    onOpenCategory: (String) -> Unit = {},
+    onOpenJourney: (String) -> Unit = {},
 ) {
     val presentation = StudioRecommendationPolicy.presentationFor(profile.ageBand)
     val density = densityPolicyFor(profile.ageBand)
@@ -96,20 +98,67 @@ fun StudioHomeScreen(
                         },
                     )
 
+                    val visibleRecommendations = model.recommendations
+                        .take(presentation.recommendationLimit)
+                    if (visibleRecommendations.isNotEmpty()) {
+                        SectionHeader(
+                            title = "Picked for you",
+                            subtitle = when (profile.ageBand) {
+                                AgeBand.LITTLE_ARTIST -> "A few friendly places to begin"
+                                AgeBand.CREATIVE_EXPLORER -> "Lessons that fit your studio"
+                                else -> "Based on your age, interests and learning style"
+                            },
+                        )
+                        visibleRecommendations.forEach { recommendation ->
+                            RecommendationCard(
+                                profile = profile,
+                                recommendation = recommendation,
+                                presentation = presentation,
+                                onClick = {
+                                    if (onOpenLesson != null) onOpenLesson(recommendation)
+                                    else onOpenRecommendation()
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+
+            model?.journeys?.take(if (profile.ageBand == AgeBand.LITTLE_ARTIST) 2 else 4)?.let { journeys ->
+                if (journeys.isNotEmpty()) {
                     SectionHeader(
-                        title = "Picked for you",
-                        subtitle = when (profile.ageBand) {
-                            AgeBand.LITTLE_ARTIST -> "One friendly place to begin"
-                            AgeBand.CREATIVE_EXPLORER -> "A lesson that fits your studio"
-                            else -> "Based on your age, interests and learning style"
-                        },
+                        title = "Art Journeys",
+                        subtitle = "Small steps that grow into bigger drawing skills",
                     )
-                    RecommendationCard(
-                        profile = profile,
-                        recommendation = model.recommendation,
-                        presentation = presentation,
-                        onClick = onOpenRecommendation,
+                    journeys.forEach { journey ->
+                        StudioRouteCard(
+                            symbol = "✦",
+                            title = journey.title,
+                            subtitle = journey.progressLabel,
+                            accent = StudioColors.Sun500,
+                            onClick = { onOpenJourney(journey.journeyId) },
+                            minimumHeight = density.minimumTouchTarget,
+                        )
+                    }
+                }
+            }
+
+            model?.categories?.take(if (profile.ageBand == AgeBand.LITTLE_ARTIST) 3 else 6)?.let { categories ->
+                if (categories.isNotEmpty()) {
+                    SectionHeader(
+                        title = "Explore by idea",
+                        subtitle = "Choose what sounds fun today",
                     )
+                    categories.forEachIndexed { index, category ->
+                        StudioRouteCard(
+                            symbol = categorySymbol(category.categoryId),
+                            title = category.title,
+                            subtitle = if (category.lessonCount == 1) "1 lesson" else "${category.lessonCount} lessons",
+                            accent = if (index % 2 == 0) StudioColors.Sky500 else StudioColors.Lavender500,
+                            onClick = { onOpenCategory(category.categoryId) },
+                            minimumHeight = density.minimumTouchTarget,
+                        )
+                    }
                 }
             }
 
@@ -128,15 +177,6 @@ fun StudioHomeScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     StudioRouteCard(
-                        symbol = "✦",
-                        title = "Animal Artist",
-                        subtitle = "An Art Journey",
-                        accent = StudioColors.Sun500,
-                        onClick = { onOpenDestination(StudioDestination.ART_JOURNEY) },
-                        modifier = Modifier.weight(1f),
-                        minimumHeight = density.minimumTouchTarget * 2,
-                    )
-                    StudioRouteCard(
                         symbol = "✎",
                         title = "Free Draw",
                         subtitle = "Blank paper, your ideas",
@@ -145,16 +185,17 @@ fun StudioHomeScreen(
                         modifier = Modifier.weight(1f),
                         minimumHeight = density.minimumTouchTarget * 2,
                     )
+                    StudioRouteCard(
+                        symbol = "▣",
+                        title = "My Gallery",
+                        subtitle = "See the art you finished",
+                        accent = StudioColors.Lavender500,
+                        onClick = { onOpenDestination(StudioDestination.GALLERY) },
+                        modifier = Modifier.weight(1f),
+                        minimumHeight = density.minimumTouchTarget * 2,
+                    )
                 }
             } else {
-                StudioRouteCard(
-                    symbol = "✦",
-                    title = "Animal Artist",
-                    subtitle = "A little Art Journey",
-                    accent = StudioColors.Sun500,
-                    onClick = { onOpenDestination(StudioDestination.ART_JOURNEY) },
-                    minimumHeight = density.minimumTouchTarget,
-                )
                 StudioRouteCard(
                     symbol = "✎",
                     title = "Free Draw",
@@ -163,16 +204,24 @@ fun StudioHomeScreen(
                     onClick = { onOpenDestination(StudioDestination.FREE_DRAW) },
                     minimumHeight = density.minimumTouchTarget,
                 )
+                StudioRouteCard(
+                    symbol = "▣",
+                    title = "My Gallery",
+                    subtitle = "Your finished drawings live here",
+                    accent = StudioColors.Lavender500,
+                    onClick = { onOpenDestination(StudioDestination.GALLERY) },
+                    minimumHeight = density.minimumTouchTarget,
+                )
             }
 
-            StudioRouteCard(
-                symbol = "▣",
-                title = "My Gallery",
-                subtitle = "Your drawings will live here",
-                accent = StudioColors.Lavender500,
-                onClick = { onOpenDestination(StudioDestination.GALLERY) },
-                minimumHeight = density.minimumTouchTarget,
-            )
+            model?.contentMessage?.let { message ->
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = StudioColors.Ink500,
+                    modifier = Modifier.padding(horizontal = 4.dp),
+                )
+            }
 
             Spacer(modifier = Modifier.size(10.dp))
         }
@@ -272,7 +321,7 @@ private fun StudioContentUnavailable(message: String?) {
                 color = StudioColors.Ink900,
             )
             Text(
-                text = message ?: "This lesson is taking a moment to get ready.",
+                text = message ?: "These lessons are taking a moment to get ready.",
                 modifier = Modifier.padding(top = 8.dp),
                 style = MaterialTheme.typography.bodyLarge,
                 color = StudioColors.Ink700,
@@ -337,7 +386,8 @@ private fun PrimaryStudioHero(
                     )
                 }
 
-                CuteCatPreview(
+                LessonDecorativePreview(
+                    lessonId = recommendation.lessonId,
                     modifier = Modifier
                         .padding(start = 12.dp)
                         .width(if (presentation.density == HomeCardDensity.SPACIOUS) 118.dp else 104.dp)
@@ -383,9 +433,9 @@ private fun RecommendationCard(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            CuteCatPreview(
-                modifier = Modifier
-                    .size(if (presentation.density == HomeCardDensity.SPACIOUS) 82.dp else 72.dp),
+            LessonDecorativePreview(
+                lessonId = recommendation.lessonId,
+                modifier = Modifier.size(if (presentation.density == HomeCardDensity.SPACIOUS) 82.dp else 72.dp),
             )
             Column(
                 modifier = Modifier
@@ -411,6 +461,79 @@ private fun RecommendationCard(
                     style = MaterialTheme.typography.bodyMedium,
                     color = StudioColors.Studio600,
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LessonDecorativePreview(
+    lessonId: String,
+    modifier: Modifier = Modifier,
+) {
+    val variant = lessonId.hashCode().absoluteValue % 3
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(22.dp),
+        color = StudioColors.Paper100,
+        border = BorderStroke(1.dp, StudioColors.Line200),
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+            val strokeWidth = size.minDimension * 0.065f
+            val center = Offset(size.width / 2f, size.height / 2f)
+            when (variant) {
+                0 -> {
+                    drawCircle(
+                        color = StudioColors.Studio600,
+                        radius = size.minDimension * 0.27f,
+                        center = center,
+                        style = Stroke(width = strokeWidth),
+                    )
+                    drawLine(
+                        color = StudioColors.Sun500,
+                        start = Offset(size.width * 0.2f, size.height * 0.78f),
+                        end = Offset(size.width * 0.8f, size.height * 0.22f),
+                        strokeWidth = strokeWidth,
+                        cap = StrokeCap.Round,
+                    )
+                }
+                1 -> {
+                    drawRoundRect(
+                        color = StudioColors.Sky500,
+                        topLeft = Offset(size.width * 0.2f, size.height * 0.2f),
+                        size = Size(size.width * 0.6f, size.height * 0.6f),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.width * 0.12f),
+                        style = Stroke(width = strokeWidth),
+                    )
+                    drawCircle(
+                        color = StudioColors.Studio600,
+                        radius = size.minDimension * 0.09f,
+                        center = center,
+                    )
+                }
+                else -> {
+                    drawLine(
+                        color = StudioColors.Lavender500,
+                        start = Offset(size.width * 0.18f, size.height * 0.7f),
+                        end = Offset(size.width * 0.5f, size.height * 0.25f),
+                        strokeWidth = strokeWidth,
+                        cap = StrokeCap.Round,
+                    )
+                    drawLine(
+                        color = StudioColors.Lavender500,
+                        start = Offset(size.width * 0.5f, size.height * 0.25f),
+                        end = Offset(size.width * 0.82f, size.height * 0.7f),
+                        strokeWidth = strokeWidth,
+                        cap = StrokeCap.Round,
+                    )
+                    drawLine(
+                        color = StudioColors.Sun500,
+                        start = Offset(size.width * 0.28f, size.height * 0.66f),
+                        end = Offset(size.width * 0.72f, size.height * 0.66f),
+                        strokeWidth = strokeWidth,
+                        cap = StrokeCap.Round,
+                    )
+                }
             }
         }
     }
@@ -479,12 +602,16 @@ private fun StudioRouteCard(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
                     color = StudioColors.Ink900,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = subtitle,
                     modifier = Modifier.padding(top = 2.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = StudioColors.Ink700,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -498,36 +625,29 @@ fun StudioPlaceholderRoute(
     modifier: Modifier = Modifier,
 ) {
     val title = when (destination) {
-        StudioDestination.LESSON_START -> "Cute Cat"
+        StudioDestination.LESSON_START,
+        StudioDestination.LESSON_SELECTED,
+        -> "Drawing Lesson"
         StudioDestination.LESSON_RESUME -> "Continue Drawing"
         StudioDestination.COLORING_RESUME -> "Continue Coloring"
-        StudioDestination.ART_JOURNEY -> "Animal Artist"
+        StudioDestination.CATEGORY -> "Explore Lessons"
+        StudioDestination.JOURNEY,
+        StudioDestination.ART_JOURNEY,
+        -> "Art Journey"
         StudioDestination.FREE_DRAW -> "Free Draw"
         StudioDestination.GALLERY -> "My Gallery"
         StudioDestination.PARENT_ZONE -> "Grown-ups area"
-        StudioDestination.HOME -> "Studio"
+        StudioDestination.HOME -> "Studio Home"
     }
-    val body = when (destination) {
-        StudioDestination.LESSON_START -> "Your Cute Cat lesson is picked and ready for its drawing room."
-        StudioDestination.LESSON_RESUME -> "Your saved drawing is safe and ready for you to continue."
-        StudioDestination.COLORING_RESUME -> "Your colors and drawing are safe and ready to continue."
-        StudioDestination.ART_JOURNEY -> "A calm path of animal drawings will grow here as your studio grows."
-        StudioDestination.FREE_DRAW -> "A clean page for your own ideas will open here."
-        StudioDestination.GALLERY -> "This will become your personal wall of saved artwork."
-        StudioDestination.PARENT_ZONE -> "Profile, sound and safety settings belong in this quiet grown-ups area."
-        StudioDestination.HOME -> "Back to your studio."
-    }
-
     Surface(
         modifier = modifier.fillMaxSize(),
         color = StudioColors.Paper50,
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
                 .safeDrawingPadding()
                 .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
                 text = title,
@@ -535,125 +655,31 @@ fun StudioPlaceholderRoute(
                 color = StudioColors.Ink900,
             )
             Text(
-                text = body,
-                modifier = Modifier.padding(top = 10.dp),
+                text = "This studio space is getting ready.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = StudioColors.Ink700,
             )
-            StudioPrimaryButton(
-                text = "Back to studio",
-                onClick = onBack,
-                modifier = Modifier
-                    .padding(top = 28.dp)
-                    .semantics { contentDescription = "Back to studio home" },
-            )
+            TextButton(onClick = onBack) {
+                Text("Back to studio")
+            }
         }
-    }
-}
-
-@Composable
-private fun CuteCatPreview(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier) {
-        val width = size.width
-        val height = size.height
-        val stroke = width * 0.045f
-        val ink = StudioColors.Ink700
-        val warm = StudioColors.Coral500.copy(alpha = 0.12f)
-
-        drawCircle(
-            color = warm,
-            radius = width * 0.48f,
-            center = Offset(width * 0.5f, height * 0.5f),
-        )
-
-        val headCenter = Offset(width * 0.5f, height * 0.38f)
-        drawCircle(
-            color = ink,
-            radius = width * 0.22f,
-            center = headCenter,
-            style = Stroke(width = stroke),
-        )
-
-        val ears = Path().apply {
-            moveTo(width * 0.33f, height * 0.25f)
-            lineTo(width * 0.30f, height * 0.08f)
-            lineTo(width * 0.43f, height * 0.20f)
-            moveTo(width * 0.57f, height * 0.20f)
-            lineTo(width * 0.70f, height * 0.08f)
-            lineTo(width * 0.67f, height * 0.25f)
-        }
-        drawPath(
-            path = ears,
-            color = ink,
-            style = Stroke(width = stroke, cap = StrokeCap.Round),
-        )
-
-        drawCircle(color = ink, radius = width * 0.025f, center = Offset(width * 0.43f, height * 0.36f))
-        drawCircle(color = ink, radius = width * 0.025f, center = Offset(width * 0.57f, height * 0.36f))
-
-        val mouth = Path().apply {
-            moveTo(width * 0.50f, height * 0.40f)
-            cubicTo(
-                width * 0.47f,
-                height * 0.45f,
-                width * 0.44f,
-                height * 0.45f,
-                width * 0.42f,
-                height * 0.42f,
-            )
-            moveTo(width * 0.50f, height * 0.40f)
-            cubicTo(
-                width * 0.53f,
-                height * 0.45f,
-                width * 0.56f,
-                height * 0.45f,
-                width * 0.58f,
-                height * 0.42f,
-            )
-        }
-        drawPath(mouth, ink, style = Stroke(width = stroke * 0.7f, cap = StrokeCap.Round))
-
-        drawOval(
-            color = ink,
-            topLeft = Offset(width * 0.37f, height * 0.56f),
-            size = androidx.compose.ui.geometry.Size(width * 0.30f, height * 0.34f),
-            style = Stroke(width = stroke),
-        )
-
-        val tail = Path().apply {
-            moveTo(width * 0.64f, height * 0.75f)
-            cubicTo(
-                width * 0.86f,
-                height * 0.82f,
-                width * 0.88f,
-                height * 0.58f,
-                width * 0.76f,
-                height * 0.56f,
-            )
-        }
-        drawPath(tail, ink, style = Stroke(width = stroke, cap = StrokeCap.Round))
     }
 }
 
 private fun greetingSubtitle(ageBand: AgeBand): String = when (ageBand) {
-    AgeBand.LITTLE_ARTIST -> "What should we make today?"
-    AgeBand.CREATIVE_EXPLORER -> "Your art table is ready."
-    AgeBand.GROWING_ARTIST -> "Ready for your next idea?"
-    AgeBand.YOUNG_ARTIST -> "Pick up where you left off or try a new technique."
+    AgeBand.LITTLE_ARTIST -> "What should we draw today?"
+    AgeBand.CREATIVE_EXPLORER -> "Ready to make something fun?"
+    AgeBand.GROWING_ARTIST -> "Your art studio is ready"
+    AgeBand.YOUNG_ARTIST -> "Pick a lesson or explore your own idea"
 }
 
 private fun recommendationReason(
     profile: ChildProfile,
     recommendation: LessonRecommendation,
 ): String = when (recommendation.reason) {
-    RecommendationReason.INTEREST_MATCH -> if (ChildInterest.ANIMALS in profile.interests) {
-        "Because animals are one of your favorites"
-    } else {
-        "Picked from your favorite subjects"
-    }
-
-    RecommendationReason.AGE_MATCH -> "A comfortable match for your studio"
-    RecommendationReason.STARTER_PICK -> "A gentle studio starter"
+    RecommendationReason.INTEREST_MATCH -> "Picked because it matches what you like"
+    RecommendationReason.AGE_MATCH -> "A good fit for ${profile.ageBand.displayName.lowercase()}s"
+    RecommendationReason.STARTER_PICK -> "A calm place to start"
 }
 
 private fun heroMetadata(
@@ -661,29 +687,13 @@ private fun heroMetadata(
     presentation: HomePresentationPolicy,
 ): String = buildList {
     add("${recommendation.estimatedMinutes} min")
-    if (presentation.showDifficulty) add(difficultyLabel(recommendation.difficulty))
+    if (presentation.showDifficulty) add("Level ${recommendation.difficulty}")
     if (presentation.showSkills && recommendation.primarySkillIds.isNotEmpty()) {
-        add(
-            recommendation.primarySkillIds
-                .take(2)
-                .joinToString(" + ") { it.replace('_', ' ') },
-        )
-    }
-    if (presentation.density != HomeCardDensity.SPACIOUS) {
-        add(modeLabel(recommendation.defaultMode))
+        add(recommendation.primarySkillIds.first().replace('_', ' '))
     }
 }.joinToString(" · ")
 
-private fun difficultyLabel(difficulty: Int): String = when (difficulty) {
-    1 -> "Easy start"
-    2 -> "Gentle challenge"
-    3 -> "Growing skills"
-    4 -> "Focused practice"
-    else -> "Advanced"
-}
-
-private fun modeLabel(mode: TeachingMode): String = when (mode) {
-    TeachingMode.DRAW_WITH_ME -> "Draw with me"
-    TeachingMode.WATCH_THEN_DRAW -> "Watch first"
-    TeachingMode.TRACE_AND_LEARN -> "Trace & learn"
+private fun categorySymbol(categoryId: String): String {
+    val symbols = listOf("○", "△", "◇", "✦", "□")
+    return symbols[categoryId.hashCode().absoluteValue % symbols.size]
 }

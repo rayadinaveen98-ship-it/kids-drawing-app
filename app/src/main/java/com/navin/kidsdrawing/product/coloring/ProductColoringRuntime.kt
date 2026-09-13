@@ -13,7 +13,6 @@ import com.navin.kidsdrawing.drawing.domain.DrawingToolSettings
 import com.navin.kidsdrawing.drawing.domain.EraseMaskRecord
 import com.navin.kidsdrawing.drawing.domain.InkStrokeRecord
 import com.navin.kidsdrawing.drawing.infrastructure.persistence.AtomicDrawingDocumentStore
-import com.navin.kidsdrawing.lesson.lab.LessonLabRuntimeCore
 import com.navin.kidsdrawing.lesson.session.ChooseColorMyself
 import com.navin.kidsdrawing.lesson.session.ChooseColorWithMe
 import com.navin.kidsdrawing.lesson.session.ColoringHandoffMode
@@ -150,7 +149,7 @@ class ProductColoringRuntime(
 
     /** Restores an active coloring session after process/app recreation. */
     suspend fun recoverActive(): ProductColoringRecoveryResult {
-        val sessionId = ColoringSessionEngine.sessionIdFor(LessonLabRuntimeCore.DOCUMENT_ID)
+        val sessionId = ColoringSessionEngine.sessionIdFor(lessonRuntime.runtimeIdentity.documentId)
         return when (val loaded = coloringStore.load(sessionId)) {
             AtomicColoringSessionStore.LoadResult.Missing -> ProductColoringRecoveryResult.MISSING
             is AtomicColoringSessionStore.LoadResult.Corrupt -> ProductColoringRecoveryResult.CORRUPT
@@ -165,6 +164,7 @@ class ProductColoringRuntime(
                 val packageData = lessonRuntime.packageData
                     ?: return ProductColoringRecoveryResult.ARTWORK_INCOMPATIBLE
                 val compatible = document.documentId == snapshot.childDocumentId &&
+                    snapshot.childDocumentId == lessonRuntime.runtimeIdentity.documentId &&
                     document.metadata.lessonId == snapshot.lessonId &&
                     document.metadata.lessonRevision == snapshot.lessonRevision &&
                     snapshot.lessonId == packageData.lesson.lessonId &&

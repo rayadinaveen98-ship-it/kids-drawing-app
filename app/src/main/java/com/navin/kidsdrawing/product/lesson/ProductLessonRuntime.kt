@@ -3,29 +3,45 @@ package com.navin.kidsdrawing.product.lesson
 import android.content.Context
 import com.navin.kidsdrawing.lesson.content.AndroidAssetLessonSource
 import com.navin.kidsdrawing.lesson.content.LessonCatalog
+import com.navin.kidsdrawing.lesson.content.LessonCatalogIdentity
+import com.navin.kidsdrawing.lesson.content.LessonDiagnostic
+import com.navin.kidsdrawing.lesson.content.LessonDiagnosticCode
 import com.navin.kidsdrawing.lesson.content.LessonLoadResult
 import com.navin.kidsdrawing.lesson.lab.LessonLabRuntimeCore
+import com.navin.kidsdrawing.lesson.lab.LessonRuntimeIdentity
 import com.navin.kidsdrawing.lesson.model.LessonRuntimePackage
 import java.io.File
 
 /**
- * Production Android adapter over the exact runtime core physically verified in Lesson Engine 0.2.
- * Storage roots and semantic IDs intentionally remain compatible with that milestone.
+ * Production Android adapter over the verified lesson runtime core.
  *
- * Phase 4 resolves the default production lesson through the bundled catalog. The fixed P3 session
- * and document IDs remain a compatibility adapter until multi-lesson routing is introduced in P4.2.
+ * P4.2 resolves a stable catalog identity first, then supplies a lesson-specific infrastructure
+ * identity to the core. Cute Cat r1 intentionally keeps the exact Phase 3 storage IDs.
  */
 class ProductLessonRuntime private constructor(
     context: Context,
+    val catalogIdentity: LessonCatalogIdentity,
     val contentResult: LessonLoadResult,
+    runtimeIdentity: LessonRuntimeIdentity,
 ) : LessonLabRuntimeCore(
     documentRoot = File(context.filesDir, DOCUMENT_DIRECTORY),
     sessionRoot = File(context.filesDir, SESSION_DIRECTORY),
     lessonPackageResult = contentResult,
+    runtimeIdentity = runtimeIdentity,
 ) {
+    private constructor(
+        context: Context,
+        selection: RuntimeSelection,
+    ) : this(
+        context = context,
+        catalogIdentity = selection.identity,
+        contentResult = selection.contentResult,
+        runtimeIdentity = selection.runtimeIdentity,
+    )
+
     constructor(context: Context) : this(
         context = context.applicationContext,
-        contentResult = loadContent(context.applicationContext),
+        selection = resolveSelection(context.applicationContext, requestedIdentity = null),
     )
 
     val packageData: LessonRuntimePackage?
@@ -45,9 +61,66 @@ class ProductLessonRuntime private constructor(
         const val DOCUMENT_DIRECTORY = "lesson-lab-documents"
         const val SESSION_DIRECTORY = "lesson-lab-sessions"
 
-        private fun loadContent(context: Context): LessonLoadResult {
-            val source = AndroidAssetLessonSource(context.assets)
-            return LessonCatalog(source).load().firstReleaseLoadResult()
+        fun forLesson(
+            context: Context,
+            identity: LessonCatalogIdentity,
+        ): ProductLessonRuntime {
+            val appContext = context.applicationContext
+            return ProductLessonRuntime(
+                context = appContext,
+                selection = resolveSelection(appContext, requestedIdentity = identity),
+            )
         }
+
+        fun runtimeIdentityFor(identity: LessonCatalogIdentity): LessonRuntimeIdentity =
+            ProductLessonIdentityPolicy.forLesson(identity)
+
+        private fun resolveSelection(
+            context: Context,
+            requestedIdentity: LessonCatalogIdentity?,
+        ): RuntimeSelection {
+            val source = AndroidAssetLessonSource(context.assets)
+            val snapshot = LessonCatalog(source).load()
+            val entry = if (requestedIdentity == null) {
+                snapshot.entries.firstOrNull()
+            } else {
+                snapshot.entries.firstOrNull { it.identity == requestedIdentity }
+            }
+
+            val identity = entry?.identity
+                ?: requestedIdentity
+                ?: LessonCatalogIdentity(LEGACY_FALLBACK_LESSON_ID, LEGACY_FALLBACK_REVISION)
+            val packageData = entry?.let { snapshot.runtimePackage(it.identity) }
+            val contentResult = if (packageData != null) {
+                LessonLoadResult.Success(packageData)
+            } else {
+                LessonLoadResult.Failure(
+                    listOf(
+                        LessonDiagnostic(
+                            code = LessonDiagnosticCode.INVALID_VALUE,
+                            path = "catalog",
+                            message = requestedIdentity?.let {
+                                "Requested lesson ${it.lessonId} r${it.revision} is not available."
+                            } ?: snapshot.diagnostics.firstOrNull()?.message
+                                ?: "No release lesson is available.",
+                        ),
+                    ),
+                )
+            }
+            return RuntimeSelection(
+                identity = identity,
+                contentResult = contentResult,
+                runtimeIdentity = ProductLessonIdentityPolicy.forLesson(identity),
+            )
+        }
+
+        private const val LEGACY_FALLBACK_LESSON_ID = "cute-cat"
+        private const val LEGACY_FALLBACK_REVISION = 1
     }
+
+    private data class RuntimeSelection(
+        val identity: LessonCatalogIdentity,
+        val contentResult: LessonLoadResult,
+        val runtimeIdentity: LessonRuntimeIdentity,
+    )
 }

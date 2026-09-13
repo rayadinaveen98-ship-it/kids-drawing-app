@@ -1,12 +1,12 @@
 # P4.5 — Coloring V1 Expansion QA Record
 
-**Status:** QA candidate preparation / physical acceptance pending  
+**Status:** Focused physical/product acceptance PASS; merge verification pending  
 **Issue:** #62  
 **Draft PR:** #70  
 **Branch:** `phase4/p4-5-coloring-expansion`  
 **Candidate identity:** `0.4.0-content-studio-p4.5-qa1` / versionCode 17
 
-This record separates automated evidence from physical/product evidence. A green CI build does not count as device PASS, and an informal smoke result does not imply every row below was exercised.
+This record separates automated evidence from physical/product evidence. A green CI build does not count as device PASS, and user acceptance is recorded only for the checks actually requested.
 
 ## 1. Scope under test
 
@@ -49,51 +49,50 @@ Automated coverage includes:
 
 ## 3. Frozen QA1 executable evidence
 
-Fill only after the final QA1 exact-head CI succeeds.
-
-- executable commit: **PENDING**
-- exact-head Android CI run: **PENDING**
-- profile artifact ID: **PENDING**
-- profile APK filename: `Kids_Drawing_0.4.0_Content_Studio_P4.5_QA1-profile.apk`
-- profile APK size: **PENDING**
-- profile APK SHA-256: **PENDING**
-- debug artifact/SHA: **PENDING**
+- executable commit: `240007b6161ebfefd09252efa844e4d18808a7f0`;
+- exact-head Android CI #415 / run `34756548584`: **GREEN**;
+- profile artifact ID: `10317956245`;
+- profile APK filename: `Kids_Drawing_0.4.0_Content_Studio_P4.5_QA1-profile.apk`;
+- profile APK size: `16,183,450 bytes`;
+- profile APK SHA-256: `cf45fedc129523c8c9d3784e3d6ea70d0319dc1b8f9236430b85c099075394d6`;
+- artifact ZIP digest: `sha256:3adf6f368c7d252488631ca5c4233e8ca07c3e5b854c20ef34b040226ac78b26`;
+- independent local extraction/hash matched committed CI evidence exactly.
 
 ## 4. Physical/product QA matrix
 
-Reference device/model/API: **PENDING USER TEST**
+**User acceptance date:** 2026-09-13  
+**Device/model/API:** not restated in this acceptance turn; do not infer it.  
+**Acceptance statement:** user reported the supplied focused P4.5 QA1 checklist **passed**.
 
 | # | Scenario | Expected result | Result |
 |---|---|---|---|
-| 1 | Fresh/open Studio → Little Fish → Draw With Me → finish drawing → Color With Me | Coloring opens with authored Little Fish guidance; no Cute Cat-specific copy | PENDING |
-| 2 | Guided step 1, select Fill, tap outside body region | No artwork mutation; child gets safe retry feedback | PENDING |
-| 3 | Guided step 1, Fill inside body | Body receives selected color; line art remains visible and untouched; guidance advances to step 2 | PENDING |
-| 4 | Guided step 2, Fill tail only | Tail fills but guided step remains incomplete because fin is still required | PENDING |
-| 5 | Guided step 2, Fill fin after tail | Step completes only after both tail + fin are filled | PENDING |
-| 6 | Recolor an already filled region | New color replaces visible region color while earlier fill remains reversible history | PENDING |
-| 7 | Undo after recolor, then Redo | Undo reveals previous region color; Redo restores newer color; line art is unchanged | PENDING |
-| 8 | Switch Fill → Brush and draw color freely | Brush works through existing AndroidX Ink coloring path; prepared fills remain intact | PENDING |
-| 9 | Switch to Eraser and erase coloring | Coloring pixels can be erased; protected child line art cannot be damaged | PENDING |
-| 10 | Save & leave during partially completed guided coloring, then resume | Fill/freehand operations and correct guided step recover | PENDING |
-| 11 | Background/process recreation during prepared coloring | Artwork recovers first; session resumes without lost fill/history or incompatible tool state | PENDING |
-| 12 | Finish Little Fish coloring → Gallery | Gallery preview shows prepared fills beneath the child line art | PENDING |
-| 13 | Reopen completed Little Fish artwork from Gallery | Saved artwork still shows all fills/freehand/line art correctly | PENDING |
-| 14 | Little Fish → Color Myself | Fill can target any authored region in any order; Brush/Eraser remain available | PENDING |
-| 15 | Cute Cat completion → Color With Me / Color Myself | Legacy freehand coloring still works; no deceptive Fill control appears | PENDING |
-| 16 | Coloring Undo at boundary where last coloring op is removed | Undo stops before protected drawing/line-art history | PENDING |
-| 17 | Airplane Mode / no network | Drawing, prepared Fill, coloring recovery and Gallery remain functional | PENDING |
-| 18 | Small-screen usability / age-adaptive controls | Canvas remains usable; palette/tools/Finish remain reachable without obstructive layout | PENDING |
+| 1 | Fresh/open Studio → Little Fish → Draw With Me → finish drawing → Color With Me | Coloring opens with authored Little Fish guidance; no Cute Cat-specific copy | PASS — user-reported focused QA |
+| 2 | Guided step 1, select Fill, tap outside body region | No artwork mutation; child gets safe retry behavior | PASS — user-reported focused QA |
+| 3 | Guided step 1, Fill inside body | Body receives selected color; line art remains visible and untouched; guidance advances to step 2 | PASS — user-reported focused QA |
+| 4 | Guided step 2, Fill tail only | Tail fills but guided step remains incomplete because fin is still required | PASS — user-reported focused QA |
+| 5 | Guided step 2, Fill fin after tail | Step completes only after both tail + fin are filled | PASS — user-reported focused QA |
+| 6 | Recolor an already filled region | New color replaces visible region color while earlier fill remains reversible history | PASS — user-reported focused QA |
+| 7 | Undo after recolor, then Redo | Undo reveals previous region color; Redo restores newer color; line art is unchanged | PASS — user-reported focused QA |
+| 8 | Switch Fill → Brush and draw color freely | Brush works through existing AndroidX Ink coloring path; prepared fills remain intact; no stray Fill/Brush crossover | PASS — user-reported focused QA |
+| 9 | Switch to Eraser and erase coloring | Coloring can be erased while protected child line art remains intact | PASS — covered by requested Brush/Fill/Eraser + protected-line test |
+| 10 | Save & leave during coloring, then resume | Fill/freehand operations and guided state recover | PASS — user-reported focused QA |
+| 11 | Background/process recreation during prepared coloring | Artwork recovers first; session resumes without lost fill/history or incompatible tool state | DEFERRED to P4.7 — not separately requested in focused device pass; automated recovery contracts remain green |
+| 12 | Finish Little Fish coloring → Gallery | Gallery preview shows prepared fills beneath the child line art | PASS — user-reported focused QA |
+| 13 | Reopen completed Little Fish artwork from Gallery | Saved artwork still shows all fills/freehand/line art correctly | PASS — user-reported focused QA |
+| 14 | Little Fish → Color Myself | Fill can target authored regions in any order; Brush/Eraser remain available | PASS — user-reported focused QA |
+| 15 | Cute Cat completion → Color With Me / Color Myself | Legacy freehand coloring still works; no deceptive Fill control appears | PASS — user-reported focused QA |
+| 16 | Coloring Undo at boundary where last coloring op is removed | Undo stops before protected drawing/line-art history | DEFERRED to P4.7 physical matrix — automated schema/history test PASS; focused device request verified protected lines generally but not this exact boundary sequence |
+| 17 | Airplane Mode / no network | Drawing, prepared Fill, coloring recovery and Gallery remain functional | DEFERRED to P4.7 — not separately requested in focused pass; product remains offline-first by architecture |
+| 18 | Small-screen usability / age-adaptive controls | Canvas remains usable; palette/tools/Finish remain reachable without obstructive layout | DEFERRED to P4.7 — no device dimensions/model were restated for this acceptance turn |
 
-## 5. Release/merge gate
+## 5. Acceptance conclusion
 
-P4.5 is accepted only when:
-1. candidate version is monotonic and frozen;
-2. exact candidate head passes full Android CI;
-3. profile APK artifact/size/SHA are recorded here;
-4. the relevant physical matrix is executed and recorded honestly;
-5. no prepared Fill can alter protected line-art history;
-6. Cute Cat legacy coloring remains regression-green;
-7. PR #70 is marked ready only after acceptance;
-8. merged-main CI is green before issue #62 is closed.
+P4.5 focused physical/product acceptance is **PASS** for the supplied QA1 checklist. The exact candidate binary is CI-green and its artifact identity is verified. Rows 11, 16, 17 and 18 are deliberately not fabricated as physical passes; they remain part of the broader Phase-4 end-to-end regression in P4.7.
 
-Until those gates pass, PR #70 remains draft and P4.5 remains ACTIVE.
+Before issue #62 can close:
+1. this acceptance documentation head must pass exact-head Android CI;
+2. PR #70 may then be marked ready and merged;
+3. merged-main Android CI must be green;
+4. issue #62 can then close as completed.
+
+P4.5 implementation is accepted; merge/main verification is the remaining gate.

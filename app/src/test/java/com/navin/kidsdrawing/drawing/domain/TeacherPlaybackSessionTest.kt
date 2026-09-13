@@ -29,12 +29,16 @@ class TeacherPlaybackSessionTest {
     }
 
     @Test
-    fun completedStepIsCarriedIntoNextStepAsFaintImmediateConstructionReference() {
+    fun completedStepFadesImmediatelyAndCarriesIntoNextStepAsConstructionReference() {
         val session = TeacherPlaybackSession()
         session.load(sequence("lesson-demo-r1-head"))
         session.play()
         session.advanceBy(1_000L)
-        assertEquals(TeacherPlaybackStatus.COMPLETED, session.state.value.frame?.status)
+        val completedHead = session.state.value.frame ?: error("Expected completed head frame")
+
+        assertEquals(TeacherPlaybackStatus.COMPLETED, completedHead.status)
+        assertEquals(0.16f, completedHead.visibleStrokes.single().opacity, 0f)
+        assertTrue(completedHead.visibleStrokes.single().points.all { it.elapsedTimeMillis == 0L })
 
         session.load(sequence("lesson-demo-r1-ears"))
         val loaded = session.play().frame ?: error("Expected loaded teacher frame")
@@ -69,12 +73,15 @@ class TeacherPlaybackSessionTest {
     }
 
     @Test
-    fun overviewGeometryIsNeverCarriedIntoStepPlayback() {
+    fun overviewDisappearsOnCompletionAndIsNeverCarriedIntoStepPlayback() {
         val session = TeacherPlaybackSession()
         session.load(sequence("lesson-demo-r1-overview"))
         session.play()
         session.advanceBy(1_000L)
-        assertEquals(TeacherPlaybackStatus.COMPLETED, session.state.value.frame?.status)
+        val completedOverview = session.state.value.frame ?: error("Expected overview frame")
+
+        assertEquals(TeacherPlaybackStatus.COMPLETED, completedOverview.status)
+        assertTrue(completedOverview.visibleStrokes.isEmpty())
 
         session.load(sequence("lesson-demo-r1-head"))
         val next = session.play().frame ?: error("Expected next frame")

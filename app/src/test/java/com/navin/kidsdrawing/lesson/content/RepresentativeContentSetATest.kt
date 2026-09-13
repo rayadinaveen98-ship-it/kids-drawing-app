@@ -9,6 +9,7 @@ import com.navin.kidsdrawing.lesson.model.HelpKind
 import com.navin.kidsdrawing.lesson.model.TeachingMode
 import java.io.File
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -123,6 +124,19 @@ class RepresentativeContentSetATest {
     }
 
     @Test
+    fun p43LessonsDoNotAdvertiseColoringBeforeP45WhileCuteCatKeepsRegressionPath() {
+        val snapshot = productionCatalog()
+
+        val cuteCat = snapshot.singleRuntimeLesson("cute-cat")
+        assertTrue(cuteCat.coloring?.enabled == true)
+
+        listOf("smiling-sun", "friendly-owl", "simple-rocket", "easy-flower").forEach { lessonId ->
+            val lesson = snapshot.singleRuntimeLesson(lessonId)
+            assertFalse("$lessonId must not expose coloring before P4.5", lesson.coloring?.enabled == true)
+        }
+    }
+
+    @Test
     fun representativeSetCoversLittleCreativeAndGrowingArtistsAndRequiredModes() {
         val snapshot = productionCatalog()
 
@@ -142,6 +156,9 @@ class RepresentativeContentSetATest {
         assertNotNull("Expected exactly one production entry for $lessonId", entry)
         return checkNotNull(entry)
     }
+
+    private fun LessonCatalogSnapshot.singleRuntimeLesson(lessonId: String) =
+        checkNotNull(runtimePackage(singleEntry(lessonId).identity)).lesson
 
     private class FileAssetCatalogSource(
         private val assetRoot: File,

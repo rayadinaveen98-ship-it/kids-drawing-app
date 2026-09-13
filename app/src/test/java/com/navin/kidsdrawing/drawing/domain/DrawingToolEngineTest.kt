@@ -20,7 +20,26 @@ class DrawingToolEngineTest {
 
         engine.selectTool(DrawingTool.PENCIL)
         assertEquals(DrawingTool.PENCIL, engine.state.value.tool)
+        assertEquals(DrawingBrushPreset.PENCIL, engine.state.value.brushPreset)
         assertEquals(34f, engine.state.value.width, 0f)
+    }
+
+    @Test
+    fun brushPresetSelectionReturnsToDrawingAndUsesPresetDefaults() {
+        val engine = DrawingToolEngine()
+        engine.selectTool(DrawingTool.ERASER)
+
+        engine.selectBrushPreset(DrawingBrushPreset.CRAYON)
+        assertEquals(DrawingTool.PENCIL, engine.state.value.tool)
+        assertEquals(DrawingBrushPreset.CRAYON, engine.state.value.brushPreset)
+        assertEquals("crayon.standard", engine.state.value.brushPreset.persistedPresetId)
+        assertEquals(18f, engine.state.value.width, 0f)
+        assertEquals(0.62f, engine.state.value.brushPreset.opacity, 0f)
+
+        engine.selectBrushPreset(DrawingBrushPreset.MARKER)
+        assertEquals(DrawingBrushPreset.MARKER, engine.state.value.brushPreset)
+        assertEquals("marker.standard", engine.state.value.brushPreset.persistedPresetId)
+        assertEquals(24f, engine.state.value.width, 0f)
     }
 
     @Test

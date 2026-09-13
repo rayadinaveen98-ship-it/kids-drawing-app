@@ -18,13 +18,17 @@ import com.navin.kidsdrawing.drawing.domain.StrokeAuthorRole
  *
  * This overlay consumes only product-owned stroke records. It never mutates the child document,
  * undo/redo history, persistence store, or AndroidX Ink dry-stroke renderer.
+ * [opacityMultiplier] is presentation-only and lets product UI retain completed teacher parts as a
+ * faint construction reference without changing authored geometry or persistence truth.
  */
 @Composable
 fun TeacherPlaybackOverlay(
     strokes: List<InkStrokeRecord>,
     modifier: Modifier = Modifier,
     documentSize: DocumentSize = DocumentSize(1000f, 1000f),
+    opacityMultiplier: Float = 1f,
 ) {
+    require(opacityMultiplier in 0f..1f) { "opacityMultiplier must be 0..1." }
     Canvas(modifier = modifier) {
         if (strokes.isEmpty()) return@Canvas
         val scale = minOf(size.width / documentSize.width, size.height / documentSize.height)
@@ -38,8 +42,9 @@ fun TeacherPlaybackOverlay(
             val points = stroke.points
             if (points.isEmpty()) return@forEach
 
-            val color = Color(stroke.colorArgb).copy(
-                alpha = (Color(stroke.colorArgb).alpha * stroke.opacity).coerceIn(0f, 1f),
+            val sourceColor = Color(stroke.colorArgb)
+            val color = sourceColor.copy(
+                alpha = (sourceColor.alpha * stroke.opacity * opacityMultiplier).coerceIn(0f, 1f),
             )
             if (points.size == 1) {
                 drawCircle(

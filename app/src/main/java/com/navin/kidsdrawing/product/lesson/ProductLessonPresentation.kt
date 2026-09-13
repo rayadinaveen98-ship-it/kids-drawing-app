@@ -59,7 +59,7 @@ object ProductLessonPresentationPolicy {
                 companionState = CompanionSemanticState.INTRODUCING_ACTIVITY,
                 eyebrow = "READY TO DRAW",
                 instruction = "We’ll make this one part at a time. No hurry.",
-                stepLabel = null,
+                stepLabel = "Drawing",
                 progress = 0f,
             )
 
@@ -134,7 +134,7 @@ object ProductLessonPresentationPolicy {
             -> base(
                 companionState = CompanionSemanticState.CELEBRATING_ARTWORK,
                 eyebrow = "YOU MADE IT",
-                instruction = "Your cat is drawn. Save it for now and come back whenever you like.",
+                instruction = "Your drawing is ready. Save it for now and come back whenever you like.",
                 stepLabel = "Drawing complete",
                 progress = 1f,
                 showPostDrawingChoices = true,
@@ -161,7 +161,7 @@ object ProductLessonPresentationPolicy {
                 companionState = CompanionSemanticState.GENTLE_ERROR,
                 eyebrow = "DRAWING SAVED",
                 instruction = "This lesson needs a refresh. Your artwork stays safe.",
-                stepLabel = null,
+                stepLabel = "Drawing",
                 progress = 0f,
                 isTerminal = true,
             )

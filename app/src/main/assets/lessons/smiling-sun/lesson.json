@@ -1,0 +1,59 @@
+{
+  "schemaVersion": "1.0",
+  "lessonId": "smiling-sun",
+  "revision": 1,
+  "status": "release",
+  "minimumContentApi": 1,
+  "metadata": {
+    "titleKey": "lesson.smiling_sun.title",
+    "summaryKey": "lesson.smiling_sun.summary",
+    "ageBands": ["little_artists", "creative_explorers"],
+    "difficulty": 1,
+    "estimatedMinutes": 6,
+    "categoryIds": ["foundations", "nature.weather"],
+    "skillIds": ["shape.circle", "line.straight", "placement.relative"],
+    "journeyIds": ["journey.first_shapes_to_pictures"],
+    "tags": ["sun", "shapes", "trace", "beginner"]
+  },
+  "canvas": {"width": 1000, "height": 1000, "backgroundRole": "paper_warm"},
+  "supportedModes": ["trace_and_learn", "draw_with_me"],
+  "assets": {"strokeFile": "strokes.json", "thumbnail": "thumbnail.svg", "preview": "preview.svg", "strings": {"en": "strings/en.json"}},
+  "drawing": {
+    "steps": [
+      {
+        "id": "sun_shape",
+        "objectiveSkillIds": ["shape.circle"],
+        "teacher": {"narrationKey": "lesson.smiling_sun.step.sun_shape", "strokeRefs": ["sun-circle"], "normalDurationMs": 2600},
+        "childTurn": {"completionPolicy": "manual_done", "allowReplay": true, "allowSkip": false, "toolPreset": "pencil-soft", "expectedStrokeRefs": ["sun-circle"]},
+        "help": [
+          {"level": 1, "kind": "gentle_hint", "narrationKey": "lesson.smiling_sun.help.sun_shape_hint"},
+          {"level": 4, "kind": "trace_path", "guideRefs": ["guide-sun-circle"]}
+        ],
+        "completionNarrationKey": "lesson.smiling_sun.complete.sun_shape"
+      },
+      {
+        "id": "rays",
+        "objectiveSkillIds": ["line.straight", "placement.relative"],
+        "teacher": {"narrationKey": "lesson.smiling_sun.step.rays", "strokeRefs": ["ray-1", "ray-2", "ray-3", "ray-4", "ray-5", "ray-6", "ray-7", "ray-8"], "normalDurationMs": 2800, "playAsGroup": true},
+        "childTurn": {"completionPolicy": "manual_done", "allowReplay": true, "allowSkip": false, "expectedStrokeRefs": ["ray-1", "ray-2", "ray-3", "ray-4", "ray-5", "ray-6", "ray-7", "ray-8"]},
+        "help": [
+          {"level": 2, "kind": "visual_guide", "guideRefs": ["guide-rays"]},
+          {"level": 4, "kind": "trace_path", "guideRefs": ["guide-rays"]}
+        ],
+        "completionNarrationKey": "lesson.smiling_sun.complete.rays"
+      },
+      {
+        "id": "happy_face",
+        "objectiveSkillIds": ["placement.relative", "line.curve"],
+        "teacher": {"narrationKey": "lesson.smiling_sun.step.happy_face", "strokeRefs": ["eye-left", "eye-right", "smile"], "normalDurationMs": 1500, "playAsGroup": true},
+        "childTurn": {"completionPolicy": "manual_done", "allowReplay": true, "allowSkip": true, "expectedStrokeRefs": ["eye-left", "eye-right", "smile"]},
+        "help": [
+          {"level": 1, "kind": "gentle_hint", "narrationKey": "lesson.smiling_sun.help.face_hint"},
+          {"level": 4, "kind": "trace_path", "guideRefs": ["guide-face"]}
+        ],
+        "completionNarrationKey": "lesson.smiling_sun.complete.drawing"
+      }
+    ]
+  },
+  "coloring": {"enabled": false}
+}

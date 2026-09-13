@@ -75,6 +75,10 @@ class ProductColoringRuntime(
      * failure signal; the completed drawing is never replaced or deleted.
      */
     suspend fun beginFromLesson(mode: ColoringSessionMode): ProductColoringStartResult {
+        if (!lessonRuntime.coloringAvailable) {
+            return ProductColoringStartResult.Failed("Coloring is not available for this lesson.")
+        }
+
         var initializedSessionId: String? = null
         var handoffAcknowledged = false
         return try {

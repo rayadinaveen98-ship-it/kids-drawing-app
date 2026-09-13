@@ -29,6 +29,67 @@ class TeacherPlaybackSessionTest {
     }
 
     @Test
+    fun completedStepFadesImmediatelyAndCarriesIntoNextStepAsConstructionReference() {
+        val session = TeacherPlaybackSession()
+        session.load(sequence("lesson-demo-r1-head"))
+        session.play()
+        session.advanceBy(1_000L)
+        val completedHead = session.state.value.frame ?: error("Expected completed head frame")
+
+        assertEquals(TeacherPlaybackStatus.COMPLETED, completedHead.status)
+        assertEquals(0.16f, completedHead.visibleStrokes.single().opacity, 0f)
+        assertTrue(completedHead.visibleStrokes.single().points.all { it.elapsedTimeMillis == 0L })
+
+        session.load(sequence("lesson-demo-r1-ears"))
+        val loaded = session.play().frame ?: error("Expected loaded teacher frame")
+        val head = loaded.visibleStrokes.first { it.strokeId == "lesson-demo-r1-head-stroke" }
+
+        assertEquals(2, loaded.visibleStrokes.size)
+        assertEquals(0.16f, head.opacity, 0f)
+        assertTrue(head.points.all { it.elapsedTimeMillis == 0L })
+        assertTrue(loaded.visibleStrokes.any { it.strokeId == "lesson-demo-r1-ears-stroke" })
+    }
+
+    @Test
+    fun replayDoesNotDuplicateCurrentStepWhileKeepingEarlierConstructionReference() {
+        val session = TeacherPlaybackSession()
+        session.load(sequence("lesson-demo-r1-head"))
+        session.play()
+        session.advanceBy(1_000L)
+
+        val ears = sequence("lesson-demo-r1-ears")
+        session.load(ears)
+        session.play()
+        session.advanceBy(1_000L)
+        assertEquals(TeacherPlaybackStatus.COMPLETED, session.state.value.frame?.status)
+
+        session.load(ears)
+        val replay = session.play().frame ?: error("Expected replay frame")
+        val ids = replay.visibleStrokes.map { it.strokeId }
+
+        assertEquals(ids.toSet().size, ids.size)
+        assertTrue("lesson-demo-r1-head-stroke" in ids)
+        assertTrue("lesson-demo-r1-ears-stroke" in ids)
+    }
+
+    @Test
+    fun overviewDisappearsOnCompletionAndIsNeverCarriedIntoStepPlayback() {
+        val session = TeacherPlaybackSession()
+        session.load(sequence("lesson-demo-r1-overview"))
+        session.play()
+        session.advanceBy(1_000L)
+        val completedOverview = session.state.value.frame ?: error("Expected overview frame")
+
+        assertEquals(TeacherPlaybackStatus.COMPLETED, completedOverview.status)
+        assertTrue(completedOverview.visibleStrokes.isEmpty())
+
+        session.load(sequence("lesson-demo-r1-head"))
+        val next = session.play().frame ?: error("Expected next frame")
+
+        assertEquals(listOf("lesson-demo-r1-head-stroke"), next.visibleStrokes.map { it.strokeId })
+    }
+
+    @Test
     fun unloadClearsVisibleTeacherState() {
         val session = TeacherPlaybackSession()
         session.load(sequence("demo"))

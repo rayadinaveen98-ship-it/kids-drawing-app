@@ -1,7 +1,6 @@
 package com.navin.kidsdrawing.product.lesson
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,16 +29,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.navin.kidsdrawing.drawing.domain.DocumentSize
 import com.navin.kidsdrawing.drawing.domain.TeachingPace
+import com.navin.kidsdrawing.drawing.ui.TeacherPlaybackOverlay
 import com.navin.kidsdrawing.lesson.model.LessonRuntimePackage
 import com.navin.kidsdrawing.lesson.model.TeachingMode
 import com.navin.kidsdrawing.product.design.StudioColors
@@ -111,7 +108,9 @@ fun LessonPreviewScreen(
                 border = BorderStroke(1.dp, StudioColors.Line200),
             ) {
                 Column(modifier = Modifier.padding(if (profile.ageBand.maxAge <= 7) 22.dp else 18.dp)) {
-                    CuteCatLessonArt(
+                    LessonPreviewArt(
+                        packageData = packageData,
+                        lessonTitle = recommendation.title,
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(if (profile.ageBand.maxAge <= 7) 1.55f else 1.8f),
@@ -273,53 +272,37 @@ private fun LessonOptionCard(
 }
 
 @Composable
-internal fun CuteCatLessonArt(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier) {
-        val ink = StudioColors.Ink700
-        val stroke = size.minDimension * 0.035f
-        val cx = size.width * 0.5f
-        val headY = size.height * 0.36f
-
-        drawCircle(
-            color = StudioColors.Coral500.copy(alpha = 0.10f),
-            radius = size.minDimension * 0.42f,
-            center = Offset(cx, size.height * 0.47f),
-        )
-        drawCircle(
-            color = ink,
-            radius = size.minDimension * 0.19f,
-            center = Offset(cx, headY),
-            style = Stroke(stroke),
-        )
-        val ears = Path().apply {
-            moveTo(cx - size.minDimension * 0.15f, headY - size.minDimension * 0.12f)
-            lineTo(cx - size.minDimension * 0.18f, headY - size.minDimension * 0.30f)
-            lineTo(cx - size.minDimension * 0.05f, headY - size.minDimension * 0.17f)
-            moveTo(cx + size.minDimension * 0.05f, headY - size.minDimension * 0.17f)
-            lineTo(cx + size.minDimension * 0.18f, headY - size.minDimension * 0.30f)
-            lineTo(cx + size.minDimension * 0.15f, headY - size.minDimension * 0.12f)
+internal fun LessonPreviewArt(
+    packageData: LessonRuntimePackage?,
+    lessonTitle: String,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.semantics { contentDescription = "$lessonTitle drawing preview" },
+        shape = RoundedCornerShape(22.dp),
+        color = StudioColors.Studio100.copy(alpha = 0.55f),
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            if (packageData == null) {
+                Text(
+                    text = "✦",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = StudioColors.Studio600,
+                )
+            } else {
+                TeacherPlaybackOverlay(
+                    strokes = ProductLessonReferencePolicy.allTeacherStrokes(packageData),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(14.dp),
+                    documentSize = DocumentSize(
+                        packageData.lesson.canvas.width.toFloat(),
+                        packageData.lesson.canvas.height.toFloat(),
+                    ),
+                    opacityMultiplier = 0.95f,
+                )
+            }
         }
-        drawPath(ears, ink, style = Stroke(stroke, cap = StrokeCap.Round))
-        drawCircle(ink, size.minDimension * 0.018f, Offset(cx - size.minDimension * 0.07f, headY))
-        drawCircle(ink, size.minDimension * 0.018f, Offset(cx + size.minDimension * 0.07f, headY))
-        drawOval(
-            color = ink,
-            topLeft = Offset(cx - size.minDimension * 0.13f, size.height * 0.55f),
-            size = androidx.compose.ui.geometry.Size(size.minDimension * 0.26f, size.minDimension * 0.29f),
-            style = Stroke(stroke),
-        )
-        val tail = Path().apply {
-            moveTo(cx + size.minDimension * 0.11f, size.height * 0.72f)
-            cubicTo(
-                cx + size.minDimension * 0.32f,
-                size.height * 0.82f,
-                cx + size.minDimension * 0.35f,
-                size.height * 0.58f,
-                cx + size.minDimension * 0.23f,
-                size.height * 0.56f,
-            )
-        }
-        drawPath(tail, ink, style = Stroke(stroke, cap = StrokeCap.Round))
     }
 }
 

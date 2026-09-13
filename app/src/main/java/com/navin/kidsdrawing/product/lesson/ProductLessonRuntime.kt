@@ -47,6 +47,16 @@ class ProductLessonRuntime private constructor(
     val packageData: LessonRuntimePackage?
         get() = (contentResult as? LessonLoadResult.Success)?.packageData
 
+    /**
+     * Product capability derived only from authored lesson content.
+     *
+     * Keeping this next to [packageData] gives every product surface the same answer and prevents
+     * the completion UI or coloring runtime from inventing coloring support for a lesson that did
+     * not author it.
+     */
+    val coloringAvailable: Boolean
+        get() = packageData?.lesson?.coloring?.enabled == true
+
     /** Product-facing name for the already-verified typed ColoringHandoffCompleted bridge. */
     suspend fun acknowledgeColoringInitialized() {
         simulateColoringContractAck()

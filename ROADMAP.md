@@ -41,10 +41,10 @@ Delivered:
 
 QA1 versionCode 16 received positive user physical smoke. Exhaustive deferred P4.4 rows remain part of P4.7 regression.
 
-### P4.5 — Coloring V1 Expansion — ACTIVE
-Issue #62 / draft PR #70 / branch `phase4/p4-5-coloring-expansion`.
+### P4.5 — Coloring V1 Expansion — ACCEPTED / MERGE VERIFICATION PENDING
+Issue #62 / PR #70 / branch `phase4/p4-5-coloring-expansion`.
 
-Implementation direction and current scope:
+Delivered:
 - content API 2 prepared coloring regions with strict package validation and API-1 compatibility;
 - legacy empty-region freehand coloring preserved for Cute Cat r1;
 - DrawingDocument schema 3 prepared-fill operation with backward-readable schema 1/2 documents;
@@ -55,15 +55,33 @@ Implementation direction and current scope:
 - Fill offered only for valid prepared-region content/current guided step;
 - Compose Fill tap overlay uses the shared logical-coordinate mapper while AndroidX Ink Brush/Eraser input remains untouched;
 - child-facing coloring copy is content/progress-driven rather than Cute-Cat/stroke-count hardcoding;
-- new production lesson `little-fish` r1 proves guided prepared coloring with body, tail and fin regions.
+- production lesson `little-fish` r1 proves guided prepared coloring with body, tail and fin regions.
 
-Exit gate: regression-green implementation → freeze monotonic P4.5 QA APK (next code after 16) → exact-head CI → artifact/SHA evidence → physical Color With Me/Color Myself/recovery/Gallery/line-art-safety QA → merge PR #70 and close #62.
+QA1 evidence:
+- `0.4.0-content-studio-p4.5-qa1`, versionCode 17;
+- executable `240007b6161ebfefd09252efa844e4d18808a7f0`;
+- CI #415 / run `34756548584` green;
+- profile artifact `10317956245`;
+- size `16,183,450 bytes`;
+- SHA-256 `cf45fedc129523c8c9d3784e3d6ea70d0319dc1b8f9236430b85c099075394d6`;
+- supplied focused physical/product checklist user-reported PASS on 2026-09-13.
 
-### P4.6 — Representative Content Set B + Cross-content QA
-Add older-child detail/proportion and open-ended creative-variation content, expand guided-coloring coverage as needed, reach at least seven production-quality representative lessons and validate age/journey/skill coverage.
+Deferred—not falsely marked physical PASS—until P4.7: process-death-specific prepared-coloring sequence, exact coloring-undo boundary sequence, airplane mode and small-screen-specific coverage.
+
+Remaining gate: exact-head CI after acceptance documentation → ready/merge PR #70 → merged-main CI → close #62.
+
+### P4.6 — Representative Content Set B + Cross-content QA — NEXT
+Issue #63. Branch only from verified P4.5 `main` merge.
+
+Target:
+- add older-child detail/proportion lesson;
+- add open-ended creative-variation lesson;
+- expand guided-coloring representative coverage where needed;
+- reach at least seven production-quality representative lessons across ages, categories, skills and difficulty;
+- validate cross-content routing, recommendations, journeys, help, preview, recovery, coloring/free-draw coexistence and generic no-ID-special-case behavior.
 
 ### P4.7 — End-to-end QA + `0.4.0-content-studio` Release
-Full offline/lifecycle/accessibility/device regression across catalog discovery, guided lessons, Free Draw, expanded coloring and Gallery. Complete deferred P4.3/P4.4 physical coverage, then deliver the verified final `0.4.0-content-studio` APK with reproducible evidence.
+Full offline/lifecycle/accessibility/device regression across catalog discovery, guided lessons, Free Draw, expanded coloring and Gallery. Complete deferred P4.3/P4.4/P4.5 physical coverage, then deliver the verified final `0.4.0-content-studio` APK with reproducible evidence.
 
 ## Post-Phase-4 direction
 - companion expression/voice polish;

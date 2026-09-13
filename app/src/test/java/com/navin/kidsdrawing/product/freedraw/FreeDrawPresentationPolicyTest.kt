@@ -17,10 +17,15 @@ class FreeDrawPresentationPolicyTest {
         assertEquals(CHILD_SAFE_PALETTE, little.paletteArgb)
         assertEquals(CHILD_SAFE_PALETTE, young.paletteArgb)
         assertTrue(little.minimumControlHeightDp > young.minimumControlHeightDp)
+        assertTrue(little.maxControlTrayHeightDp > young.maxControlTrayHeightDp)
         assertTrue(little.toolColumns < young.toolColumns)
         assertTrue(little.paletteColumns < young.paletteColumns)
         assertTrue(little.showToolDescriptions)
         assertFalse(young.showToolDescriptions)
+        AgeBand.entries.forEach { ageBand ->
+            val policy = freeDrawPresentationPolicyFor(ageBand)
+            assertTrue(policy.maxControlTrayHeightDp >= policy.minimumControlHeightDp * 3)
+        }
     }
 
     @Test

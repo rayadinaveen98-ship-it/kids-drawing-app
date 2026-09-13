@@ -3,7 +3,7 @@
 **Working project:** Kids Drawing App  
 **Authoritative repository:** `rayadinaveen98-ship-it/kids-drawing-app`  
 **Current phase:** Phase 4 — Content & Studio Expansion / `0.4.0-content-studio`  
-**Current implementation slice:** P4.5 — Coloring V1 Expansion (#62 / draft PR #70)  
+**Current implementation slice:** P4.5 — Coloring V1 Expansion (#62 / PR #70), acceptance passed; merge verification pending  
 **Active branch:** `phase4/p4-5-coloring-expansion`  
 **Latest fully verified product milestone:** `0.3.0-vertical-slice` / versionCode 13  
 **Last updated:** 2026-09-13
@@ -44,10 +44,10 @@ QA1 executable evidence:
 
 The exhaustive P4.4 physical matrix was not fabricated from that smoke result; remaining rows stay in the Phase-4 end-to-end regression no later than P4.7.
 
-### P4.5 — Coloring V1 Expansion — ACTIVE
-Issue #62 / draft PR #70. Execution contract: `docs/10-execution/P4_5_EXECUTION_CONTRACT.md`.
+### P4.5 — Coloring V1 Expansion — ACCEPTED; MERGE VERIFICATION PENDING
+Issue #62 / PR #70. Execution contract: `docs/10-execution/P4_5_EXECUTION_CONTRACT.md`. QA record: `docs/10-execution/P4_5_COLORING_QA.md`.
 
-Current implementation on `phase4/p4-5-coloring-expansion`:
+Delivered:
 - content API 2 prepared-region catalog loading/validation with content API 1 backward compatibility;
 - legacy/freehand `regionIds: []` remains valid for Cute Cat r1;
 - strict prepared polygon validation and region reference checking;
@@ -60,15 +60,26 @@ Current implementation on `phase4/p4-5-coloring-expansion`:
 - `ColoringSessionTool.FILL` added append-only after Brush/Eraser to preserve old snapshot enum ordinals;
 - pure prepared-region hit testing and guided progress derived from authored coloring steps + authoritative document operations;
 - production coloring runtime restricts Color With Me fills to the current authored step and persists fills immediately;
-- coloring workspace now uses content-driven guidance instead of hard-coded Cute Cat/fake three-step copy;
-- Fill interaction is a Compose tap layer mapped through the shared `DocumentViewportMapper`, leaving the verified AndroidX Ink Brush/Eraser path untouched;
-- new release lesson `little-fish` r1 is the production content proof: Little/Creative, first-shapes journey, two guided coloring steps and three prepared regions (body, tail, fin).
+- coloring workspace uses content-driven guidance instead of hard-coded Cute Cat/stroke-count copy;
+- Fill interaction uses a Compose tap layer mapped through `DocumentViewportMapper`, leaving the verified AndroidX Ink Brush/Eraser path untouched;
+- production lesson `little-fish` r1 proves prepared-region coloring with body, tail and fin.
 
-P4.5 is NOT complete yet. PR #70 must remain draft until implementation is regression-green, a monotonic QA candidate (next versionCode after 16) is frozen, exact-head CI is green, profile APK evidence is recorded and physical/product coloring QA passes.
+QA1 evidence:
+- versionName `0.4.0-content-studio-p4.5-qa1`, versionCode 17;
+- executable commit `240007b6161ebfefd09252efa844e4d18808a7f0`;
+- exact-head Android CI #415 / run `34756548584` GREEN;
+- profile artifact `10317956245`;
+- profile APK size `16,183,450 bytes`;
+- profile SHA-256 `cf45fedc129523c8c9d3784e3d6ea70d0319dc1b8f9236430b85c099075394d6`;
+- user-reported focused P4.5 physical/product checklist PASS on 2026-09-13.
+
+Rows not explicitly requested in that focused device pass (process-death-specific sequence, exact coloring-undo boundary sequence, airplane mode, small-screen-specific check) remain deferred to P4.7 and are not falsely marked as physical PASS.
+
+P4.5 implementation is accepted. Remaining gate: exact-head CI after acceptance-documentation commits → mark PR #70 ready → merge → merged-main CI green → close #62.
 
 ### Remaining Phase 4 slices
 - P4.6 — Representative Content Set B + cross-content QA (#63)
-- P4.7 — end-to-end QA + final `0.4.0-content-studio` release (#64), including still-open P4.3/P4.4 deferred physical coverage.
+- P4.7 — end-to-end QA + final `0.4.0-content-studio` release (#64), including still-open P4.3/P4.4/P4.5 deferred physical coverage.
 
 ## Frozen architecture invariants
 
@@ -84,13 +95,11 @@ P4.5 is NOT complete yet. PR #70 must remain draft until implementation is regre
 
 ## Immediate next action
 
-1. Make the full P4.5 implementation head green in Android CI; fix any content/schema/UI/compiler regression first.
-2. Add/complete JVM and product regression tests for prepared fill, guided multi-region progression, legacy Cute Cat freehand compatibility, recovery and Gallery rendering.
-3. Freeze P4.5 QA1 as `0.4.0-content-studio-p4.5-qa1`, versionCode 17 (unless repository state proves a higher code is already distributed).
-4. Update CI artifact/evidence naming from P4.4 to P4.5 and require exact-head green.
-5. Record exact commit/run/artifact/APK size/SHA in the P4.5 QA record.
-6. Physically verify Little Fish Color With Me and Color Myself, fill hit-testing, multi-region step progression, Undo/Redo/recolor, process recovery, Gallery reopen/preview and protected-line-art safety.
-7. Only then mark PR #70 ready, merge, verify merged-main CI and close #62.
+1. Require exact-head Android CI green on the acceptance-documentation head.
+2. Mark PR #70 ready and squash-merge only after that green gate.
+3. Verify merged-main Android CI.
+4. Close issue #62 as completed.
+5. Branch P4.6 from the verified P4.5 main merge and implement Representative Content Set B + cross-content QA.
 
 ## Continuation rule
 
@@ -99,8 +108,8 @@ A new chat/developer session should inspect, in order:
 2. `docs/HANDOFF.md`
 3. `ROADMAP.md`
 4. Phase 4 epic #57
-5. issue #62 + draft PR #70 + `docs/10-execution/P4_5_EXECUTION_CONTRACT.md`
-6. current P4.5 CI and changed files
+5. issue #62 + PR #70 + `docs/10-execution/P4_5_EXECUTION_CONTRACT.md` + `P4_5_COLORING_QA.md`
+6. current P4.5 exact-head/merged-main CI status
 7. still-open P4.3 issue #60 / `P4_3_CONTENT_QA.md`
 8. relevant Drawing/Coloring/Lesson specifications.
 

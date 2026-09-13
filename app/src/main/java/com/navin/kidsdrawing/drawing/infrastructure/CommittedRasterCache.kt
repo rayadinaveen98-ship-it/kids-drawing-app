@@ -20,8 +20,8 @@ import java.util.LinkedHashSet
  * Protected line-art committed projection used by the production renderer.
  *
  * The editable/vector document remains authoritative. Coloring operations are intentionally
- * filtered out before they reach this cache, so coloring and coloring erases cannot mutate the
- * protected drawing projection. The existing checkpoint/recent-window optimization remains intact.
+ * filtered out before they reach this cache, so coloring and coloring erases/fills cannot mutate
+ * the protected drawing projection. The existing checkpoint/recent-window optimization remains intact.
  */
 internal class CommittedRasterCache(
     private val documentSize: DocumentSize,
@@ -46,18 +46,11 @@ internal class CommittedRasterCache(
 
     fun bitmap(): Bitmap = bitmap
 
-    /**
-     * Immediate wet→dry handoff for a just-finished live line-art stroke.
-     *
-     * The pixels are provisional until the document engine publishes the matching operation.
-     * Reconcile can confirm that exact append without drawing it a second time.
-     */
     fun appendLiveInk(recordId: String, stroke: Stroke) {
         renderer.draw(canvas, stroke, identity)
         provisionalVisualIds += recordId
     }
 
-    /** Immediate line-art erase; authoritative erase ordering is confirmed on reconcile. */
     fun appendLiveErase(mask: EraseMaskRecord) {
         drawEraseMask(mask)
         provisionalVisualIds += mask.maskId
@@ -94,10 +87,6 @@ internal class CommittedRasterCache(
         retainRecentProjectedOperations(lineOperations)
     }
 
-    /**
-     * Confirms a live visual append when the authoritative line-art timeline extends by the exact
-     * same stroke/mask record IDs in the exact same order. No bitmap redraw is needed.
-     */
     private fun acceptMatchingProvisionalExtension(
         operations: List<DocumentOperation>,
         ids: List<String>,
@@ -117,6 +106,7 @@ internal class CommittedRasterCache(
                 is DocumentOperation.ClearDocument -> return false
                 is DocumentOperation.AddColorStroke,
                 is DocumentOperation.AddColorEraseMask,
+                is DocumentOperation.AddColorRegionFill,
                 -> return false
             }
             tailVisualIds += visualId
@@ -153,19 +143,14 @@ internal class CommittedRasterCache(
                 is DocumentOperation.ClearDocument -> RenderedRasterOperation.Clear
                 is DocumentOperation.AddColorStroke,
                 is DocumentOperation.AddColorEraseMask,
+                is DocumentOperation.AddColorRegionFill,
                 -> error("Coloring operation cannot enter protected line-art projection.")
             }
         }
 
-    private fun dropProjectionIfOutsideRecentWindow(
-        index: Int,
-        totalSize: Int,
-        operationId: String,
-    ) {
+    private fun dropProjectionIfOutsideRecentWindow(index: Int, totalSize: Int, operationId: String) {
         val recentStart = (totalSize - PROJECTED_OPERATION_WINDOW).coerceAtLeast(0)
-        if (index < recentStart) {
-            projectedOperationCache.remove(operationId)
-        }
+        if (index < recentStart) projectedOperationCache.remove(operationId)
     }
 
     private fun retainRecentProjectedOperations(operations: List<DocumentOperation>) {
@@ -179,9 +164,7 @@ internal class CommittedRasterCache(
     private fun restoreNearestCheckpoint(targetPrefix: Int) {
         val checkpointCursor = checkpoints.keys.filter { it <= targetPrefix }.maxOrNull()
         clearBitmap()
-        if (checkpointCursor != null) {
-            canvas.drawBitmap(checkpoints.getValue(checkpointCursor), 0f, 0f, null)
-        }
+        if (checkpointCursor != null) canvas.drawBitmap(checkpoints.getValue(checkpointCursor), 0f, 0f, null)
     }
 
     private fun currentCheckpointCursor(targetPrefix: Int): Int =
@@ -258,9 +241,7 @@ internal class CommittedRasterCache(
         (1L + checkpoints.size) * bitmapWidth * bitmapHeight * BYTES_PER_ARGB_8888_PIXEL
 
     internal fun checkpointCount(): Int = checkpoints.size
-
     internal fun projectedOperationCount(): Int = projectedOperationCache.size
-
     internal fun provisionalVisualCount(): Int = provisionalVisualIds.size
 
     private fun belongsToLineProjection(operation: DocumentOperation): Boolean = when (operation) {
@@ -271,6 +252,7 @@ internal class CommittedRasterCache(
 
         is DocumentOperation.AddColorStroke,
         is DocumentOperation.AddColorEraseMask,
+        is DocumentOperation.AddColorRegionFill,
         -> false
     }
 

@@ -52,20 +52,28 @@ import kotlinx.coroutines.flow.asStateFlow
  * The Android wrapper only supplies content and storage roots. This core is the actual controller
  * used by the APK and by the P2.6 JVM integration matrix, so tests exercise the same command/event
  * bridge that runs on device rather than a duplicate harness.
+ *
+ * P4.2 parameterizes only infrastructure identity. Session transitions, teacher playback, help,
+ * autosave and recovery semantics remain unchanged.
  */
 open class LessonLabRuntimeCore internal constructor(
     documentRoot: File,
     sessionRoot: File,
     private val lessonPackageResult: LessonLoadResult,
+    val runtimeIdentity: LessonRuntimeIdentity = LessonRuntimeIdentity(
+        sessionId = SESSION_ID,
+        documentId = DOCUMENT_ID,
+    ),
 ) {
+    private val lessonPackage: LessonRuntimePackage? =
+        (lessonPackageResult as? LessonLoadResult.Success)?.packageData
+
     val documentEngine = DrawingDocumentEngine(newLessonDocument())
     val toolEngine = DrawingToolEngine()
     val teacherSession = TeacherPlaybackSession()
 
     private val documentStore = AtomicDrawingDocumentStore(documentRoot)
     private val sessionStore = AtomicLessonSessionStore(sessionRoot)
-    private val lessonPackage: LessonRuntimePackage? =
-        (lessonPackageResult as? LessonLoadResult.Success)?.packageData
 
     private val autosave = LessonSessionAutosaveCoordinator(sessionStore::save)
     private val recovery = LessonRecoveryCoordinator.fromStores(
@@ -106,9 +114,9 @@ open class LessonLabRuntimeCore internal constructor(
         pendingColoringMode = null
         _guideOverlay.value = null
 
-        return when (val result = recovery.recover(SESSION_ID)) {
+        return when (val result = recovery.recover(runtimeIdentity.sessionId)) {
             LessonRecoveryCoordinator.RecoveryResult.MissingSession -> {
-                val persistedDocument = documentStore.load(DOCUMENT_ID)
+                val persistedDocument = documentStore.load(runtimeIdentity.documentId)
                 if (persistedDocument != null) {
                     documentEngine.replaceDocument(persistedDocument.document)
                     publishDiagnostics("Artwork found; no resumable lesson session")
@@ -170,7 +178,7 @@ open class LessonLabRuntimeCore internal constructor(
         _guideOverlay.value = null
         lessonEngine = null
         _sessionState.value = null
-        sessionStore.delete(SESSION_ID)
+        sessionStore.delete(runtimeIdentity.sessionId)
         val blank = newLessonDocument()
         documentEngine.replaceDocument(blank)
         documentStore.save(blank)
@@ -190,8 +198,8 @@ open class LessonLabRuntimeCore internal constructor(
 
         val engine = LessonSessionEngine.create(
             lessonPackage = packageData,
-            sessionId = SESSION_ID,
-            childDocumentId = DOCUMENT_ID,
+            sessionId = runtimeIdentity.sessionId,
+            childDocumentId = runtimeIdentity.documentId,
         )
         lessonEngine = engine
         val result = engine.dispatch(LessonCommand.StartLesson(mode, pace))
@@ -218,7 +226,7 @@ open class LessonLabRuntimeCore internal constructor(
                 engine,
                 engine.handle(
                     LessonRuntimeSignal.ChildStrokeCommitted(
-                        childDocumentId = DOCUMENT_ID,
+                        childDocumentId = runtimeIdentity.documentId,
                         operationId = operation.operationId,
                     ),
                 ),
@@ -276,7 +284,7 @@ open class LessonLabRuntimeCore internal constructor(
             engine,
             engine.handle(
                 ColoringHandoffFailed(
-                    childDocumentId = DOCUMENT_ID,
+                    childDocumentId = runtimeIdentity.documentId,
                     reason = "Coloring Engine is intentionally not implemented in Lesson Engine 0.2",
                 ),
             ),
@@ -290,7 +298,10 @@ open class LessonLabRuntimeCore internal constructor(
         }
         val engine = lessonEngine ?: return
         pendingColoringMode = null
-        consumeSignalResult(engine, engine.handle(ColoringHandoffCompleted(DOCUMENT_ID)))
+        consumeSignalResult(
+            engine,
+            engine.handle(ColoringHandoffCompleted(runtimeIdentity.documentId)),
+        )
     }
 
     suspend fun onBackground() {
@@ -420,12 +431,22 @@ open class LessonLabRuntimeCore internal constructor(
         )
     }
 
+    private fun newLessonDocument() = DrawingDocumentEngine.newDocument(
+        documentId = runtimeIdentity.documentId,
+        metadata = DrawingDocumentMetadata(
+            lessonId = lessonPackage?.lesson?.lessonId ?: LEGACY_LESSON_ID,
+            lessonRevision = lessonPackage?.lesson?.revision ?: LEGACY_LESSON_REVISION,
+        ),
+    )
+
     private fun LessonSessionState.shortName(): String = this::class.simpleName ?: "Unknown"
 
     companion object {
         internal const val LESSON_ROOT = "lessons/cute-cat"
         internal const val SESSION_ID = "lesson-lab-cute-cat-session"
         internal const val DOCUMENT_ID = "lesson-lab-cute-cat-document"
+        internal const val LEGACY_LESSON_ID = "cute-cat"
+        internal const val LEGACY_LESSON_REVISION = 1
 
         internal fun forTest(
             rootDirectory: File,
@@ -434,14 +455,6 @@ open class LessonLabRuntimeCore internal constructor(
             documentRoot = File(rootDirectory, "documents"),
             sessionRoot = File(rootDirectory, "sessions"),
             lessonPackageResult = LessonPackageLoader(source).load(LESSON_ROOT),
-        )
-
-        private fun newLessonDocument() = DrawingDocumentEngine.newDocument(
-            documentId = DOCUMENT_ID,
-            metadata = DrawingDocumentMetadata(
-                lessonId = "cute-cat",
-                lessonRevision = 1,
-            ),
         )
     }
 }

@@ -13,7 +13,6 @@ import com.navin.kidsdrawing.gallery.domain.GalleryListResult
 import com.navin.kidsdrawing.gallery.domain.GalleryReopenResult
 import com.navin.kidsdrawing.gallery.domain.GalleryRepository
 import com.navin.kidsdrawing.gallery.persistence.AtomicGalleryCatalogStore
-import com.navin.kidsdrawing.lesson.lab.LessonLabRuntimeCore
 import com.navin.kidsdrawing.lesson.session.FinishForNow
 import com.navin.kidsdrawing.lesson.session.LessonCommandResult
 import com.navin.kidsdrawing.lesson.session.LessonFinishReason
@@ -40,7 +39,7 @@ class ProductGalleryRuntime(
         documentStore = documentStore,
         catalogStore = catalogStore,
         previewService = previewService,
-        protectedWorkingDocumentId = LessonLabRuntimeCore.DOCUMENT_ID,
+        protectedWorkingDocumentId = lessonRuntime.runtimeIdentity.documentId,
     )
     private val completionCoordinator = ArtworkCompletionCoordinator(repository)
 
@@ -87,7 +86,6 @@ class ProductGalleryRuntime(
             get() = coloringRuntime.documentEngine.state.value.document
 
         override suspend fun saveBeforeFinish() {
-            // Persists active coloring + current DrawingDocument before the semantic finish signal.
             coloringRuntime.saveNow()
         }
 

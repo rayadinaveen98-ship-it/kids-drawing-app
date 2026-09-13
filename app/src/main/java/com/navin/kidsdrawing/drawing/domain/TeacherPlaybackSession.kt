@@ -94,8 +94,8 @@ class TeacherPlaybackSession(
     private fun TeacherPlaybackFrame.forPresentation(): TeacherPlaybackFrame {
         if (status != TeacherPlaybackStatus.COMPLETED) return this
         return if (sequenceId.isOverviewSequence()) {
-            // Watch Then Draw remains a memory exercise after the overview finishes.
-            copy(visibleStrokes = emptyList(), completedStrokeCount = 0)
+            // Source completion remains truthful; only the completed overview presentation clears.
+            copy(visibleStrokes = emptyList())
         } else {
             // The demonstrated part stays as a gentle map during the child's turn.
             copy(visibleStrokes = visibleStrokes.map { it.asCompletedReference() })

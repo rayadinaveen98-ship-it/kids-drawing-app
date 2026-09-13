@@ -3,6 +3,8 @@ package com.navin.kidsdrawing.drawing.infrastructure.persistence
 import com.navin.kidsdrawing.drawing.domain.BackgroundRole
 import com.navin.kidsdrawing.drawing.domain.COLORING_DOCUMENT_SCHEMA_VERSION
 import com.navin.kidsdrawing.drawing.domain.CURRENT_DOCUMENT_SCHEMA_VERSION
+import com.navin.kidsdrawing.drawing.domain.ColorRegionFillRecord
+import com.navin.kidsdrawing.drawing.domain.ColorRegionPoint
 import com.navin.kidsdrawing.drawing.domain.DocumentOperation
 import com.navin.kidsdrawing.drawing.domain.DocumentSize
 import com.navin.kidsdrawing.drawing.domain.DrawingDocument
@@ -10,6 +12,7 @@ import com.navin.kidsdrawing.drawing.domain.DrawingDocumentMetadata
 import com.navin.kidsdrawing.drawing.domain.EraseMaskRecord
 import com.navin.kidsdrawing.drawing.domain.InkStrokeRecord
 import com.navin.kidsdrawing.drawing.domain.PointerTool
+import com.navin.kidsdrawing.drawing.domain.REGION_FILL_DOCUMENT_SCHEMA_VERSION
 import com.navin.kidsdrawing.drawing.domain.StrokeAuthorRole
 import com.navin.kidsdrawing.drawing.domain.StrokePoint
 import java.io.ByteArrayInputStream
@@ -24,8 +27,8 @@ import java.util.zip.CRC32
 /**
  * App-owned, checksummed editable drawing-document envelope.
  *
- * Envelope v1 stays stable. Document schema v2 adds explicit coloring operation tags while schema-1
- * files remain fully readable. AndroidX Ink payload serialization is unchanged.
+ * Envelope v1 stays stable. Document schema v2 adds explicit coloring stroke/erase tags; schema v3
+ * adds reversible prepared-region fills. Schema-1 and schema-2 files remain fully readable.
  */
 class DrawingDocumentBinaryCodec(
     private val strokePayloadCodec: StrokePayloadCodec = InkStrokePayloadCodec,
@@ -120,6 +123,14 @@ class DrawingDocumentBinaryCodec(
                     writeOperationHeader(data, operation.operationId, operation.createdAtEpochMillis)
                     writeEraseMask(data, operation.mask)
                 }
+                is DocumentOperation.AddColorRegionFill -> {
+                    require(document.documentSchemaVersion >= REGION_FILL_DOCUMENT_SCHEMA_VERSION) {
+                        "Color region fill requires document schema $REGION_FILL_DOCUMENT_SCHEMA_VERSION+."
+                    }
+                    data.writeByte(OP_ADD_COLOR_REGION_FILL)
+                    writeOperationHeader(data, operation.operationId, operation.createdAtEpochMillis)
+                    writeColorRegionFill(data, operation.fill)
+                }
             }
         }
     }
@@ -177,6 +188,16 @@ class DrawingDocumentBinaryCodec(
                         operationId = operationId,
                         createdAtEpochMillis = operationTime,
                         mask = readEraseMask(data),
+                    )
+                }
+                OP_ADD_COLOR_REGION_FILL -> {
+                    require(schemaVersion >= REGION_FILL_DOCUMENT_SCHEMA_VERSION) {
+                        "Color region fill tag is invalid in schema $schemaVersion."
+                    }
+                    DocumentOperation.AddColorRegionFill(
+                        operationId = operationId,
+                        createdAtEpochMillis = operationTime,
+                        fill = readColorRegionFill(data),
                     )
                 }
                 else -> error("Unknown document operation tag: $tag")
@@ -268,6 +289,36 @@ class DrawingDocumentBinaryCodec(
             maskId = maskId,
             baseSize = baseSize,
             points = List(pointCount) { readPoint(data) },
+        )
+    }
+
+    private fun writeColorRegionFill(data: DataOutputStream, fill: ColorRegionFillRecord) {
+        writeString(data, fill.regionId)
+        data.writeInt(fill.colorArgb)
+        data.writeInt(fill.points.size)
+        fill.points.forEach { point ->
+            data.writeFloat(point.x)
+            data.writeFloat(point.y)
+        }
+    }
+
+    private fun readColorRegionFill(data: DataInputStream): ColorRegionFillRecord {
+        val regionId = readString(data)
+        val colorArgb = data.readInt()
+        val pointCount = data.readInt()
+        require(pointCount in 3..MAX_POINTS_PER_REGION) {
+            "Invalid prepared-region point count: $pointCount"
+        }
+        val points = List(pointCount) {
+            val x = data.readFloat()
+            val y = data.readFloat()
+            require(x.isFinite() && y.isFinite()) { "Persisted prepared-region coordinates must be finite." }
+            ColorRegionPoint(x, y)
+        }
+        return ColorRegionFillRecord(
+            regionId = regionId,
+            colorArgb = colorArgb,
+            points = points,
         )
     }
 
@@ -379,10 +430,12 @@ class DrawingDocumentBinaryCodec(
         const val OP_CLEAR = 3
         const val OP_ADD_COLOR_INK = 4
         const val OP_ADD_COLOR_ERASE_MASK = 5
+        const val OP_ADD_COLOR_REGION_FILL = 6
         const val MAX_BODY_BYTES = 64 * 1024 * 1024
         const val MAX_STROKE_PAYLOAD_BYTES = 16 * 1024 * 1024
         const val MAX_STRING_BYTES = 1024 * 1024
         const val MAX_OPERATIONS = 100_000
         const val MAX_POINTS_PER_MASK = 1_000_000
+        const val MAX_POINTS_PER_REGION = 100_000
     }
 }

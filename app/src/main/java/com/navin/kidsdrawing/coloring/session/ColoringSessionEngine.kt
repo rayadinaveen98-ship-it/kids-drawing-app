@@ -14,9 +14,11 @@ enum class ColoringSessionPhase {
     FINISHED,
 }
 
+/** Append-only ordinal contract: BRUSH=0 and ERASER=1 stay compatible with schema-1 snapshots. */
 enum class ColoringSessionTool {
     BRUSH,
     ERASER,
+    FILL,
 }
 
 data class ColoringSessionState(
@@ -75,7 +77,11 @@ class ColoringSessionEngine private constructor(initialState: ColoringSessionSta
 
     fun selectColor(colorArgb: Int): Boolean = mutateActive { current ->
         current.copy(
-            selectedTool = ColoringSessionTool.BRUSH,
+            selectedTool = if (current.selectedTool == ColoringSessionTool.FILL) {
+                ColoringSessionTool.FILL
+            } else {
+                ColoringSessionTool.BRUSH
+            },
             selectedColorArgb = colorArgb,
         )
     }

@@ -8,6 +8,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
+import com.navin.kidsdrawing.drawing.domain.ColorRegionFillRecord
 import com.navin.kidsdrawing.drawing.domain.DocumentOperation
 import com.navin.kidsdrawing.drawing.domain.DrawingDocument
 import com.navin.kidsdrawing.drawing.domain.EraseMaskRecord
@@ -106,6 +107,8 @@ class AndroidGalleryPreviewService(context: Context) : GalleryPreviewService {
                 }
                 is DocumentOperation.AddColorEraseMask ->
                     drawErase(colorCanvas, operation.mask, scale, offsetX, offsetY)
+                is DocumentOperation.AddColorRegionFill ->
+                    drawRegionFill(colorCanvas, operation.fill, scale, offsetX, offsetY)
                 is DocumentOperation.ClearDocument -> {
                     colorCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
                     lineCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
@@ -153,6 +156,29 @@ class AndroidGalleryPreviewService(context: Context) : GalleryPreviewService {
             points.drop(1).forEach { point ->
                 lineTo(offsetX + point.x * scale, offsetY + point.y * scale)
             }
+        }
+        canvas.drawPath(path, paint)
+    }
+
+    private fun drawRegionFill(
+        canvas: Canvas,
+        fill: ColorRegionFillRecord,
+        scale: Float,
+        offsetX: Float,
+        offsetY: Float,
+    ) {
+        val points = fill.points
+        if (points.size < 3) return
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = fill.colorArgb
+            style = Paint.Style.FILL
+        }
+        val path = Path().apply {
+            moveTo(offsetX + points.first().x * scale, offsetY + points.first().y * scale)
+            points.drop(1).forEach { point ->
+                lineTo(offsetX + point.x * scale, offsetY + point.y * scale)
+            }
+            close()
         }
         canvas.drawPath(path, paint)
     }

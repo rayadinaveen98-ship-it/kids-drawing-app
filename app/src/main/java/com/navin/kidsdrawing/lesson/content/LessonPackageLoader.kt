@@ -1,6 +1,7 @@
 package com.navin.kidsdrawing.lesson.content
 
 import com.navin.kidsdrawing.lesson.model.AuthoredStroke
+import com.navin.kidsdrawing.lesson.model.ColoringRegionCatalogSource
 import com.navin.kidsdrawing.lesson.model.HelpKind
 import com.navin.kidsdrawing.lesson.model.LessonRuntimePackage
 import com.navin.kidsdrawing.lesson.model.LessonSource
@@ -104,13 +105,46 @@ class LessonPackageLoader(
             is DecodeResult.Failure -> return decoded.result
         }
 
-        val diagnostics = LessonPackageValidator.validate(lesson, strokeCatalog, supportedContentApi)
+        val coloringRegionCatalog = lesson.assets.coloringRegions?.let { relativePath ->
+            val regionPath = safeJoin(normalizedRoot, relativePath)
+                ?: return LessonLoadResult.Failure(
+                    listOf(
+                        LessonDiagnostic(
+                            LessonDiagnosticCode.UNSAFE_ASSET_PATH,
+                            "assets.coloringRegions",
+                            "Coloring region asset path is absolute or traverses outside the package.",
+                        ),
+                    ),
+                )
+            val regionText = source.readText(regionPath)
+                ?: return LessonLoadResult.Failure(
+                    listOf(
+                        LessonDiagnostic(
+                            LessonDiagnosticCode.MISSING_ASSET,
+                            regionPath,
+                            "Declared coloring region catalog is missing.",
+                        ),
+                    ),
+                )
+            when (val decoded = decodeColoringRegionCatalog(regionPath, regionText)) {
+                is DecodeResult.Value -> decoded.value
+                is DecodeResult.Failure -> return decoded.result
+            }
+        }
+
+        val diagnostics = LessonPackageValidator.validate(
+            lesson = lesson,
+            catalog = strokeCatalog,
+            coloringRegionCatalog = coloringRegionCatalog,
+            supportedContentApi = supportedContentApi,
+        )
         return if (diagnostics.isEmpty()) {
             LessonLoadResult.Success(
                 LessonRuntimePackage(
                     packageRoot = normalizedRoot,
                     lesson = lesson,
                     strokeCatalog = strokeCatalog,
+                    coloringRegionCatalog = coloringRegionCatalog,
                 ),
             )
         } else {
@@ -134,6 +168,17 @@ class LessonPackageLoader(
         decodeFailure(path, error, "Stroke catalog JSON is invalid.")
     }
 
+    private fun decodeColoringRegionCatalog(
+        path: String,
+        text: String,
+    ): DecodeResult<ColoringRegionCatalogSource> = try {
+        DecodeResult.Value(json.decodeFromString<ColoringRegionCatalogSource>(text))
+    } catch (error: SerializationException) {
+        decodeFailure(path, error, "Coloring region catalog JSON could not be decoded.")
+    } catch (error: IllegalArgumentException) {
+        decodeFailure(path, error, "Coloring region catalog JSON is invalid.")
+    }
+
     private fun decodeFailure(path: String, error: Exception, fallback: String): DecodeResult.Failure =
         DecodeResult.Failure(
             LessonLoadResult.Failure(
@@ -148,7 +193,7 @@ class LessonPackageLoader(
         )
 
     companion object {
-        const val CURRENT_CONTENT_API = 1
+        const val CURRENT_CONTENT_API = ColoringRegionValidator.PREPARED_REGION_CONTENT_API
 
         val DEFAULT_JSON = Json {
             ignoreUnknownKeys = false
@@ -198,9 +243,22 @@ object LessonPackageValidator {
         validateSafeAssetPaths(lesson).forEach(::add)
     }
 
+    /** Compatibility overload used by existing tests and non-region package fixtures. */
     fun validate(
         lesson: LessonSource,
         catalog: StrokeCatalogSource,
+        supportedContentApi: Int,
+    ): List<LessonDiagnostic> = validate(
+        lesson = lesson,
+        catalog = catalog,
+        coloringRegionCatalog = null,
+        supportedContentApi = supportedContentApi,
+    )
+
+    fun validate(
+        lesson: LessonSource,
+        catalog: StrokeCatalogSource,
+        coloringRegionCatalog: ColoringRegionCatalogSource?,
         supportedContentApi: Int,
     ): List<LessonDiagnostic> = buildList {
         addAll(validateLessonHeader(lesson, supportedContentApi))
@@ -220,6 +278,7 @@ object LessonPackageValidator {
         validateStrokeCatalog(lesson, catalog).forEach(::add)
         validateSteps(lesson, catalog).forEach(::add)
         validateColoring(lesson).forEach(::add)
+        ColoringRegionValidator.validate(lesson, coloringRegionCatalog).forEach(::add)
     }
 
     private fun validateMetadata(lesson: LessonSource): List<LessonDiagnostic> = buildList {

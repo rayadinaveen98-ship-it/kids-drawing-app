@@ -1,93 +1,95 @@
 # Product Roadmap
 
 ## Phase 0 — Product Foundation — COMPLETE
-
-Product scope, UX architecture, lesson/content architecture, Drawing/Lesson/Coloring contracts, companion/visual direction, safety, quality and release strategy are locked.
+Product/UX/content/engine/companion/safety/quality/release contracts locked.
 
 ## Phase 1 — Art Lab / Drawing Engine 0.1 — COMPLETE
-
-Milestone `0.1.0-art-lab`.
-
-Proven baseline: low-latency native drawing, editable operation history, Pencil/Eraser/color/width, Undo/Redo/Clear, atomic persistence/recovery, deterministic teacher playback at five paces, Art/Quality labs and physical quality evidence.
+Low-latency native drawing, editable operation history, tools, Undo/Redo/Clear, atomic persistence/recovery and deterministic teacher playback proven.
 
 ## Phase 2 — Lesson Engine 0.2 — COMPLETE
-
-Milestone `0.2.0-lesson-engine`.
-
-Proven: structured lesson loading/validation, deterministic lesson state/snapshots, Draw With Me, Watch Then Draw, Trace & Learn, Help Ladder, all five paces, lifecycle/process recovery, strict overlay isolation and 32/32 physical QA.
+Structured lesson loading/validation, all three teaching modes, Help Ladder, five paces, lifecycle/process recovery and 32/32 physical QA proven.
 
 ## Phase 3 — First Vertical Slice 0.3 — COMPLETE
-
-Milestone `0.3.0-vertical-slice`, versionCode 13.
-
-Proven production journey:
-onboarding → profile/age preferences → Studio recommendation → lesson preview/companion → guided drawing/help → safe coloring handoff → completion → Gallery/reopen.
-
-P3.6 final executable candidate passed 41/41 physical scenarios. Evidence lives in `docs/10-execution/P3_6_PHYSICAL_QA.md` and `docs/10-execution/P3_6_RELEASE_REPORT.md`.
+`0.3.0-vertical-slice`, versionCode 13. Production onboarding → lesson → coloring → Gallery journey physically passed 41/41 scenarios.
 
 ## Phase 4 — Content & Studio Expansion 0.4 — ACTIVE
 
 **Milestone target:** `0.4.0-content-studio`  
 **Epic:** #57
 
-Goal: scale the verified product beyond one Cute Cat lesson without reopening the frozen engine architecture.
+Goal: scale the verified product into a reusable offline multi-lesson art-learning studio without reopening proven engine foundations.
 
 ### P4.1 — Content Catalog Foundation — COMPLETE
 Deterministic offline multi-package discovery, validation, typed diagnostics, metadata queries and generic catalog loading.
 
 ### P4.2 — Discovery, Art Journeys & Recommendations — COMPLETE
-Child-facing multi-lesson Studio, category/journey browsing, deterministic age/interest/mode ranking, resume precedence and stable lesson-specific routing/recovery.
+Multi-lesson Studio, deterministic recommendations, category/journey discovery, stable lesson identity and cross-lesson recovery.
 
-### P4.3 — Representative Content Set A — IMPLEMENTATION MERGED / PHYSICAL ACCEPTANCE OPEN
+### P4.3 — Representative Content Set A — IMPLEMENTATION MERGED / PHYSICAL MATRIX OPEN
+Smiling Sun, Friendly Owl, Simple Rocket and Easy Flower are integrated. PR #67 merged at `99767b71a8e4ea20b6d587e4951c822a386019e5`; merged-main CI #342 green. Issue #60 remains open because its broader physical/content matrix was not fully rerun. Finish that coverage no later than P4.7.
 
-Implementation merged through PR #67 at `99767b71a8e4ea20b6d587e4951c822a386019e5` and merged-main CI #342 is green.
+### P4.4 — Free Draw Studio V1 Core — COMPLETE
+Issue #61 / PR #69. Squash merge `46c5954fd829e8f64cb752a58c732e895b8e3855`; merged-main CI #379 green.
 
-Shipped content implementation:
-- Smiling Sun — tracing-friendly early-child lesson;
-- Friendly Owl — full Help Ladder animal lesson;
-- Simple Rocket — Watch Then Draw;
-- Easy Flower — grouped multi-stroke demonstrations.
-
-Issue #60 remains open because the complete physical/content matrix was not rerun. Remaining P4.3 device/content coverage must be completed no later than P4.7; do not describe P4.3 as physically complete without that evidence.
-
-### P4.4 — Free Draw Studio V1 Core — ACTIVE
-
-Issue #61 / draft PR #69. QA candidate: `0.4.0-content-studio-p4.4-qa1`, versionCode 16.
-
-Implemented scope:
-- production Home → Free Draw route;
-- blank/recovered stable working canvas;
+Delivered:
+- production blank/recovered Free Draw canvas;
 - age-adaptive Pencil/Crayon/Marker/Eraser controls;
-- child-safe palette and sizes;
-- Undo/Redo;
-- confirmation-only, undoable Clear;
-- Save & leave / resume and lifecycle recovery;
-- explicit Free Draw Gallery provenance;
-- safe Gallery promotion/reopen/delete with working-document isolation;
-- bounded scrollable controls to preserve canvas space on smaller phones;
-- P4.4 automated regression coverage.
+- palette/size, Undo/Redo, confirmation-only undoable Clear;
+- Save & leave / lifecycle recovery;
+- explicit Free Draw Gallery provenance and safe reopen/delete;
+- working-document isolation and responsive tool layout.
 
-Exit gate: exact frozen QA1 head green in CI plus recorded physical/product QA from `docs/10-execution/P4_4_FREE_DRAW_QA.md`. Do not merge #69 on compile evidence alone.
+QA1 versionCode 16 received positive user physical smoke. Exhaustive deferred P4.4 rows remain part of P4.7 regression.
 
-### P4.5 — Coloring V1 Expansion — NEXT AFTER P4.4
-Prepared-region fill where authored, guided coloring semantics, Color With Me progression, free coloring, persistence and line-art protection.
+### P4.5 — Coloring V1 Expansion — ACCEPTED / MERGE VERIFICATION PENDING
+Issue #62 / PR #70 / branch `phase4/p4-5-coloring-expansion`.
 
-### P4.6 — Representative Content Set B + Cross-content QA
-Add guided-region coloring, older-child detail/proportion and open-ended creative-variation lessons. Bring the representative Phase 4 set to at least seven production-quality lessons and validate age/journey coverage.
+Delivered:
+- content API 2 prepared coloring regions with strict package validation and API-1 compatibility;
+- legacy empty-region freehand coloring preserved for Cute Cat r1;
+- DrawingDocument schema 3 prepared-fill operation with backward-readable schema 1/2 documents;
+- reversible Fill Undo/Redo and recoloring;
+- prepared fill isolated to color projection beneath protected line art;
+- Gallery previews render fills beneath line art;
+- authored Color With Me progression derived from lesson steps and document operations;
+- Fill offered only for valid prepared-region content/current guided step;
+- Compose Fill tap overlay uses the shared logical-coordinate mapper while AndroidX Ink Brush/Eraser input remains untouched;
+- child-facing coloring copy is content/progress-driven rather than Cute-Cat/stroke-count hardcoding;
+- production lesson `little-fish` r1 proves guided prepared coloring with body, tail and fin regions.
 
-### P4.7 — End-to-end QA + 0.4.0 Release
-Full offline/lifecycle/accessibility/device regression across catalog discovery, guided lessons, Free Draw, expanded coloring and Gallery. Complete any still-open P4.3 physical/content matrix, then deliver verified `0.4.0-content-studio` APK with reproducible release evidence.
+QA1 evidence:
+- `0.4.0-content-studio-p4.5-qa1`, versionCode 17;
+- executable `240007b6161ebfefd09252efa844e4d18808a7f0`;
+- CI #415 / run `34756548584` green;
+- profile artifact `10317956245`;
+- size `16,183,450 bytes`;
+- SHA-256 `cf45fedc129523c8c9d3784e3d6ea70d0319dc1b8f9236430b85c099075394d6`;
+- supplied focused physical/product checklist user-reported PASS on 2026-09-13.
+
+Deferred—not falsely marked physical PASS—until P4.7: process-death-specific prepared-coloring sequence, exact coloring-undo boundary sequence, airplane mode and small-screen-specific coverage.
+
+Remaining gate: exact-head CI after acceptance documentation → ready/merge PR #70 → merged-main CI → close #62.
+
+### P4.6 — Representative Content Set B + Cross-content QA — NEXT
+Issue #63. Branch only from verified P4.5 `main` merge.
+
+Target:
+- add older-child detail/proportion lesson;
+- add open-ended creative-variation lesson;
+- expand guided-coloring representative coverage where needed;
+- reach at least seven production-quality representative lessons across ages, categories, skills and difficulty;
+- validate cross-content routing, recommendations, journeys, help, preview, recovery, coloring/free-draw coexistence and generic no-ID-special-case behavior.
+
+### P4.7 — End-to-end QA + `0.4.0-content-studio` Release
+Full offline/lifecycle/accessibility/device regression across catalog discovery, guided lessons, Free Draw, expanded coloring and Gallery. Complete deferred P4.3/P4.4/P4.5 physical coverage, then deliver the verified final `0.4.0-content-studio` APK with reproducible evidence.
 
 ## Post-Phase-4 direction
-
-Sequencing remains phase-gated and can be refined after `0.4.0` evidence, but the intended path is:
-- production companion expression/voice polish;
-- expansion from the seven-lesson representative set toward the Public V1 24–36 lesson catalog;
-- adaptive recommendations/help based on observable local learning signals, never punitive scoring;
-- Parent Zone and parent-controlled export/settings;
+- companion expression/voice polish;
+- expand representative curriculum toward public V1 24–36 lessons;
+- adaptive local recommendations/help without punitive scoring;
+- Parent Zone / parent-controlled export/settings;
 - broader accessibility/device hardening and Beta;
-- V1.0 only when product, privacy/safety, content and store-release gates are satisfied.
+- V1.0 only after product, privacy/safety, content and store-release gates pass.
 
 ## Permanent delivery rule
-
 Every meaningful Android milestone should produce an installable APK when technically possible, tied to an exact Git commit and reproducible CI/release evidence.

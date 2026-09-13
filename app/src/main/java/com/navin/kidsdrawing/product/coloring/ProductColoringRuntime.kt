@@ -2,6 +2,8 @@ package com.navin.kidsdrawing.product.coloring
 
 import android.content.Context
 import com.navin.kidsdrawing.coloring.persistence.AtomicColoringSessionStore
+import com.navin.kidsdrawing.coloring.regions.GuidedColoringProgress
+import com.navin.kidsdrawing.coloring.regions.PreparedColoringRegionEngine
 import com.navin.kidsdrawing.coloring.session.ColoringSessionEngine
 import com.navin.kidsdrawing.coloring.session.ColoringSessionMode
 import com.navin.kidsdrawing.coloring.session.ColoringSessionPhase
@@ -13,6 +15,7 @@ import com.navin.kidsdrawing.drawing.domain.DrawingToolSettings
 import com.navin.kidsdrawing.drawing.domain.EraseMaskRecord
 import com.navin.kidsdrawing.drawing.domain.InkStrokeRecord
 import com.navin.kidsdrawing.drawing.infrastructure.persistence.AtomicDrawingDocumentStore
+import com.navin.kidsdrawing.lesson.model.ColoringStep
 import com.navin.kidsdrawing.lesson.session.ChooseColorMyself
 import com.navin.kidsdrawing.lesson.session.ChooseColorWithMe
 import com.navin.kidsdrawing.lesson.session.ColoringHandoffMode
@@ -28,6 +31,13 @@ sealed interface ProductColoringStartResult {
     data class Failed(val message: String) : ProductColoringStartResult
 }
 
+sealed interface ProductColorFillResult {
+    data class Filled(val regionId: String) : ProductColorFillResult
+    data object Miss : ProductColorFillResult
+    data object Unavailable : ProductColorFillResult
+    data object GuidanceComplete : ProductColorFillResult
+}
+
 enum class ProductColoringRecoveryResult {
     RESTORED,
     MISSING,
@@ -38,11 +48,12 @@ enum class ProductColoringRecoveryResult {
 }
 
 /**
- * Production vertical-slice coordinator for coloring.
+ * Production coordinator for coloring.
  *
- * DrawingDocumentEngine remains the sole artwork authority. Coloring deliberately shares the
- * editable document with ProductLessonRuntime, but owns an independent DrawingToolEngine so
- * coloring palette/brush choices can never leak back into lesson drawing tools.
+ * DrawingDocumentEngine remains the sole artwork authority. Coloring shares the editable document
+ * with ProductLessonRuntime, but owns an independent DrawingToolEngine so palette/brush choices can
+ * never leak back into lesson drawing tools. Prepared fills are committed as coloring-only document
+ * operations and never touch protected line-art history.
  */
 class ProductColoringRuntime(
     context: Context,
@@ -57,6 +68,8 @@ class ProductColoringRuntime(
         File(appContext.filesDir, COLORING_SESSION_DIRECTORY),
     )
     private val coloringToolEngine = DrawingToolEngine()
+    private val preparedRegions: PreparedColoringRegionEngine? =
+        lessonRuntime.packageData?.coloringRegionCatalog?.let(::PreparedColoringRegionEngine)
 
     private var engine: ColoringSessionEngine? = null
     private val _sessionState = MutableStateFlow<ColoringSessionState?>(null)
@@ -68,11 +81,46 @@ class ProductColoringRuntime(
     val toolEngine: DrawingToolEngine
         get() = coloringToolEngine
 
+    val preparedFillAvailable: Boolean
+        get() = preparedRegions != null
+
+    val lessonTitleKey: String?
+        get() = lessonRuntime.packageData?.lesson?.metadata?.titleKey
+
+    fun coloringSteps(): List<ColoringStep> =
+        lessonRuntime.packageData?.lesson?.coloring?.steps.orEmpty()
+
+    fun guidedProgress(): GuidedColoringProgress? {
+        val state = _sessionState.value ?: return null
+        if (state.mode != ColoringSessionMode.COLOR_WITH_ME) return null
+        val regionEngine = preparedRegions
+        val steps = coloringSteps()
+        if (steps.isEmpty()) return null
+        return if (regionEngine != null) {
+            regionEngine.guidedProgress(steps, documentEngine.state.value.document)
+        } else {
+            // Legacy/freehand guided content has no prepared regions. It remains valid and uses
+            // freehand color presence as its authored-step completion signal.
+            PreparedColoringRegionEngine(
+                com.navin.kidsdrawing.lesson.model.ColoringRegionCatalogSource("1.0", emptyList()),
+            ).guidedProgress(steps, documentEngine.state.value.document)
+        }
+    }
+
+    /** Fill is offered only when a valid prepared region is usable in the current session state. */
+    fun fillAvailableNow(): Boolean {
+        val state = _sessionState.value ?: return false
+        val regionEngine = preparedRegions ?: return false
+        if (regionEngine.regionIds.isEmpty()) return false
+        return when (state.mode) {
+            ColoringSessionMode.COLOR_MYSELF -> true
+            ColoringSessionMode.COLOR_WITH_ME ->
+                guidedProgress()?.currentStep?.regionIds?.isNotEmpty() == true
+        }
+    }
+
     /**
      * Executes the complete drawing→coloring handoff transaction in product order.
-     *
-     * A failed coloring initialization is reported back through the real Lesson Engine typed
-     * failure signal; the completed drawing is never replaced or deleted.
      */
     suspend fun beginFromLesson(mode: ColoringSessionMode): ProductColoringStartResult {
         if (!lessonRuntime.coloringAvailable) {
@@ -151,7 +199,6 @@ class ProductColoringRuntime(
         }
     }
 
-    /** Restores an active coloring session after process/app recreation. */
     suspend fun recoverActive(): ProductColoringRecoveryResult {
         val sessionId = ColoringSessionEngine.sessionIdFor(lessonRuntime.runtimeIdentity.documentId)
         return when (val loaded = coloringStore.load(sessionId)) {
@@ -179,6 +226,9 @@ class ProductColoringRuntime(
                 lessonRuntime.documentEngine.replaceDocument(document)
                 val restored = ColoringSessionEngine.restore(snapshot)
                 engine = restored
+                if (restored.state.value.selectedTool == ColoringSessionTool.FILL && !fillAvailableFor(restored.state.value)) {
+                    restored.selectTool(ColoringSessionTool.BRUSH)
+                }
                 _sessionState.value = restored.state.value
                 syncToolEngine(restored.state.value)
                 ProductColoringRecoveryResult.RESTORED
@@ -187,15 +237,44 @@ class ProductColoringRuntime(
     }
 
     suspend fun commitColorStroke(stroke: InkStrokeRecord) {
-        requireActive()
+        val current = requireActive()
+        check(current.state.value.selectedTool == ColoringSessionTool.BRUSH) {
+            "Freehand color strokes require the Brush tool."
+        }
         lessonRuntime.documentEngine.commitColorStroke(stroke)
         persistArtworkAndSession()
     }
 
     suspend fun commitColorEraseMask(mask: EraseMaskRecord) {
-        requireActive()
+        val current = requireActive()
+        check(current.state.value.selectedTool == ColoringSessionTool.ERASER) {
+            "Color erase masks require the Eraser tool."
+        }
         lessonRuntime.documentEngine.commitColorEraseMask(mask)
         persistArtworkAndSession()
+    }
+
+    suspend fun fillAtDocumentPoint(x: Float, y: Float): ProductColorFillResult {
+        val current = requireActive().state.value
+        if (current.selectedTool != ColoringSessionTool.FILL) return ProductColorFillResult.Unavailable
+        val regionEngine = preparedRegions ?: return ProductColorFillResult.Unavailable
+
+        val allowedIds: Set<String>? = when (current.mode) {
+            ColoringSessionMode.COLOR_MYSELF -> null
+            ColoringSessionMode.COLOR_WITH_ME -> {
+                val progress = guidedProgress() ?: return ProductColorFillResult.Unavailable
+                if (progress.isComplete) return ProductColorFillResult.GuidanceComplete
+                val ids = progress.currentStep?.regionIds.orEmpty().toSet()
+                if (ids.isEmpty()) return ProductColorFillResult.Unavailable
+                ids
+            }
+        }
+        val region = regionEngine.regionContaining(x, y, allowedIds)
+            ?: return ProductColorFillResult.Miss
+        val fill = regionEngine.fillRecord(region, current.selectedColorArgb)
+        lessonRuntime.documentEngine.commitColorRegionFill(fill)
+        persistArtworkAndSession()
+        return ProductColorFillResult.Filled(region.id)
     }
 
     suspend fun undo(): Boolean {
@@ -224,6 +303,7 @@ class ProductColoringRuntime(
 
     suspend fun selectTool(tool: ColoringSessionTool): Boolean {
         val coloringEngine = requireActive()
+        if (tool == ColoringSessionTool.FILL && !fillAvailableFor(coloringEngine.state.value)) return false
         val changed = coloringEngine.selectTool(tool)
         if (changed) {
             publishAndSync(coloringEngine)
@@ -282,6 +362,20 @@ class ProductColoringRuntime(
         }
     }
 
+    private fun fillAvailableFor(state: ColoringSessionState): Boolean {
+        val regionEngine = preparedRegions ?: return false
+        if (regionEngine.regionIds.isEmpty()) return false
+        return when (state.mode) {
+            ColoringSessionMode.COLOR_MYSELF -> true
+            ColoringSessionMode.COLOR_WITH_ME -> {
+                val steps = coloringSteps()
+                if (steps.isEmpty()) return false
+                val progress = regionEngine.guidedProgress(steps, documentEngine.state.value.document)
+                progress.currentStep?.regionIds?.isNotEmpty() == true
+            }
+        }
+    }
+
     private suspend fun persistArtworkAndSession() {
         drawingStore.save(lessonRuntime.documentEngine.state.value.document)
         persistColoringState()
@@ -302,12 +396,16 @@ class ProductColoringRuntime(
         toolEngine.replace(
             DrawingToolSettings(
                 tool = when (state.selectedTool) {
-                    ColoringSessionTool.BRUSH -> DrawingTool.PENCIL
+                    ColoringSessionTool.BRUSH,
+                    ColoringSessionTool.FILL,
+                    -> DrawingTool.PENCIL
                     ColoringSessionTool.ERASER -> DrawingTool.ERASER
                 },
                 colorArgb = state.selectedColorArgb,
                 width = when (state.selectedTool) {
-                    ColoringSessionTool.BRUSH -> state.brushWidth
+                    ColoringSessionTool.BRUSH,
+                    ColoringSessionTool.FILL,
+                    -> state.brushWidth
                     ColoringSessionTool.ERASER -> maxOf(
                         state.brushWidth,
                         DrawingToolSettings.DEFAULT_ERASER_WIDTH,

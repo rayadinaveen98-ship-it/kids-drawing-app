@@ -87,6 +87,19 @@ class DrawingDocumentEngine(
             operation
         }
 
+    /** Commit a validated prepared-region fill as editable coloring history. */
+    suspend fun commitColorRegionFill(
+        fill: ColorRegionFillRecord,
+    ): DocumentOperation.AddColorRegionFill = mutationMutex.withLock {
+        val operation = DocumentOperation.AddColorRegionFill(
+            operationId = nextId("color-fill"),
+            createdAtEpochMillis = clockMillis(),
+            fill = fill,
+        )
+        appendNewOperation(operation)
+        operation
+    }
+
     suspend fun clear(): DocumentOperation.ClearDocument = mutationMutex.withLock {
         val operation = DocumentOperation.ClearDocument(
             operationId = nextId("clear"),

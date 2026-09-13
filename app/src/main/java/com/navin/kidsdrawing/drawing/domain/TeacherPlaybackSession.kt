@@ -16,9 +16,10 @@ data class TeacherPlaybackSessionState(
  * Small product-owned orchestration layer around [TeacherPlaybackEngine]. It owns which canonical
  * source is loaded for playback so Art Lab controls do not keep authoritative playback state.
  *
- * A completed step may remain as a faint construction reference when the next step loads. The
- * carried strokes are still TEACHER_GENERATED presentation-only records; they never enter child
- * document/history/persistence truth. Full Watch Then Draw overview sequences are never carried.
+ * Completed step geometry is presentation-only construction context: when a normal step completes
+ * it becomes faint immediately and can carry into the next step. Full Watch Then Draw overview
+ * geometry disappears on completion and is never carried forward. None of these teacher records
+ * enter the child DrawingDocument, history, persistence, or Gallery truth.
  */
 class TeacherPlaybackSession(
     initialPace: TeachingPace = TeachingPace.NORMAL,
@@ -73,10 +74,7 @@ class TeacherPlaybackSession(
             .filterNot { it.strokeId in newStrokeIds }
             .map { stroke ->
                 TeacherStrokeSource(
-                    stroke = stroke.copy(
-                        opacity = minOf(stroke.opacity, COMPLETED_REFERENCE_OPACITY),
-                        points = stroke.points.map { point -> point.copy(elapsedTimeMillis = 0L) },
-                    ),
+                    stroke = stroke.asCompletedReference(),
                     startTimeMillis = 0L,
                 )
             }
@@ -88,14 +86,31 @@ class TeacherPlaybackSession(
         )
     }
 
+    private fun InkStrokeRecord.asCompletedReference(): InkStrokeRecord = copy(
+        opacity = minOf(opacity, COMPLETED_REFERENCE_OPACITY),
+        points = points.map { point -> point.copy(elapsedTimeMillis = 0L) },
+    )
+
+    private fun TeacherPlaybackFrame.forPresentation(): TeacherPlaybackFrame {
+        if (status != TeacherPlaybackStatus.COMPLETED) return this
+        return if (sequenceId.isOverviewSequence()) {
+            // Watch Then Draw remains a memory exercise after the overview finishes.
+            copy(visibleStrokes = emptyList(), completedStrokeCount = 0)
+        } else {
+            // The demonstrated part stays as a gentle map during the child's turn.
+            copy(visibleStrokes = visibleStrokes.map { it.asCompletedReference() })
+        }
+    }
+
     private fun String.isOverviewSequence(): Boolean = endsWith("-overview")
 
     private fun publish(frame: TeacherPlaybackFrame?): TeacherPlaybackSessionState {
         if (frame != null) selectedPace = frame.pace
+        val presentationFrame = frame?.forPresentation()
         val state = TeacherPlaybackSessionState(
-            sequenceId = frame?.sequenceId,
+            sequenceId = presentationFrame?.sequenceId,
             selectedPace = selectedPace,
-            frame = frame,
+            frame = presentationFrame,
         )
         _state.value = state
         return state

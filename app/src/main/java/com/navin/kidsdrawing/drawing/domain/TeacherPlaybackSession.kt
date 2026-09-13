@@ -15,6 +15,10 @@ data class TeacherPlaybackSessionState(
 /**
  * Small product-owned orchestration layer around [TeacherPlaybackEngine]. It owns which canonical
  * source is loaded for playback so Art Lab controls do not keep authoritative playback state.
+ *
+ * A completed step may remain as a faint construction reference when the next step loads. The
+ * carried strokes are still TEACHER_GENERATED presentation-only records; they never enter child
+ * document/history/persistence truth. Full Watch Then Draw overview sequences are never carried.
  */
 class TeacherPlaybackSession(
     initialPace: TeachingPace = TeachingPace.NORMAL,
@@ -27,7 +31,8 @@ class TeacherPlaybackSession(
     val state: StateFlow<TeacherPlaybackSessionState> = _state.asStateFlow()
 
     fun load(sequence: TeacherStrokeSequence): TeacherPlaybackSessionState {
-        engine = TeacherPlaybackEngine(sequence = sequence, initialPace = selectedPace)
+        val effectiveSequence = withCompletedConstructionReference(sequence)
+        engine = TeacherPlaybackEngine(sequence = effectiveSequence, initialPace = selectedPace)
         return publish(engine?.frame)
     }
 
@@ -55,6 +60,36 @@ class TeacherPlaybackSession(
     fun advanceBy(realElapsedMillis: Long): TeacherPlaybackSessionState =
         publish(engine?.advanceBy(realElapsedMillis))
 
+    private fun withCompletedConstructionReference(
+        sequence: TeacherStrokeSequence,
+    ): TeacherStrokeSequence {
+        if (sequence.sequenceId.isOverviewSequence()) return sequence
+        val previous = _state.value.frame ?: return sequence
+        if (previous.status != TeacherPlaybackStatus.COMPLETED) return sequence
+        if (previous.sequenceId.isOverviewSequence()) return sequence
+
+        val newStrokeIds = sequence.strokes.map { it.stroke.strokeId }.toSet()
+        val carried = previous.visibleStrokes
+            .filterNot { it.strokeId in newStrokeIds }
+            .map { stroke ->
+                TeacherStrokeSource(
+                    stroke = stroke.copy(
+                        opacity = minOf(stroke.opacity, COMPLETED_REFERENCE_OPACITY),
+                        points = stroke.points.map { point -> point.copy(elapsedTimeMillis = 0L) },
+                    ),
+                    startTimeMillis = 0L,
+                )
+            }
+        if (carried.isEmpty()) return sequence
+
+        return TeacherStrokeSequence(
+            sequenceId = sequence.sequenceId,
+            strokes = carried + sequence.strokes,
+        )
+    }
+
+    private fun String.isOverviewSequence(): Boolean = endsWith("-overview")
+
     private fun publish(frame: TeacherPlaybackFrame?): TeacherPlaybackSessionState {
         if (frame != null) selectedPace = frame.pace
         val state = TeacherPlaybackSessionState(
@@ -64,6 +99,11 @@ class TeacherPlaybackSession(
         )
         _state.value = state
         return state
+    }
+
+    companion object {
+        /** Deliberately subtle: enough construction context without competing with child ink. */
+        private const val COMPLETED_REFERENCE_OPACITY = 0.16f
     }
 }
 

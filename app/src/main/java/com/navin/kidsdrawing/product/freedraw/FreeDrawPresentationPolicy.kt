@@ -9,6 +9,7 @@ data class FreeDrawPresentationPolicy(
     val toolColumns: Int,
     val paletteColumns: Int,
     val minimumControlHeightDp: Int,
+    val maxControlTrayHeightDp: Int,
     val showToolDescriptions: Boolean,
     val paletteArgb: List<Int>,
 )
@@ -23,6 +24,7 @@ fun freeDrawPresentationPolicyFor(ageBand: AgeBand): FreeDrawPresentationPolicy 
         toolColumns = 2,
         paletteColumns = 4,
         minimumControlHeightDp = 58,
+        maxControlTrayHeightDp = 300,
         showToolDescriptions = true,
         paletteArgb = CHILD_SAFE_PALETTE,
     )
@@ -30,6 +32,7 @@ fun freeDrawPresentationPolicyFor(ageBand: AgeBand): FreeDrawPresentationPolicy 
         toolColumns = 2,
         paletteColumns = 6,
         minimumControlHeightDp = 54,
+        maxControlTrayHeightDp = 280,
         showToolDescriptions = true,
         paletteArgb = CHILD_SAFE_PALETTE,
     )
@@ -37,6 +40,7 @@ fun freeDrawPresentationPolicyFor(ageBand: AgeBand): FreeDrawPresentationPolicy 
         toolColumns = 4,
         paletteColumns = 8,
         minimumControlHeightDp = 48,
+        maxControlTrayHeightDp = 240,
         showToolDescriptions = false,
         paletteArgb = CHILD_SAFE_PALETTE,
     )
@@ -44,6 +48,7 @@ fun freeDrawPresentationPolicyFor(ageBand: AgeBand): FreeDrawPresentationPolicy 
         toolColumns = 4,
         paletteColumns = 8,
         minimumControlHeightDp = 44,
+        maxControlTrayHeightDp = 220,
         showToolDescriptions = false,
         paletteArgb = CHILD_SAFE_PALETTE,
     )

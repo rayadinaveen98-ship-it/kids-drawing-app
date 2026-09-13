@@ -14,104 +14,96 @@ Development model: **Core-engine + vertical-slice** — Specify → build capabi
 
 ## Current state
 
-**Phase 0 — COMPLETE.**  
-**Phase 1 — COMPLETE.**  
-**Phase 2 implementation + physical QA — COMPLETE.**  
-**Next product milestone:** Phase 3 / `0.3.0-vertical-slice` after release administration is finalized.
+- Phase 0 — COMPLETE
+- Phase 1 / Drawing Engine 0.1 — COMPLETE and frozen
+- Phase 2 / Lesson Engine 0.2 — COMPLETE and frozen
+- Phase 3 / First Vertical Slice 0.3 — COMPLETE
+- Phase 4 / Content & Studio Expansion 0.4 — ACTIVE
+- Current slice: **P4.3 Representative Content Set A (#60)**
+- Active branch: `phase4/p4-3-representative-content-a`
 
-Latest verified Android milestone: **`0.2.0-lesson-engine` / versionCode 12**.
+## Latest verified Android product milestone
 
-Verified APK evidence:
-- app-code commit `7a33edc6a5c37fe5bea93d3729f8a1eabf88e8df`;
-- merged-main Android CI #204 / `34685747984` GREEN;
-- profile artifact ID `10294878922`;
-- size `14,984,842` bytes;
-- SHA-256 `656bee202bc71d5b487f287c6dc3a8b3f05f4cc50eea58c7477fd0a59534e109`.
+`0.3.0-vertical-slice` / versionCode 13.
 
-Target tag: `v0.2.0-lesson-engine`. Do not claim the tag exists unless verified in GitHub; the current connected execution tool cannot create tags/releases.
+Final executable candidate:
+- commit `e54f8dabfd9a9f1a7dab5b382cedb73438f151cd`;
+- Android CI #307 / run `34706767213` GREEN;
+- profile artifact ID `10301836886`;
+- APK size `16,080,880` bytes;
+- SHA-256 `2f622c116813c7a5830109994c104d4bb1623dc41f57cb4f463c4d6e5e385961`;
+- physical QA: 41/41 PASS;
+- P3.6 merge commit `7aa53375ed4e0c248335ed26d93bc8cace72bdf2`.
 
-## Frozen Phase 1 milestone
+Evidence: `docs/10-execution/P3_6_PHYSICAL_QA.md` and `docs/10-execution/P3_6_RELEASE_REPORT.md`.
 
-Version `0.1.0-art-lab` / versionCode 11, tag `v0.1.0-art-lab`, release commit `a448d664af8df2bb585326d726f0723461cd36c6`.
+Only repository tag `v0.1.0-art-lab` currently exists. Do not claim `v0.2.0-lesson-engine` or `v0.3.0-vertical-slice` tags exist unless they are later created and verified.
 
-Proven Phase 1 capabilities remain frozen:
-- AndroidX Ink-backed low-latency finger drawing behind owned abstractions;
-- operation-based editable document/history with Pencil/Eraser/color/width, Undo/Redo/Clear/New;
-- atomic save/reload/autosave + backup recovery + stale-save protection;
-- deterministic teacher playback at five pace profiles;
-- teacher overlay isolated from child history/persistence;
-- Art Lab + Quality Lab stress/timing/memory/frame/soak harnesses;
-- offline operation with no Internet/ads/behavioral analytics/sensitive permissions.
+## Phase 4 state
 
-Stylus pressure/tilt/palm/inverted-eraser and externally instrumented input-to-visible latency remain **PENDING-HARDWARE**.
+Epic #57 targets `0.4.0-content-studio`.
 
-## Phase 2 — Lesson Engine 0.2
+### P4.1 — COMPLETE
+Issue #58 / PR #65 / merge `c271ad8b519ec53d99fa18bf140aaf252a8d95c9`.
 
-Epic: **#28**.
+Built the deterministic offline `LessonCatalog`, release-package discovery/validation, metadata queries, diagnostics/isolation and catalog-backed product content boundary.
 
-### P2.1 — COMPLETE
-Issue #29 / PR #35. Runtime lesson models, strict package parsing/validation, typed diagnostics, asset adapter and bundled `lessons/cute-cat` authored package.
+### P4.2 — COMPLETE
+Issue #59 / PR #66 / merge `131eee68fd24dad4a80743e10149a867defb59ce`.
 
-### P2.2 — COMPLETE
-Issue #30 / PR #36. Deterministic lesson-session state, commands/rejections, mode/pace/cursor/help/overview context, pause/resume and semantic snapshots.
+- exact-head Android CI #317 GREEN;
+- merged-main Android CI #318 / run `34745140470` GREEN;
+- multi-lesson recommendations;
+- category and Art Journey discovery;
+- stable `(lessonId, revision)` product routing;
+- recovery scan across installed lessons;
+- coloring > drawing > fresh recommendation precedence;
+- Cute Cat r1 retains legacy P3 storage identity; new lessons receive deterministic identities.
 
-### P2.3 — COMPLETE
-Issue #31 / PR #37. Real teacher-step execution and Draw With Me over the frozen Drawing Engine boundary.
+### P4.3 — ACTIVE
+Issue #60. Execution contract: `docs/10-execution/P4_3_EXECUTION_CONTRACT.md`.
 
-### P2.4 — COMPLETE
-Issue #32 / PR #38. Watch Then Draw, Trace & Learn, authored trace guides, replay and Help Ladder. Squash merge `16828eee0988b8143559857a892c7d927dfc1c0d`.
+Four new production packages are the intended Set A:
+1. `smiling-sun` — Little/Creative Trace & Learn + Draw With Me;
+2. `friendly-owl` — Creative/Growing Draw With Me with full Help Ladder levels 1–5;
+3. `simple-rocket` — Creative/Growing Watch Then Draw;
+4. `easy-flower` — Little/Creative/Growing grouped multi-stroke demonstrations, with Smiling Sun prerequisite.
 
-### P2.5 — COMPLETE
-Issue #33 / PR #39. Lifecycle/session persistence, child-document-first recovery, fresh runtime generations, stale callback rejection, recoverable playback retry and post-drawing handoff recovery. Squash merge `593c53f8a42e6749a0cf3e0a8b0a9f4c7f850e10`; exact-head Android CI #180 / `34682787683` GREEN.
+Cute Cat revision 1 must remain unchanged in P4.3.
 
-### P2.6 — IMPLEMENTATION + PHYSICAL QA COMPLETE
-Issue #34. Real Lesson Lab + bundled Cute Cat + all modes/paces + recovery/isolation/failure/handoff diagnostics.
+P4.3 QA record: `docs/10-execution/P4_3_CONTENT_QA.md`. Do not claim physical P4.3 usability until the device checks in that record are actually executed and recorded.
 
-- PR #40 exact-head CI #201 GREEN; squash merge `abcf4cf8fcd846975e8aa5bb16e3e03ffaa116a2`.
-- Portrait responsive hotfix PR #41 exact-head CI #203 GREEN; squash merge `7a33edc6a5c37fe5bea93d3729f8a1eabf88e8df`.
-- merged-main Android CI #204 / `34685747984` GREEN.
-- physical QA on Samsung SM-A546E/API 36: **32/32 PASS**.
-- all three modes and all five paces passed physically.
-- force-stop/relaunch recovery passed for teacher playback, child turn, HelpActive and post-drawing choice.
-- fresh teacher request generation physically demonstrated `g0 → g1`.
-- persisted diagnostics remained `teacher/guide in child history: 0 · PASS`.
-- Art Lab and Quality Lab regression checks passed.
-- no crash/deadlock observed across the full physical matrix.
-
-Full sheet: `docs/10-execution/P2_6_PHYSICAL_QA.md`.
-Release evidence: `docs/releases/0.2.0-lesson-engine.md`.
-
-## Architecture constraints
+## Frozen architecture constraints
 
 - UI never owns artwork/history/lesson truth.
-- UI cannot set arbitrary session states.
-- AndroidX Ink stays behind drawing infrastructure adapters.
-- teacher/trace/help overlays never become child artwork.
-- persistence stores editable operations, not screenshots.
-- core drawing/teaching remains offline-first.
-- no mandatory child account, ads, behavioral analytics or sensitive permissions in engine milestones.
-- required critical-path spend remains ₹0 where a professional free alternative exists.
+- lessons are structured content, not lesson-specific screens/code paths;
+- UI cannot set arbitrary session states;
+- AndroidX Ink stays behind drawing infrastructure adapters;
+- teacher/trace/help overlays never become child artwork;
+- persistence stores editable operations, not screenshots;
+- core drawing/teaching remains offline-first;
+- no mandatory child account, advertising, behavioral analytics or sensitive permissions in core milestones;
+- critical-path development remains ₹0 where a professional free alternative exists.
 
-## Key specs
+## Immediate continuation
 
-- Drawing Engine: `docs/07_DRAWING_ENGINE_SPEC.md`
-- Lesson Engine: `docs/08_LESSON_ENGINE_SPEC.md`
-- Lesson/content schema: `docs/17_LESSON_CONTENT_SCHEMA.md` + `schemas/lesson.schema.json`
-- Performance gates: `docs/18_DRAWING_PERFORMANCE_GATES.md`
-- Test strategy: `docs/11_TEST_STRATEGY.md`
-- Release strategy: `docs/12_RELEASE_STRATEGY.md`
-- Coloring Engine: `docs/19_COLORING_ENGINE_SPEC.md`
-- Engine boundaries: `docs/20_ENGINE_BOUNDARIES.md`
-- Visual system: `docs/21_VISUAL_SYSTEM.md`
+1. Inspect P4.3 branch/PR and exact-head CI.
+2. Resolve any loader/catalog/test/Android regression before considering merge.
+3. Execute and record P4.3 product/device content checks from `P4_3_CONTENT_QA.md`.
+4. Merge only after #60 acceptance; verify merged-main CI; close #60.
+5. Start P4.4 Free Draw Studio V1 Core (#61).
 
 ## Resume protocol
 
 Inspect in order:
 1. `PROJECT_STATUS.md`
 2. this file
-3. `docs/releases/0.2.0-lesson-engine.md`
-4. `ROADMAP.md`
-5. current Phase 3 issue/brief once created
-6. relevant Lesson/Coloring/Visual specs
+3. `ROADMAP.md`
+4. Phase 4 epic #57
+5. current active slice issue/PR/contract (currently #60 / P4.3)
+6. `docs/05_CONTENT_ARCHITECTURE.md`
+7. `docs/16_LESSON_PACKAGE_AND_AUTHORING.md`
+8. `docs/17_TAXONOMY_AND_STARTER_CURRICULUM.md`
+9. relevant Lesson/Coloring/Visual specs
 
-Do not restart Drawing Engine or Lesson Engine architecture merely because the chat changed. Phase 1 and the verified Phase 2 engine foundation are frozen baselines.
+Do not restart or redesign the proven Drawing/Lesson engine foundations simply because a chat changes.

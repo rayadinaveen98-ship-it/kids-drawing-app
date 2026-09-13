@@ -2,164 +2,73 @@
 
 ## Phase 0 — Product Foundation — COMPLETE
 
-All Phase 0 workstreams are locked in Git. Completion evidence: `docs/14_PHASE0_EXIT_GATE.md`.
-
-### 0.1 Repository & Product Foundation — COMPLETE
-- GitHub source of truth
-- product vision
-- platform/architecture direction
-- ADR baseline
-- status/handoff/conventions
-
-### 0.2 V1 Scope Contract — COMPLETE
-- PRD v0.2
-- Must Have / Should Have / Later
-- explicit non-goals
-- V1 content target
-- child + parent core journeys
-- scope-change rule
-
-### 0.3 UX Architecture — COMPLETE
-- stable child shell
-- canonical screen inventory and screen IDs
-- immersive creation workspaces
-- Parent Zone navigation graph
-- safe back/exit rules
-- resume/recovery contract
-- age-adaptive presentation policy
-
-### 0.4 Teaching & Content Architecture — COMPLETE
-- validated machine-readable lesson schema and sample
-- package/authoring workflow
-- category/skill/difficulty/age taxonomy
-- four starter Art Journeys
-- public V1 catalog allocation
-
-### 0.5 Core Engine Contracts — COMPLETE
-- Drawing Engine 0.1 contract
-- stable AndroidX Ink substrate behind owned interfaces
-- performance/reference-device gates
-- Lesson Engine state machine
-- Coloring Engine V1 contract
-- cross-engine ownership and atomic handoffs
-
-### 0.6 Companion & Visual System — COMPLETE
-- companion behavior/priority/rate-limit/placement contract
-- voice/offline fallback/accessibility/safety language
-- selected direction: Premium Storybook Art Studio
-- design-system and Compose token direction
-- Figma workspace established; automated frame generation can resume when free Starter MCP quota permits
-
-### 0.7 Safety / Quality / Release Review — COMPLETE
-- current Play/Families baseline
-- permission and third-party SDK admission rules
-- analytics/crash-reporting Alpha policy
-- Parent Gate/export policy
-- reconciled test/quality gates
-- APK/AAB/versioning strategy
-- Phase 1 issue set prepared
-
----
+Product scope, UX architecture, lesson/content architecture, Drawing/Lesson/Coloring contracts, companion/visual direction, safety, quality and release strategy are locked.
 
 ## Phase 1 — Art Lab / Drawing Engine 0.1 — COMPLETE
 
-**Milestone:** `0.1.0-art-lab`  
-**GitHub Epic:** #7  
-**Tag:** `v0.1.0-art-lab`
+Milestone `0.1.0-art-lab`.
 
-Proven baseline:
-- low-latency finger drawing;
-- Pencil/Eraser/color/width;
-- operation-based undo/redo and undoable clear;
-- structured editable document;
-- atomic save/load/recovery;
-- deterministic teacher playback at five paces;
-- lifecycle persistence;
-- Art Lab + Quality Lab;
-- automated and physical-device quality evidence;
-- installable milestone APK tied to known Git evidence.
+Proven baseline: low-latency native drawing, editable operation history, Pencil/Eraser/color/width, Undo/Redo/Clear, atomic persistence/recovery, deterministic teacher playback at five paces, Art/Quality labs and physical quality evidence.
 
-The Phase 1 Drawing Engine is frozen as the foundation for later phases.
+## Phase 2 — Lesson Engine 0.2 — COMPLETE
 
----
+Milestone `0.2.0-lesson-engine`.
 
-## Phase 2 — Lesson Engine 0.2 — IMPLEMENTATION + PHYSICAL QA COMPLETE
+Proven: structured lesson loading/validation, deterministic lesson state/snapshots, Draw With Me, Watch Then Draw, Trace & Learn, Help Ladder, all five paces, lifecycle/process recovery, strict overlay isolation and 32/32 physical QA.
 
-**Milestone:** `0.2.0-lesson-engine`  
-**GitHub Epic:** #28  
-**Target tag:** `v0.2.0-lesson-engine`
+## Phase 3 — First Vertical Slice 0.3 — COMPLETE
 
-Proven:
-- strict structured lesson content loading/validation;
-- deterministic lesson-session state machine and semantic snapshots;
-- Draw With Me;
+Milestone `0.3.0-vertical-slice`, versionCode 13.
+
+Proven production journey:
+onboarding → profile/age preferences → Studio recommendation → lesson preview/companion → guided drawing/help → safe coloring handoff → completion → Gallery/reopen.
+
+P3.6 final executable candidate passed 41/41 physical scenarios. Evidence lives in `docs/10-execution/P3_6_PHYSICAL_QA.md` and `docs/10-execution/P3_6_RELEASE_REPORT.md`.
+
+## Phase 4 — Content & Studio Expansion 0.4 — ACTIVE
+
+**Milestone target:** `0.4.0-content-studio`  
+**Epic:** #57
+
+Goal: scale the verified product beyond one Cute Cat lesson without reopening the frozen engine architecture.
+
+### P4.1 — Content Catalog Foundation — COMPLETE
+Deterministic offline multi-package discovery, validation, typed diagnostics, metadata queries and generic catalog loading.
+
+### P4.2 — Discovery, Art Journeys & Recommendations — COMPLETE
+Child-facing multi-lesson Studio, category/journey browsing, deterministic age/interest/mode ranking, resume precedence and stable lesson-specific routing/recovery.
+
+### P4.3 — Representative Content Set A — ACTIVE
+Ship four new production lesson packages proving:
+- tracing-friendly early-child content;
+- full Help Ladder animal teaching;
 - Watch Then Draw;
-- Trace & Learn;
-- replay and five-speed switching;
-- Help Ladder hooks and authored guide overlays;
-- lifecycle/session restoration;
-- child-document-first recovery;
-- fresh runtime generations and stale callback protection;
-- recoverable teacher playback failure + retry;
-- post-drawing/coloring handoff recovery;
-- real Lesson Lab over the real Drawing Engine + bundled Cute Cat lesson;
-- physical Samsung SM-A546E/API 36 verification: **32/32 required scenarios PASS**;
-- no observed crash/deadlock in the full physical matrix;
-- installable verified APK, SHA-256 and CI evidence recorded.
+- grouped multi-stroke demonstrations.
 
-Release evidence: `docs/releases/0.2.0-lesson-engine.md`.
+Chosen set: Smiling Sun, Friendly Owl, Simple Rocket and Easy Flower. Cute Cat r1 remains the frozen regression lesson.
 
-Repository tag/GitHub Release administration remains a separate final operation if `v0.2.0-lesson-engine` is not yet present, because the connected GitHub tool cannot create tags/releases.
+### P4.4 — Free Draw Studio V1 Core — NEXT
+Blank canvas; age-adaptive Pencil/Crayon/Marker/Eraser; palette/size; Undo/Redo; safe Clear; persistence/recovery; Gallery promotion.
 
----
+### P4.5 — Coloring V1 Expansion
+Prepared-region fill where authored, guided coloring semantics, Color With Me progression, free coloring, persistence and line-art protection.
 
-## Phase 3 — First Vertical Slice — NEXT
+### P4.6 — Representative Content Set B + Cross-content QA
+Add guided-region coloring, older-child detail/proportion and open-ended creative-variation lessons. Bring the representative Phase 4 set to at least seven production-quality lessons and validate age/journey coverage.
 
-**Milestone target:** `0.3.0-vertical-slice`
+### P4.7 — End-to-end QA + 0.4.0 Release
+Full offline/lifecycle/accessibility/device regression across catalog discovery, guided lessons, Free Draw, expanded coloring and Gallery. Deliver verified `0.4.0-content-studio` APK with reproducible release evidence.
 
-Build one end-to-end premium child journey using the frozen Drawing + Lesson Engine foundation:
+## Post-Phase-4 direction
 
-Onboarding → age/profile setup → recommendation → companion intro → guided drawing → adaptive assistance → coloring → completion → gallery.
+Sequencing remains phase-gated and can be refined after `0.4.0` evidence, but the intended path is:
+- production companion expression/voice polish;
+- expansion from the seven-lesson representative set toward the Public V1 24–36 lesson catalog;
+- adaptive recommendations/help based on observable local learning signals, never punitive scoring;
+- Parent Zone and parent-controlled export/settings;
+- broader accessibility/device hardening and Beta;
+- V1.0 only when product, privacy/safety, content and store-release gates are satisfied.
 
-Phase 3 should prove product integration and child-facing quality, not redesign the already-proven engine architecture.
+## Permanent delivery rule
 
-Key goals:
-- production child shell and navigation;
-- age-prioritized onboarding/recommendation;
-- one premium authored lesson presented as a real child experience rather than an engineering lab;
-- companion presentation integrated with lesson events;
-- coloring handoff integrated with a usable first coloring experience;
-- completion/reward/gallery flow;
-- lifecycle continuity across the full journey;
-- accessibility, child-safe interaction and premium visual polish;
-- installable APK and real-device QA.
-
----
-
-## Phase 4 — Coloring Engine
-
-Productionize and broaden the V1 guided/self-color contract with authored fills, freehand color, persistence and age-appropriate teaching.
-
-## Phase 5 — Companion Engine
-
-Productionize state-driven animation/expression/voice integrated with lesson events.
-
-## Phase 6 — Content System & Library
-
-Age/difficulty/category/skill metadata, lesson packs, journeys, offline content management and authoring tooling.
-
-## Phase 7 — Adaptive Learning
-
-Recommendations and help escalation based on observable learning signals, not punitive scoring.
-
-## Phase 8 — Free Draw Studio
-
-Age-progressive professional drawing tools.
-
-## Phase 9 — Product Beta
-
-Expanded content, Parent Zone, accessibility, device hardening, performance and release readiness.
-
-## Phase 10 — V1.0
-
-Public release only when product quality, safety/privacy requirements, content quality and then-current store/release gates are met.
+Every meaningful Android milestone should produce an installable APK when technically possible, tied to an exact Git commit and reproducible CI/release evidence.

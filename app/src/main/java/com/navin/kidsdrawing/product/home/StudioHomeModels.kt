@@ -215,7 +215,9 @@ object StudioRecommendationPolicy {
                 StudioCategory(
                     categoryId = categoryId,
                     title = categoryId.toTaxonomyTitle(),
-                    lessons = lessons.distinctBy { it.lessonId to it.lessonRevision },
+                    lessons = lessons
+                        .distinctBy { it.lessonId to it.lessonRevision }
+                        .sortedWith(compareBy({ it.lessonId }, { it.lessonRevision })),
                 )
             }
 

@@ -89,9 +89,10 @@ class LessonPackageLoaderTest {
 
     @Test
     fun unsupportedContentApiFailsBeforeSessionCanStart() {
+        val unsupportedApi = LessonPackageLoader.CURRENT_CONTENT_API + 1
         val invalid = lessonJson().replaceFirst(
             "\"minimumContentApi\": 1",
-            "\"minimumContentApi\": 2",
+            "\"minimumContentApi\": $unsupportedApi",
         )
 
         val result = loader(lessonOverride = invalid).load(ROOT)

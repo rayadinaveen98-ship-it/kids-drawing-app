@@ -10,6 +10,7 @@ import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import androidx.ink.rendering.android.canvas.CanvasStrokeRenderer
 import androidx.ink.strokes.Stroke
+import com.navin.kidsdrawing.drawing.domain.ColorRegionFillRecord
 import com.navin.kidsdrawing.drawing.domain.DocumentOperation
 import com.navin.kidsdrawing.drawing.domain.DocumentSize
 import com.navin.kidsdrawing.drawing.domain.EraseMaskRecord
@@ -18,13 +19,9 @@ import java.util.LinkedHashSet
 /**
  * Coloring-only committed projection.
  *
- * The editable DrawingDocument remains authoritative. This cache deliberately accepts only
- * AddColorStroke/AddColorEraseMask plus global ClearDocument. Drawing/line-art operations never
- * render into this bitmap, so a coloring erase physically cannot remove line-art pixels.
- *
- * The established line-art cache keeps its checkpoint/recent-window optimization untouched.
- * P3.4 keeps this first color projection intentionally narrow and rebuilds only when the color
- * operation timeline diverges from an incremental append/undo/redo boundary.
+ * The editable DrawingDocument remains authoritative. This cache accepts coloring strokes,
+ * coloring erase masks, prepared-region fills and global ClearDocument. Drawing/line-art
+ * operations never render into this bitmap, so coloring cannot remove protected line-art pixels.
  */
 internal class CommittedColorRasterCache(
     private val documentSize: DocumentSize,
@@ -40,6 +37,9 @@ internal class CommittedColorRasterCache(
         strokeCap = Paint.Cap.ROUND
         strokeJoin = Paint.Join.ROUND
         xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+    }
+    private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
     }
     private val provisionalVisualIds = LinkedHashSet<String>()
     private var documentId: String? = null
@@ -95,6 +95,8 @@ internal class CommittedColorRasterCache(
             val visualId = when (operation) {
                 is DocumentOperation.AddColorStroke -> operation.stroke.strokeId
                 is DocumentOperation.AddColorEraseMask -> operation.mask.maskId
+                // Prepared fill has no transient Ink visual; force authoritative rebuild.
+                is DocumentOperation.AddColorRegionFill -> return false
                 is DocumentOperation.ClearDocument -> return false
                 is DocumentOperation.AddInkStroke,
                 is DocumentOperation.AddEraseMask,
@@ -118,12 +120,25 @@ internal class CommittedColorRasterCache(
                 }
 
                 is DocumentOperation.AddColorEraseMask -> drawEraseMask(operation.mask)
+                is DocumentOperation.AddColorRegionFill -> drawRegionFill(operation.fill)
                 is DocumentOperation.ClearDocument -> clearBitmap()
                 is DocumentOperation.AddInkStroke,
                 is DocumentOperation.AddEraseMask,
                 -> Unit
             }
         }
+    }
+
+    private fun drawRegionFill(fill: ColorRegionFillRecord) {
+        val points = fill.points
+        val path = Path().apply {
+            moveTo(points.first().x, points.first().y)
+            points.drop(1).forEach { point -> lineTo(point.x, point.y) }
+            close()
+        }
+        fillPaint.color = fill.colorArgb
+        fillPaint.xfermode = null
+        canvas.drawPath(path, fillPaint)
     }
 
     private fun drawEraseMask(mask: EraseMaskRecord) {
@@ -150,6 +165,7 @@ internal class CommittedColorRasterCache(
     private fun belongsToColorProjection(operation: DocumentOperation): Boolean = when (operation) {
         is DocumentOperation.AddColorStroke,
         is DocumentOperation.AddColorEraseMask,
+        is DocumentOperation.AddColorRegionFill,
         is DocumentOperation.ClearDocument,
         -> true
 

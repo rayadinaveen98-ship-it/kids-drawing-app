@@ -1,5 +1,9 @@
 package com.navin.kidsdrawing.lesson.content
 
+import com.navin.kidsdrawing.drawing.domain.TeacherPlaybackEngine
+import com.navin.kidsdrawing.drawing.domain.TeacherPlaybackStatus
+import com.navin.kidsdrawing.drawing.domain.TeachingPace
+import com.navin.kidsdrawing.lesson.execution.LessonTeacherSequenceFactory
 import com.navin.kidsdrawing.lesson.model.AgeBand
 import com.navin.kidsdrawing.lesson.model.HelpKind
 import com.navin.kidsdrawing.lesson.model.TeachingMode
@@ -83,7 +87,8 @@ class RepresentativeContentSetATest {
     fun easyFlowerUsesAuthoredPrerequisiteAndMultiStrokeGroupedDemonstrations() {
         val snapshot = productionCatalog()
         val entry = snapshot.singleEntry("easy-flower")
-        val lesson = checkNotNull(snapshot.runtimePackage(entry.identity)).lesson
+        val runtimePackage = checkNotNull(snapshot.runtimePackage(entry.identity))
+        val lesson = runtimePackage.lesson
 
         assertEquals(listOf("smiling-sun"), lesson.metadata.prerequisiteLessonIds)
         val petals = lesson.drawing.steps.single { it.id == "petals" }
@@ -92,6 +97,29 @@ class RepresentativeContentSetATest {
         assertTrue(petals.teacher.strokeRefs.size >= 6)
         assertTrue(stemAndLeaves.teacher.playAsGroup)
         assertTrue(stemAndLeaves.teacher.strokeRefs.size >= 3)
+
+        val sequence = LessonTeacherSequenceFactory.create(runtimePackage, petals)
+        assertEquals(petals.teacher.strokeRefs.size, sequence.strokes.size)
+        assertEquals(
+            petals.teacher.strokeRefs,
+            sequence.strokes.map { source ->
+                source.stroke.strokeId.substringAfter("teacher-easy-flower-petals-")
+            },
+        )
+
+        TeachingPace.values().forEach { pace ->
+            val playback = TeacherPlaybackEngine(sequence, initialPace = pace)
+            playback.play()
+            val completed = playback.advanceBy(1_000_000L)
+            assertEquals("Grouped petals did not complete at $pace", TeacherPlaybackStatus.COMPLETED, completed.status)
+            assertEquals(sequence.strokes.size, completed.completedStrokeCount)
+            assertEquals(1f, completed.progress, 0.0001f)
+
+            playback.replay()
+            val replayed = playback.advanceBy(1_000_000L)
+            assertEquals("Grouped petals replay failed at $pace", TeacherPlaybackStatus.COMPLETED, replayed.status)
+            assertEquals(sequence.strokes.size, replayed.completedStrokeCount)
+        }
     }
 
     @Test

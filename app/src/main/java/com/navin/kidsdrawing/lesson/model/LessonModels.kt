@@ -184,8 +184,28 @@ data class AuthoredGuide(
     val strokeRefs: List<String>,
 )
 
+/** Validated prepared-coloring geometry authored in the lesson logical coordinate system. */
+@Serializable
+data class ColoringRegionCatalogSource(
+    val schemaVersion: String,
+    val regions: List<AuthoredColorRegion>,
+)
+
+@Serializable
+data class AuthoredColorRegion(
+    val id: String,
+    val points: List<AuthoredRegionPoint>,
+)
+
+@Serializable
+data class AuthoredRegionPoint(
+    val x: Float,
+    val y: Float,
+)
+
 data class LessonRuntimePackage(
     val packageRoot: String,
     val lesson: LessonSource,
     val strokeCatalog: StrokeCatalogSource,
+    val coloringRegionCatalog: ColoringRegionCatalogSource? = null,
 )

@@ -5,6 +5,7 @@ import com.navin.kidsdrawing.drawing.domain.TeacherPlaybackStatus
 import com.navin.kidsdrawing.drawing.domain.TeachingPace
 import com.navin.kidsdrawing.lesson.execution.LessonTeacherSequenceFactory
 import com.navin.kidsdrawing.lesson.model.AgeBand
+import com.navin.kidsdrawing.lesson.model.ColoringMode
 import com.navin.kidsdrawing.lesson.model.HelpKind
 import com.navin.kidsdrawing.lesson.model.TeachingMode
 import java.io.File
@@ -16,25 +17,65 @@ import org.junit.Test
 
 class RepresentativeContentSetATest {
     @Test
-    fun productionCatalogLoadsExistingCuteCatAndFourRepresentativeLessonsWithoutDiagnostics() {
+    fun productionCatalogLoadsRepresentativeLessonsAndPreparedColoringProofWithoutDiagnostics() {
         val snapshot = productionCatalog()
 
         assertTrue(snapshot.diagnostics.toString(), snapshot.diagnostics.isEmpty())
         assertEquals(
-            listOf("cute-cat", "easy-flower", "friendly-owl", "simple-rocket", "smiling-sun"),
+            listOf(
+                "cute-cat",
+                "easy-flower",
+                "friendly-owl",
+                "little-fish",
+                "simple-rocket",
+                "smiling-sun",
+            ),
             snapshot.entries.map { it.identity.lessonId },
         )
     }
 
     @Test
-    fun everyNewProductionPackageDirectLoadsThroughTheStrictLoader() {
+    fun everyExpandedProductionPackageDirectLoadsThroughTheStrictLoader() {
         val source = FileAssetCatalogSource(File("src/main/assets"))
         val loader = LessonPackageLoader(source)
 
-        listOf("smiling-sun", "friendly-owl", "simple-rocket", "easy-flower").forEach { lessonId ->
+        listOf(
+            "smiling-sun",
+            "friendly-owl",
+            "simple-rocket",
+            "easy-flower",
+            "little-fish",
+        ).forEach { lessonId ->
             val result = loader.load("lessons/$lessonId")
             assertTrue("$lessonId failed to load: $result", result is LessonLoadResult.Success)
         }
+    }
+
+    @Test
+    fun littleFishExercisesPreparedGuidedColoringThroughProductionCatalog() {
+        val snapshot = productionCatalog()
+        val entry = snapshot.singleEntry("little-fish")
+        val runtimePackage = checkNotNull(snapshot.runtimePackage(entry.identity))
+        val lesson = runtimePackage.lesson
+        val regions = checkNotNull(runtimePackage.coloringRegionCatalog)
+
+        assertEquals(2, lesson.minimumContentApi)
+        assertTrue(lesson.coloring?.enabled == true)
+        assertEquals(ColoringMode.GUIDED, lesson.coloring?.defaultMode)
+        assertEquals(
+            listOf("color_body", "color_tail_and_fin"),
+            lesson.coloring?.steps?.map { it.id },
+        )
+        assertEquals(
+            setOf("fish-body-region", "fish-tail-region", "fish-fin-region"),
+            regions.regions.map { it.id }.toSet(),
+        )
+        assertEquals(
+            setOf("fish-body-region", "fish-tail-region", "fish-fin-region"),
+            lesson.coloring.orEmptyRegionIds(),
+        )
+        assertTrue(AgeBand.LITTLE_ARTISTS in lesson.metadata.ageBands)
+        assertTrue(TeachingMode.DRAW_WITH_ME in lesson.supportedModes)
     }
 
     @Test
@@ -124,15 +165,16 @@ class RepresentativeContentSetATest {
     }
 
     @Test
-    fun p43LessonsDoNotAdvertiseColoringBeforeP45WhileCuteCatKeepsRegressionPath() {
+    fun p43LessonsRemainDrawingOnlyWhileCuteCatKeepsLegacyFreehandColoring() {
         val snapshot = productionCatalog()
 
         val cuteCat = snapshot.singleRuntimeLesson("cute-cat")
         assertTrue(cuteCat.coloring?.enabled == true)
+        assertTrue(cuteCat.coloring?.steps?.all { it.regionIds.isEmpty() } == true)
 
         listOf("smiling-sun", "friendly-owl", "simple-rocket", "easy-flower").forEach { lessonId ->
             val lesson = snapshot.singleRuntimeLesson(lessonId)
-            assertFalse("$lessonId must not expose coloring before P4.5", lesson.coloring?.enabled == true)
+            assertFalse("$lessonId must remain drawing-only", lesson.coloring?.enabled == true)
         }
     }
 
@@ -159,6 +201,9 @@ class RepresentativeContentSetATest {
 
     private fun LessonCatalogSnapshot.singleRuntimeLesson(lessonId: String) =
         checkNotNull(runtimePackage(singleEntry(lessonId).identity)).lesson
+
+    private fun com.navin.kidsdrawing.lesson.model.LessonColoring?.orEmptyRegionIds(): Set<String> =
+        this?.steps.orEmpty().flatMap { it.regionIds }.toSet()
 
     private class FileAssetCatalogSource(
         private val assetRoot: File,

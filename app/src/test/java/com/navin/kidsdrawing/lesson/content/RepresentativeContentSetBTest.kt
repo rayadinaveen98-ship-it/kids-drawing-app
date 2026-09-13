@@ -86,7 +86,7 @@ class RepresentativeContentSetBTest {
     fun representativeSetCoversAllAgesDifficultyOneToFourAndThreePopulatedJourneys() {
         val snapshot = productionCatalog()
         AgeBand.values().forEach { age -> assertTrue("No lessons for $age", snapshot.forAgeBand(age).isNotEmpty()) }
-        val difficulties = snapshot.entries.map { it.metadata.difficulty }.toSet()
+        val difficulties = snapshot.entries.map { it.difficulty }.toSet()
         assertTrue(1 in difficulties)
         assertTrue(2 in difficulties)
         assertTrue(3 in difficulties)

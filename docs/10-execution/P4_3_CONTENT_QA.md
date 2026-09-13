@@ -27,7 +27,9 @@
 - [x] Simple Rocket uses Watch Then Draw with replayable child turns;
 - [x] Easy Flower uses multi-stroke grouped demonstrations and declares Smiling Sun as prerequisite;
 - [x] no new lesson enables prepared-region coloring before P4.5;
-- [x] Cute Cat revision 1 is not modified by this slice.
+- [x] product completion now derives coloring availability from authored lesson content, so P4.3 lessons cannot expose unsupported coloring choices;
+- [x] `ProductColoringRuntime` also rejects an unsupported coloring start before mutating the Lesson Engine handoff;
+- [x] Cute Cat revision 1 is not modified by this slice and retains its existing coloring path.
 
 ## Automated gate
 
@@ -39,7 +41,9 @@
 - full Owl Help Ladder;
 - Sun trace support;
 - Rocket Watch Then Draw/replay contract;
-- Flower prerequisite/grouped-demo contract.
+- Flower prerequisite/grouped-demo contract;
+- Flower grouped teacher sequence contains every authored stroke and completes/replays at all five pace profiles;
+- P4.3 lessons keep coloring disabled while Cute Cat keeps its existing enabled regression path.
 
 Exact-head Android CI must be green before merge.
 
@@ -47,10 +51,12 @@ Exact-head Android CI must be green before merge.
 
 On the reference Android device, execute at minimum:
 1. Little Artist → Smiling Sun → Trace & Learn from Home recommendation/discovery, including Help and replay.
-2. Creative/Growing Artist → Friendly Owl → exercise Help levels progressively and complete the drawing.
-3. Creative/Growing Artist → Simple Rocket → Watch Then Draw, replay each representative step, then complete.
-4. Easy Flower → verify the grouped petal and stem/leaf demonstrations remain legible at Extra Slow, Normal and Very Fast; spot-check the other two paces unless an automated playback matrix already proves them.
-5. Re-enter Cute Cat and confirm the existing Phase 3 start/resume path still works.
-6. Confirm child history diagnostics remain free of teacher/guide ink during representative Trace/Help use.
+2. Finish Smiling Sun and confirm the completion UI offers Gallery completion only — no unsupported `Color with me` / `Color myself` controls.
+3. Creative/Growing Artist → Friendly Owl → exercise Help levels progressively and complete the drawing; confirm Gallery-only completion.
+4. Creative/Growing Artist → Simple Rocket → Watch Then Draw, replay each representative step, then complete; confirm Gallery-only completion.
+5. Easy Flower → verify the grouped petal and stem/leaf demonstrations remain legible at Extra Slow, Normal and Very Fast. Functional completion/replay at all five paces is automated; device review is for presentation/legibility.
+6. Re-enter Cute Cat and confirm the existing Phase 3 start/resume path still works and still offers its existing coloring choices after drawing completion.
+7. Confirm child history diagnostics remain free of teacher/guide ink during representative Trace/Help use.
+8. Finish and reopen at least one non-Cute-Cat artwork from Gallery to prove lesson-specific document identity and generic completion routing.
 
 Record results here as PASS/FAIL with device/API and exact tested commit. Until then, do not describe Trace & Learn or Watch Then Draw as physically verified P4.3 content.

@@ -26,6 +26,28 @@ data class EraseMaskRecord(
     }
 }
 
+/** Self-contained polygon snapshot persisted with a prepared-region fill. */
+data class ColorRegionPoint(
+    val x: Float,
+    val y: Float,
+) {
+    init {
+        require(x.isFinite() && y.isFinite()) { "Color region point coordinates must be finite." }
+    }
+}
+
+data class ColorRegionFillRecord(
+    val regionId: String,
+    val colorArgb: Int,
+    val points: List<ColorRegionPoint>,
+) {
+    init {
+        require(regionId.isNotBlank()) { "regionId cannot be blank." }
+        require(points.size >= 3) { "A prepared region fill needs at least three points." }
+        require(points.distinct().size >= 3) { "A prepared region fill needs at least three distinct points." }
+    }
+}
+
 sealed interface DocumentOperation {
     val operationId: String
     val createdAtEpochMillis: Long
@@ -58,14 +80,26 @@ sealed interface DocumentOperation {
         val mask: EraseMaskRecord,
     ) : DocumentOperation
 
+    /** Reversible prepared-region color fill composited only in the coloring projection. */
+    data class AddColorRegionFill(
+        override val operationId: String,
+        override val createdAtEpochMillis: Long,
+        val fill: ColorRegionFillRecord,
+    ) : DocumentOperation
+
     data class ClearDocument(
         override val operationId: String,
         override val createdAtEpochMillis: Long,
     ) : DocumentOperation
 }
 
-fun DocumentOperation.isColoringOperation(): Boolean =
-    this is DocumentOperation.AddColorStroke || this is DocumentOperation.AddColorEraseMask
+fun DocumentOperation.isColoringOperation(): Boolean = when (this) {
+    is DocumentOperation.AddColorStroke,
+    is DocumentOperation.AddColorEraseMask,
+    is DocumentOperation.AddColorRegionFill,
+    -> true
+    else -> false
+}
 
 data class DrawingDocument(
     val documentSchemaVersion: Int = CURRENT_DOCUMENT_SCHEMA_VERSION,
@@ -93,6 +127,11 @@ data class DrawingDocument(
                 "Coloring operations require drawing document schema $COLORING_DOCUMENT_SCHEMA_VERSION+."
             }
         }
+        if (documentSchemaVersion < REGION_FILL_DOCUMENT_SCHEMA_VERSION) {
+            require(operations.none { it is DocumentOperation.AddColorRegionFill }) {
+                "Prepared region fills require drawing document schema $REGION_FILL_DOCUMENT_SCHEMA_VERSION+."
+            }
+        }
     }
 
     /** Operations that currently contribute to the visible child document after the last Clear. */
@@ -109,8 +148,21 @@ data class DrawingDocument(
         .filterIsInstance<DocumentOperation.AddColorStroke>()
         .map { it.stroke }
 
+    /** Latest active prepared fill for each region while retaining latest-operation order. */
+    fun activeColorRegionFills(): List<ColorRegionFillRecord> {
+        val latestByRegion = linkedMapOf<String, ColorRegionFillRecord>()
+        activeOperations().forEach { operation ->
+            if (operation is DocumentOperation.AddColorRegionFill) {
+                latestByRegion.remove(operation.fill.regionId)
+                latestByRegion[operation.fill.regionId] = operation.fill
+            }
+        }
+        return latestByRegion.values.toList()
+    }
+
     fun hasColoringOperations(): Boolean = activeOperations().any(DocumentOperation::isColoringOperation)
 }
 
 const val COLORING_DOCUMENT_SCHEMA_VERSION: Int = 2
-const val CURRENT_DOCUMENT_SCHEMA_VERSION: Int = COLORING_DOCUMENT_SCHEMA_VERSION
+const val REGION_FILL_DOCUMENT_SCHEMA_VERSION: Int = 3
+const val CURRENT_DOCUMENT_SCHEMA_VERSION: Int = REGION_FILL_DOCUMENT_SCHEMA_VERSION

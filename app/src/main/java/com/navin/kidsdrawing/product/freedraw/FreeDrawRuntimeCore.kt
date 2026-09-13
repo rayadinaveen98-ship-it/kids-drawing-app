@@ -34,7 +34,13 @@ internal class FreeDrawRuntimeCore(
     private val toolSettingsStore: FreeDrawToolSettingsPersistence,
     private val clockMillis: () -> Long = System::currentTimeMillis,
 ) {
-    val documentEngine = DrawingDocumentEngine(newWorkingDocument())
+    // Free Draw owns one clock boundary. Document mutations and persistence identities must use the
+    // same source so AtomicDrawingDocumentStore's stale-save protection can correctly order edits,
+    // lifecycle saves and post-Gallery resets.
+    val documentEngine = DrawingDocumentEngine(
+        initialDocument = newWorkingDocument(),
+        clockMillis = clockMillis,
+    )
     val toolEngine = DrawingToolEngine(initialFreeDrawSettings())
 
     suspend fun recover(): FreeDrawRecoveryOutcome {
@@ -129,10 +135,15 @@ internal class FreeDrawRuntimeCore(
     suspend fun onBackground() = saveNow()
 
     suspend fun resetAfterGalleryPromotion() {
+        // Never let a wall-clock adjustment or test clock make the reset look older than the last
+        // durable edit. AtomicDrawingDocumentStore intentionally ignores stale snapshots.
+        val currentModifiedAt = documentEngine.state.value.document.modifiedAtEpochMillis
+        val resetAt = maxOf(clockMillis().coerceAtLeast(0L), currentModifiedAt)
+        val blank = newWorkingDocument(resetAt)
+
         // The promoted Gallery document is already independent at this point. Persist the fresh
         // working canvas before exposing it in memory so a rare storage failure can never leave
         // the UI blank while the durable resume file still contains the pre-finish artwork.
-        val blank = newWorkingDocument()
         documentStore.save(blank)
         documentEngine.replaceDocument(blank)
     }
@@ -147,9 +158,11 @@ internal class FreeDrawRuntimeCore(
         toolSettingsStore.save(toolEngine.state.value)
     }
 
-    private fun newWorkingDocument(): DrawingDocument = DrawingDocumentEngine.newDocument(
+    private fun newWorkingDocument(
+        nowEpochMillis: Long = clockMillis().coerceAtLeast(0L),
+    ): DrawingDocument = DrawingDocumentEngine.newDocument(
         documentId = WORKING_DOCUMENT_ID,
-        nowEpochMillis = clockMillis().coerceAtLeast(0L),
+        nowEpochMillis = nowEpochMillis,
         metadata = DrawingDocumentMetadata(),
     )
 

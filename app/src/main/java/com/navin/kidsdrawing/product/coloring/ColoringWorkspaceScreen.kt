@@ -2,6 +2,7 @@ package com.navin.kidsdrawing.product.coloring
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -43,6 +45,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.navin.kidsdrawing.coloring.session.ColoringSessionMode
 import com.navin.kidsdrawing.coloring.session.ColoringSessionPhase
 import com.navin.kidsdrawing.coloring.session.ColoringSessionTool
+import com.navin.kidsdrawing.drawing.domain.DocumentViewportMapper
 import com.navin.kidsdrawing.drawing.domain.DrawingSurfaceContentRole
 import com.navin.kidsdrawing.drawing.ui.DrawingSurface
 import com.navin.kidsdrawing.drawing.ui.DrawingSurfaceController
@@ -124,6 +127,19 @@ fun ColoringWorkspaceScreen(
             )
         } else {
             val semantic = sessionState
+            val guidedProgress = runtime.guidedProgress()
+            val fillAvailableNow = runtime.fillAvailableNow()
+            val companion = ProductColoringPresentationPolicy.from(
+                mode = semantic?.mode ?: ColoringSessionMode.COLOR_MYSELF,
+                progress = guidedProgress,
+                preparedFillAvailable = runtime.preparedFillAvailable,
+            )
+            val title = semantic?.lessonId
+                ?.toChildLabel()
+                ?.takeIf(String::isNotBlank)
+                ?.let { "Color $it" }
+                ?: "Color your drawing"
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -132,6 +148,7 @@ fun ColoringWorkspaceScreen(
                 verticalArrangement = Arrangement.spacedBy(7.dp),
             ) {
                 ColoringTopBar(
+                    title = title,
                     minimumControlHeight = workspaceTarget,
                     onSaveAndLeave = {
                         scope.launch {
@@ -141,10 +158,7 @@ fun ColoringWorkspaceScreen(
                     },
                 )
 
-                ColoringCompanionCard(
-                    mode = semantic?.mode ?: ColoringSessionMode.COLOR_MYSELF,
-                    colorStrokeCount = documentState.document.activeColorStrokes().size,
-                )
+                ColoringCompanionCard(companion)
 
                 Surface(
                     modifier = Modifier
@@ -159,18 +173,74 @@ fun ColoringWorkspaceScreen(
                             Text("Opening your colors…", color = StudioColors.Ink500)
                         }
                     } else {
-                        DrawingSurface(
-                            modifier = Modifier.fillMaxSize(),
-                            controller = surfaceController,
-                            toolSettings = toolSettings,
-                            contentRole = DrawingSurfaceContentRole.COLORING,
-                            onStrokeCommitted = { stroke ->
-                                scope.launch { runtime.commitColorStroke(stroke) }
-                            },
-                            onEraseMaskCommitted = { mask ->
-                                scope.launch { runtime.commitColorEraseMask(mask) }
-                            },
-                        )
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            DrawingSurface(
+                                modifier = Modifier.fillMaxSize(),
+                                controller = surfaceController,
+                                toolSettings = toolSettings,
+                                contentRole = DrawingSurfaceContentRole.COLORING,
+                                onStrokeCommitted = { stroke ->
+                                    scope.launch {
+                                        runCatching { runtime.commitColorStroke(stroke) }
+                                    }
+                                },
+                                onEraseMaskCommitted = { mask ->
+                                    scope.launch {
+                                        runCatching { runtime.commitColorEraseMask(mask) }
+                                    }
+                                },
+                            )
+
+                            // Fill deliberately intercepts the gesture above AndroidX Ink. The
+                            // shared domain viewport mapper converts the tap into stable document
+                            // coordinates, so no accidental brush stroke can be created.
+                            if (semantic?.selectedTool == ColoringSessionTool.FILL) {
+                                val documentSize = documentState.document.logicalSize
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .semantics {
+                                            contentDescription = "Tap a prepared coloring area to fill it"
+                                        }
+                                        .pointerInput(
+                                            documentSize,
+                                            semantic.selectedColorArgb,
+                                            guidedProgress?.currentStepIndex,
+                                            documentState.document.operations.size,
+                                        ) {
+                                            val mapper = DocumentViewportMapper(documentSize)
+                                            detectTapGestures { offset ->
+                                                val transform = mapper.transformFor(
+                                                    size.width.toFloat(),
+                                                    size.height.toFloat(),
+                                                )
+                                                val point = transform?.let {
+                                                    mapper.viewportToDocumentOrNull(offset.x, offset.y, it)
+                                                }
+                                                if (point != null) {
+                                                    scope.launch {
+                                                        finishMessage = when (
+                                                            runtime.fillAtDocumentPoint(point.x, point.y)
+                                                        ) {
+                                                            is ProductColorFillResult.Filled -> null
+                                                            ProductColorFillResult.Miss ->
+                                                                "Try tapping inside the coloring area for this step."
+                                                            ProductColorFillResult.GuidanceComplete ->
+                                                                "The guided coloring steps are complete."
+                                                            ProductColorFillResult.Unavailable ->
+                                                                if (fillAvailableNow) {
+                                                                    "That area isn’t available for this step yet."
+                                                                } else {
+                                                                    "Fill isn’t available for this part. Choose Brush to continue."
+                                                                }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -184,10 +254,12 @@ fun ColoringWorkspaceScreen(
                         selectedTool = semantic.selectedTool,
                         brushWidth = semantic.brushWidth,
                         ageBand = ageBand,
+                        fillAvailable = fillAvailableNow,
                         canUndo = documentState.canUndoColoring,
                         canRedo = documentState.canRedoColoring,
                         minimumTarget = workspaceTarget,
                         onBrush = { scope.launch { runtime.selectTool(ColoringSessionTool.BRUSH) } },
+                        onFill = { scope.launch { runtime.selectTool(ColoringSessionTool.FILL) } },
                         onEraser = { scope.launch { runtime.selectTool(ColoringSessionTool.ERASER) } },
                         onSize = { width -> scope.launch { runtime.setBrushWidth(width) } },
                         onUndo = { scope.launch { runtime.undo() } },
@@ -226,6 +298,7 @@ fun ColoringWorkspaceScreen(
 
 @Composable
 private fun ColoringTopBar(
+    title: String,
     minimumControlHeight: Dp,
     onSaveAndLeave: () -> Unit,
 ) {
@@ -242,7 +315,7 @@ private fun ColoringTopBar(
             Text("← Save & leave", color = StudioColors.Ink700)
         }
         Text(
-            text = "Color your cat",
+            text = title,
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.titleLarge,
             color = StudioColors.Ink900,
@@ -260,22 +333,7 @@ private fun ColoringTopBar(
 }
 
 @Composable
-private fun ColoringCompanionCard(
-    mode: ColoringSessionMode,
-    colorStrokeCount: Int,
-) {
-    val instruction = when (mode) {
-        ColoringSessionMode.COLOR_MYSELF ->
-            "Your colors, your way. The drawing lines stay safe while you experiment."
-        ColoringSessionMode.COLOR_WITH_ME -> when {
-            colorStrokeCount == 0 ->
-                "Step 1 of 3 · Pick a color and fill one part of your cat. Start anywhere you like."
-            colorStrokeCount < 3 ->
-                "Step 2 of 3 · Nice start. Pick another color and add it to a different part."
-            else ->
-                "Step 3 of 3 · Add any finishing colors you want, then save your artwork."
-        }
-    }
+private fun ColoringCompanionCard(presentation: ColoringCompanionPresentation) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
@@ -284,13 +342,22 @@ private fun ColoringCompanionCard(
     ) {
         Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
             Text(
-                text = if (mode == ColoringSessionMode.COLOR_WITH_ME) "COLOR WITH ME" else "YOUR COLORS",
+                text = presentation.eyebrow,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold,
                 color = StudioColors.Studio600,
             )
+            presentation.stepLabel?.let { stepLabel ->
+                Text(
+                    text = stepLabel,
+                    modifier = Modifier.padding(top = 2.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = StudioColors.Ink900,
+                )
+            }
             Text(
-                text = instruction,
+                text = presentation.instruction,
                 modifier = Modifier.padding(top = 2.dp),
                 style = MaterialTheme.typography.bodyMedium,
                 color = StudioColors.Ink700,
@@ -353,10 +420,12 @@ private fun ColoringTools(
     selectedTool: ColoringSessionTool,
     brushWidth: Float,
     ageBand: AgeBand,
+    fillAvailable: Boolean,
     canUndo: Boolean,
     canRedo: Boolean,
     minimumTarget: Dp,
     onBrush: () -> Unit,
+    onFill: () -> Unit,
     onEraser: () -> Unit,
     onSize: (Float) -> Unit,
     onUndo: () -> Unit,
@@ -383,22 +452,32 @@ private fun ColoringTools(
                 modifier = Modifier.weight(1f),
                 onClick = onBrush,
             )
+            if (fillAvailable || selectedTool == ColoringSessionTool.FILL) {
+                ColoringActionButton(
+                    label = if (selectedTool == ColoringSessionTool.FILL) "✓ Fill" else "Fill",
+                    enabled = fillAvailable,
+                    minimumHeight = minimumTarget,
+                    modifier = Modifier.weight(1f),
+                    onClick = onFill,
+                )
+            }
             ColoringActionButton(
                 label = if (selectedTool == ColoringSessionTool.ERASER) "✓ Eraser" else "Eraser",
                 minimumHeight = minimumTarget,
                 modifier = Modifier.weight(1f),
                 onClick = onEraser,
             )
-            ColoringActionButton(
-                label = "Size: ${sizeLabels[currentSizeIndex]}",
-                minimumHeight = minimumTarget,
-                modifier = Modifier.weight(1f),
-            ) { onSize(sizes[nextSizeIndex]) }
         }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
+            ColoringActionButton(
+                label = "Size: ${sizeLabels[currentSizeIndex]}",
+                enabled = selectedTool != ColoringSessionTool.FILL,
+                minimumHeight = minimumTarget,
+                modifier = Modifier.weight(1f),
+            ) { onSize(sizes[nextSizeIndex]) }
             ColoringActionButton(
                 label = "Undo",
                 enabled = canUndo,

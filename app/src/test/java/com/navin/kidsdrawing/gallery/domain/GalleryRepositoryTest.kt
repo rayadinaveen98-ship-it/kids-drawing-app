@@ -23,15 +23,16 @@ import org.junit.Test
 
 class GalleryRepositoryTest {
     @Test
-    fun promotionPreservesEditableOperationsAndProvenanceUnderDistinctIdentity() = withRoots { documentRoot, catalogRoot ->
+    fun lessonPromotionPreservesEditableOperationsAndProvenanceUnderDistinctIdentity() = withRoots { documentRoot, catalogRoot ->
         runBlocking {
             val ids = ArrayDeque(listOf("entry-1", "document-1"))
             val repository = repository(documentRoot, catalogRoot, idFactory = { ids.removeFirst() })
-            val working = workingDocument(includeColor = true)
+            val working = lessonWorkingDocument(includeColor = true)
 
             val result = repository.promoteCompletedArtwork(
                 workingDocument = working,
                 title = "Cute Cat",
+                source = GalleryArtworkSource.LESSON,
                 completionKind = GalleryCompletionKind.COLORED,
             ) as GalleryPromotionResult.Saved
 
@@ -41,11 +42,61 @@ class GalleryRepositoryTest {
             assertEquals(working.metadata, result.document.metadata)
             assertEquals(working.logicalSize, result.document.logicalSize)
             assertEquals(working.backgroundRole, result.document.backgroundRole)
+            assertEquals(GalleryArtworkSource.LESSON, result.record.source)
 
             val reopened = repository.reopen(result.record.entryId) as GalleryReopenResult.Ready
             assertEquals(result.record.documentId, reopened.document.documentId)
             assertEquals(working.operations, reopened.document.operations)
             assertEquals("cute-cat", reopened.document.metadata.lessonId)
+        }
+    }
+
+    @Test
+    fun freeDrawPromotionHasExplicitSourceAndNoLessonProvenance() = withRoots { documentRoot, catalogRoot ->
+        runBlocking {
+            val repository = repository(documentRoot, catalogRoot)
+            val working = freeDrawWorkingDocument()
+
+            val result = repository.promoteCompletedArtwork(
+                workingDocument = working,
+                title = "My Drawing",
+                source = GalleryArtworkSource.FREE_DRAW,
+                completionKind = GalleryCompletionKind.DRAWING_ONLY,
+            ) as GalleryPromotionResult.Saved
+
+            assertEquals(GalleryArtworkSource.FREE_DRAW, result.record.source)
+            assertNull(result.record.lessonId)
+            assertNull(result.record.lessonRevision)
+            assertNull(result.document.metadata.lessonId)
+            assertNull(result.document.metadata.lessonRevision)
+            assertNotEquals(working.documentId, result.document.documentId)
+
+            val reopened = repository.reopen(result.record.entryId) as GalleryReopenResult.Ready
+            assertEquals(GalleryArtworkSource.FREE_DRAW, reopened.record.source)
+            assertEquals(working.operations, reopened.document.operations)
+        }
+    }
+
+    @Test
+    fun sourceAndDocumentProvenanceMustAgreeBeforePromotion() = withRoots { documentRoot, catalogRoot ->
+        runBlocking {
+            val repository = repository(documentRoot, catalogRoot)
+
+            val lessonAsFreeDraw = repository.promoteCompletedArtwork(
+                workingDocument = lessonWorkingDocument(),
+                title = "Wrong source",
+                source = GalleryArtworkSource.FREE_DRAW,
+                completionKind = GalleryCompletionKind.DRAWING_ONLY,
+            ) as GalleryPromotionResult.Failed
+            assertEquals(GalleryPromotionFailureCode.INVALID_PROVENANCE, lessonAsFreeDraw.code)
+
+            val freeDrawAsLesson = repository.promoteCompletedArtwork(
+                workingDocument = freeDrawWorkingDocument(),
+                title = "Wrong source",
+                source = GalleryArtworkSource.LESSON,
+                completionKind = GalleryCompletionKind.DRAWING_ONLY,
+            ) as GalleryPromotionResult.Failed
+            assertEquals(GalleryPromotionFailureCode.INVALID_PROVENANCE, freeDrawAsLesson.code)
         }
     }
 
@@ -67,9 +118,10 @@ class GalleryRepositoryTest {
             )
 
             val result = repository.promoteCompletedArtwork(
-                workingDocument(),
-                "Cute Cat",
-                GalleryCompletionKind.DRAWING_ONLY,
+                workingDocument = lessonWorkingDocument(),
+                title = "Cute Cat",
+                source = GalleryArtworkSource.LESSON,
+                completionKind = GalleryCompletionKind.DRAWING_ONLY,
             )
 
             assertTrue(result is GalleryPromotionResult.Failed)
@@ -88,9 +140,10 @@ class GalleryRepositoryTest {
             val repository = repository(documentRoot, catalogRoot, preview = preview)
 
             val saved = repository.promoteCompletedArtwork(
-                workingDocument(),
-                "Cute Cat",
-                GalleryCompletionKind.DRAWING_ONLY,
+                workingDocument = lessonWorkingDocument(),
+                title = "Cute Cat",
+                source = GalleryArtworkSource.LESSON,
+                completionKind = GalleryCompletionKind.DRAWING_ONLY,
             ) as GalleryPromotionResult.Saved
             assertEquals(GalleryPreviewStatus.FAILED, saved.record.previewStatus)
 
@@ -107,9 +160,10 @@ class GalleryRepositoryTest {
             val preview = FakePreviewService(failGeneration = false, fileExists = false)
             val repository = repository(documentRoot, catalogRoot, preview = preview)
             val saved = repository.promoteCompletedArtwork(
-                workingDocument(includeColor = true),
-                "Cute Cat",
-                GalleryCompletionKind.COLORED,
+                workingDocument = lessonWorkingDocument(includeColor = true),
+                title = "Cute Cat",
+                source = GalleryArtworkSource.LESSON,
+                completionKind = GalleryCompletionKind.COLORED,
             ) as GalleryPromotionResult.Saved
             assertEquals(GalleryPreviewStatus.READY, saved.record.previewStatus)
 
@@ -138,9 +192,10 @@ class GalleryRepositoryTest {
                 idFactory = sequentialIds(),
             )
             val saved = repository.promoteCompletedArtwork(
-                workingDocument(),
-                "Cute Cat",
-                GalleryCompletionKind.DRAWING_ONLY,
+                workingDocument = lessonWorkingDocument(),
+                title = "Cute Cat",
+                source = GalleryArtworkSource.LESSON,
+                completionKind = GalleryCompletionKind.DRAWING_ONLY,
             ) as GalleryPromotionResult.Saved
             documentStore.delete(saved.record.documentId)
 
@@ -161,9 +216,10 @@ class GalleryRepositoryTest {
                 idFactory = sequentialIds(),
             )
             val saved = repository.promoteCompletedArtwork(
-                workingDocument(),
-                "Cute Cat",
-                GalleryCompletionKind.DRAWING_ONLY,
+                workingDocument = lessonWorkingDocument(),
+                title = "Cute Cat",
+                source = GalleryArtworkSource.LESSON,
+                completionKind = GalleryCompletionKind.DRAWING_ONLY,
             ) as GalleryPromotionResult.Saved
 
             assertEquals(
@@ -175,7 +231,7 @@ class GalleryRepositoryTest {
             assertEquals(GalleryDeleteResult.Deleted, repository.delete(saved.record.entryId, confirmed = true))
             assertEquals(GalleryReopenResult.EntryMissing, repository.reopen(saved.record.entryId))
 
-            documentStore.save(workingDocument())
+            documentStore.save(lessonWorkingDocument())
             catalogStore.upsert(
                 GalleryArtworkRecord(
                     entryId = "bad-working-reference",
@@ -219,14 +275,26 @@ class GalleryRepositoryTest {
         documentCodec = DrawingDocumentBinaryCodec(JvmStrokePayloadCodec),
     )
 
-    private fun workingDocument(includeColor: Boolean = false): DrawingDocument {
-        val base = DrawingDocumentEngine.newDocument(
-            documentId = WORKING_ID,
-            nowEpochMillis = 1_000L,
+    private fun lessonWorkingDocument(includeColor: Boolean = false): DrawingDocument =
+        workingDocument(
             metadata = DrawingDocumentMetadata(
                 lessonId = "cute-cat",
                 lessonRevision = 1,
             ),
+            includeColor = includeColor,
+        )
+
+    private fun freeDrawWorkingDocument(): DrawingDocument =
+        workingDocument(metadata = DrawingDocumentMetadata(), includeColor = false)
+
+    private fun workingDocument(
+        metadata: DrawingDocumentMetadata,
+        includeColor: Boolean,
+    ): DrawingDocument {
+        val base = DrawingDocumentEngine.newDocument(
+            documentId = WORKING_ID,
+            nowEpochMillis = 1_000L,
+            metadata = metadata,
         )
         val line = DocumentOperation.AddInkStroke(
             operationId = "line-op",

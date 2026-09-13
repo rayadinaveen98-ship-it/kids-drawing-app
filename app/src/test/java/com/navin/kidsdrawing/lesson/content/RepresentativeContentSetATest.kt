@@ -24,8 +24,11 @@ class RepresentativeContentSetATest {
         assertEquals(
             listOf(
                 "cute-cat",
+                "design-your-spaceship",
                 "easy-flower",
+                "fox-portrait",
                 "friendly-owl",
+                "hot-air-balloon",
                 "little-fish",
                 "simple-rocket",
                 "smiling-sun",

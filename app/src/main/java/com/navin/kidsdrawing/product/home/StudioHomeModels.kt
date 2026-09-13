@@ -215,9 +215,9 @@ object StudioRecommendationPolicy {
                 StudioCategory(
                     categoryId = categoryId,
                     title = categoryId.toTaxonomyTitle(),
-                    lessons = lessons
-                        .distinctBy { it.lessonId to it.lessonRevision }
-                        .sortedWith(compareBy({ it.lessonId }, { it.lessonRevision })),
+                    lessons = orderByPrerequisites(
+                        lessons.distinctBy { it.lessonId to it.lessonRevision },
+                    ),
                 )
             }
 
@@ -232,7 +232,7 @@ object StudioRecommendationPolicy {
             StudioJourney(
                 journeyId = journeyId,
                 title = journeyId.toTaxonomyTitle(),
-                lessons = orderJourneyLessons(lessons.distinctBy { it.lessonId to it.lessonRevision }),
+                lessons = orderByPrerequisites(lessons.distinctBy { it.lessonId to it.lessonRevision }),
                 activeLessonId = activeLessonId?.takeIf { active ->
                     lessons.any { it.lessonId == active }
                 },
@@ -297,7 +297,7 @@ object StudioRecommendationPolicy {
         )
     }
 
-    private fun orderJourneyLessons(
+    private fun orderByPrerequisites(
         lessons: List<LessonRecommendation>,
     ): List<LessonRecommendation> {
         val remaining = lessons.associateBy { it.lessonId }.toMutableMap()

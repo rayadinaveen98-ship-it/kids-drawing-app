@@ -2,6 +2,7 @@
 
 **Issue:** #60  
 **Milestone:** Phase 4 / `0.4.0-content-studio`  
+**QA candidate:** `0.4.0-content-studio-p4.3` / versionCode 14  
 **Status:** automated/content review in progress; physical product checks not yet claimed
 
 ## Set under review
@@ -45,7 +46,7 @@
 - Flower grouped teacher sequence contains every authored stroke and completes/replays at all five pace profiles;
 - P4.3 lessons keep coloring disabled while Cute Cat keeps its existing enabled regression path.
 
-Exact-head Android CI must be green before merge.
+Exact-head Android CI must be green before physical QA or merge. The CI artifact for device testing must use the P4.3-specific `0.4.0-content-studio-p4.3` identity, not the old 0.3.0 Vertical Slice artifact name.
 
 ## Physical/product checks still required before claiming P4.3 complete
 
@@ -59,4 +60,4 @@ On the reference Android device, execute at minimum:
 7. Confirm child history diagnostics remain free of teacher/guide ink during representative Trace/Help use.
 8. Finish and reopen at least one non-Cute-Cat artwork from Gallery to prove lesson-specific document identity and generic completion routing.
 
-Record results here as PASS/FAIL with device/API and exact tested commit. Until then, do not describe Trace & Learn or Watch Then Draw as physically verified P4.3 content.
+Record results here as PASS/FAIL with device/API, exact tested commit, APK artifact name, size and SHA-256. Until then, do not describe Trace & Learn or Watch Then Draw as physically verified P4.3 content.

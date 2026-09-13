@@ -38,26 +38,45 @@ Deterministic offline multi-package discovery, validation, typed diagnostics, me
 ### P4.2 — Discovery, Art Journeys & Recommendations — COMPLETE
 Child-facing multi-lesson Studio, category/journey browsing, deterministic age/interest/mode ranking, resume precedence and stable lesson-specific routing/recovery.
 
-### P4.3 — Representative Content Set A — ACTIVE
-Ship four new production lesson packages proving:
-- tracing-friendly early-child content;
-- full Help Ladder animal teaching;
-- Watch Then Draw;
-- grouped multi-stroke demonstrations.
+### P4.3 — Representative Content Set A — IMPLEMENTATION MERGED / PHYSICAL ACCEPTANCE OPEN
 
-Chosen set: Smiling Sun, Friendly Owl, Simple Rocket and Easy Flower. Cute Cat r1 remains the frozen regression lesson.
+Implementation merged through PR #67 at `99767b71a8e4ea20b6d587e4951c822a386019e5` and merged-main CI #342 is green.
 
-### P4.4 — Free Draw Studio V1 Core — NEXT
-Blank canvas; age-adaptive Pencil/Crayon/Marker/Eraser; palette/size; Undo/Redo; safe Clear; persistence/recovery; Gallery promotion.
+Shipped content implementation:
+- Smiling Sun — tracing-friendly early-child lesson;
+- Friendly Owl — full Help Ladder animal lesson;
+- Simple Rocket — Watch Then Draw;
+- Easy Flower — grouped multi-stroke demonstrations.
 
-### P4.5 — Coloring V1 Expansion
+Issue #60 remains open because the complete physical/content matrix was not rerun. Remaining P4.3 device/content coverage must be completed no later than P4.7; do not describe P4.3 as physically complete without that evidence.
+
+### P4.4 — Free Draw Studio V1 Core — ACTIVE
+
+Issue #61 / draft PR #69. QA candidate: `0.4.0-content-studio-p4.4-qa1`, versionCode 16.
+
+Implemented scope:
+- production Home → Free Draw route;
+- blank/recovered stable working canvas;
+- age-adaptive Pencil/Crayon/Marker/Eraser controls;
+- child-safe palette and sizes;
+- Undo/Redo;
+- confirmation-only, undoable Clear;
+- Save & leave / resume and lifecycle recovery;
+- explicit Free Draw Gallery provenance;
+- safe Gallery promotion/reopen/delete with working-document isolation;
+- bounded scrollable controls to preserve canvas space on smaller phones;
+- P4.4 automated regression coverage.
+
+Exit gate: exact frozen QA1 head green in CI plus recorded physical/product QA from `docs/10-execution/P4_4_FREE_DRAW_QA.md`. Do not merge #69 on compile evidence alone.
+
+### P4.5 — Coloring V1 Expansion — NEXT AFTER P4.4
 Prepared-region fill where authored, guided coloring semantics, Color With Me progression, free coloring, persistence and line-art protection.
 
 ### P4.6 — Representative Content Set B + Cross-content QA
 Add guided-region coloring, older-child detail/proportion and open-ended creative-variation lessons. Bring the representative Phase 4 set to at least seven production-quality lessons and validate age/journey coverage.
 
 ### P4.7 — End-to-end QA + 0.4.0 Release
-Full offline/lifecycle/accessibility/device regression across catalog discovery, guided lessons, Free Draw, expanded coloring and Gallery. Deliver verified `0.4.0-content-studio` APK with reproducible release evidence.
+Full offline/lifecycle/accessibility/device regression across catalog discovery, guided lessons, Free Draw, expanded coloring and Gallery. Complete any still-open P4.3 physical/content matrix, then deliver verified `0.4.0-content-studio` APK with reproducible release evidence.
 
 ## Post-Phase-4 direction
 

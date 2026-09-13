@@ -42,14 +42,14 @@ Only repository tag `v0.1.0-art-lab` is known to exist. Do not claim 0.2/0.3 tag
 Contract: `docs/10-execution/P4_6_EXECUTION_CONTRACT.md`  
 QA: `docs/10-execution/P4_6_CONTENT_QA.md`
 
-Nine release lessons are now represented in the branch. New P4.6 packages:
+Nine release lessons are represented in the branch. New P4.6 packages:
 - **Hot Air Balloon** — Little/Creative/Growing; richer prepared-region guided coloring; four large regions; center → side pair → basket progression.
 - **Fox Portrait** — Growing/Young; difficulty 4; proportion, placement, contour refinement, facial landmarks, texture and observation; no Trace dependency.
 - **Design Your Spaceship** — Creative/Growing/Young; structured foundation plus a genuine `make_it_yours` step. Teacher examples are inspiration; child `expectedStrokeRefs` is empty so no replica is required.
 
 Implementation head `7928c712e65e180a1d97042c0ea5d131e61c65fb` passed Android CI #425 / run `34758790360` across unit tests, lint, debug APK, instrumentation APK, profile APK and permission allowlist before QA1 version/evidence renaming.
 
-QA1 freeze commit: `00a101f62e621e7ec7865920743b3a0d8b0c66c9`. It sets versionCode 18 and P4.6 artifact names. It requires exact-head CI before APK distribution or physical acceptance.
+The QA1 freeze sets versionCode 18 and P4.6 artifact names. Its exact branch head requires its own green CI before APK distribution or physical acceptance.
 
 ## Frozen architecture constraints
 
@@ -67,7 +67,7 @@ QA1 freeze commit: `00a101f62e621e7ec7865920743b3a0d8b0c66c9`. It sets versionCo
 
 ## Immediate continuation
 
-1. Wait for exact-head CI on QA1 freeze `00a101f62e621e7ec7865920743b3a0d8b0c66c9`; fix only concrete failures.
+1. Require exact-head CI on the P4.6 QA1 freeze head; fix only concrete failures.
 2. Capture exact debug/profile artifact metadata, profile size and SHA-256.
 3. Materialize the profile APK and give it to the user for focused physical P4.6 testing.
 4. Test the three new experiences plus representative regressions listed in `P4_6_CONTENT_QA.md`.

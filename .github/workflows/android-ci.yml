@@ -79,46 +79,46 @@ jobs:
 
           echo "Permission allowlist passed for debug and profile APKs."
 
-      - name: Package Content Studio P4.6 QA1 APK evidence
+      - name: Package final Content Studio APK evidence
         shell: bash
         run: |
           set -euo pipefail
-          EVIDENCE_DIR="app/build/outputs/milestone/0.4.0-content-studio-p4.6-qa1"
+          EVIDENCE_DIR="app/build/outputs/milestone/0.4.0-content-studio"
           mkdir -p "$EVIDENCE_DIR"
           cp app/build/outputs/apk/debug/app-debug.apk \
-            "$EVIDENCE_DIR/Kids_Drawing_0.4.0_Content_Studio_P4.6_QA1-debug.apk"
+            "$EVIDENCE_DIR/Kids_Drawing_0.4.0_Content_Studio-debug.apk"
           cp app/build/outputs/apk/profile/app-profile.apk \
-            "$EVIDENCE_DIR/Kids_Drawing_0.4.0_Content_Studio_P4.6_QA1-profile.apk"
+            "$EVIDENCE_DIR/Kids_Drawing_0.4.0_Content_Studio-profile.apk"
           (
             cd "$EVIDENCE_DIR"
             sha256sum \
-              Kids_Drawing_0.4.0_Content_Studio_P4.6_QA1-debug.apk \
-              Kids_Drawing_0.4.0_Content_Studio_P4.6_QA1-profile.apk \
+              Kids_Drawing_0.4.0_Content_Studio-debug.apk \
+              Kids_Drawing_0.4.0_Content_Studio-profile.apk \
               | tee SHA256SUMS.txt
             stat -c '%n %s bytes' \
-              Kids_Drawing_0.4.0_Content_Studio_P4.6_QA1-debug.apk \
-              Kids_Drawing_0.4.0_Content_Studio_P4.6_QA1-profile.apk \
+              Kids_Drawing_0.4.0_Content_Studio-debug.apk \
+              Kids_Drawing_0.4.0_Content_Studio-profile.apk \
               | tee APK_SIZES.txt
           )
 
-      - name: Upload Content Studio P4.6 QA1 debug APK
+      - name: Upload final Content Studio debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-0.4.0-content-studio-p4.6-qa1-debug
+          name: kids-drawing-0.4.0-content-studio-debug
           path: |
-            app/build/outputs/milestone/0.4.0-content-studio-p4.6-qa1/Kids_Drawing_0.4.0_Content_Studio_P4.6_QA1-debug.apk
-            app/build/outputs/milestone/0.4.0-content-studio-p4.6-qa1/SHA256SUMS.txt
-            app/build/outputs/milestone/0.4.0-content-studio-p4.6-qa1/APK_SIZES.txt
+            app/build/outputs/milestone/0.4.0-content-studio/Kids_Drawing_0.4.0_Content_Studio-debug.apk
+            app/build/outputs/milestone/0.4.0-content-studio/SHA256SUMS.txt
+            app/build/outputs/milestone/0.4.0-content-studio/APK_SIZES.txt
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
 
-      - name: Upload Content Studio P4.6 QA1 release-like profile APK
+      - name: Upload final Content Studio release-like profile APK
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-0.4.0-content-studio-p4.6-qa1-profile
+          name: kids-drawing-0.4.0-content-studio-profile
           path: |
-            app/build/outputs/milestone/0.4.0-content-studio-p4.6-qa1/Kids_Drawing_0.4.0_Content_Studio_P4.6_QA1-profile.apk
-            app/build/outputs/milestone/0.4.0-content-studio-p4.6-qa1/SHA256SUMS.txt
-            app/build/outputs/milestone/0.4.0-content-studio-p4.6-qa1/APK_SIZES.txt
+            app/build/outputs/milestone/0.4.0-content-studio/Kids_Drawing_0.4.0_Content_Studio-profile.apk
+            app/build/outputs/milestone/0.4.0-content-studio/SHA256SUMS.txt
+            app/build/outputs/milestone/0.4.0-content-studio/APK_SIZES.txt
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30

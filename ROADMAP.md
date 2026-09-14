@@ -30,16 +30,15 @@ Phase 4 proved the reusable offline product foundation:
 - Airplane Mode core journeys;
 - cross-age final physical QA.
 
-## Phase 5 — Curriculum & Teaching Experience Expansion 0.5 — PLANNING ACTIVE
+## Phase 5 — Curriculum & Teaching Experience Expansion 0.5 — ACTIVE
 
 **Target:** `0.5.0-curriculum-expansion`  
 **Parent epic:** #73  
-**Current slice:** P5.1 #74  
-**Planning branch:** `phase5/p5-1-curriculum-contract`
+**Latest fully verified product milestone:** `0.4.0-content-studio`, versionCode 19
 
 ### Milestone strategy
 
-Phase 5 turns the technically proven 0.4 app into a deeper art-learning product. It does **not** start by redesigning engines.
+Phase 5 turns the technically proven 0.4 app into a deeper art-learning product without reopening proven engines by default.
 
 Locked catalog target for 0.5:
 - 24 total production guided lessons;
@@ -47,9 +46,11 @@ Locked catalog target for 0.5:
 - 15 new lessons;
 - 36 remains the later public-V1 target after the 24-lesson workflow/content system is proven.
 
-### P5.1 — Curriculum & Teaching Contract — ACTIVE
+### P5.1 — Curriculum & Teaching Contract — COMPLETE
 
-Research/contract:
+Issue #74 closed completed. PR #75 squash-merged at `cea06e219290c82b9a1f8f8007069c61841bbc95`. Exact-head CI #451 GREEN; merged-main CI #452 GREEN.
+
+Authoritative research/contract:
 - `docs/10-execution/P5_1_CURRICULUM_RESEARCH.md`
 - `docs/10-execution/P5_1_CURRICULUM_CONTRACT.md`
 
@@ -78,24 +79,47 @@ Phase-5 exact new lesson target:
 14. Create Your Character
 15. One-Point Room
 
-P5.1 exit: exact-head CI green → accepted contract → merge-main CI green → #74 close.
+### P5.2 — Content Production System V2 — ACCEPTED CANDIDATE / FINAL MERGE GATES
 
-### P5.2 — Content Production System V2 — NEXT
+Issue #76, draft PR #77, branch `phase5/p5-2-content-production-v2`.
 
-Before scaling lesson count, build professional content validation/preview tooling:
-- catalog coverage report;
-- package preview rendering;
-- teacher/guide/trace visualization;
-- prepared-color-region visualization/hit-area warnings;
-- string/reference/asset diagnostics;
-- mode/content-API/stable-ID checks;
-- age/difficulty/journey coverage report;
-- suspicious tiny-target/excessive-step warnings;
-- per-lesson/catalog release-readiness report.
+Purpose: build scalable authoring validation/inspection before adding 15 lessons. The system reuses production lesson/catalog contracts and is not a second runtime.
 
-This tooling validates content; it must not become a second runtime engine.
+Implemented:
+- deterministic catalog coverage/readiness report in text + JSON;
+- release errors projected from production catalog/package validation;
+- Phase-5 target progress for lesson/age/difficulty/mode coverage;
+- conservative authoring warnings for suspicious step/geometry/reference/help/prepared-region patterns;
+- deliberate negative JVM fixtures;
+- CI report gate + GitHub step summary + report artifact;
+- calibrated existing nine-lesson baseline = **0 errors, 0 warnings**;
+- read-only `ContentInspectionRepository`;
+- engineering-only `ContentLabActivity` showing real bundled preview/thumbnail SVG, lesson metadata, step/help/coloring contract, teacher/expected/help/prepared-region geometry and localization;
+- Content Lab has no child document/session mutation path and is not part of the child-facing launcher flow.
 
-### P5.3 — Companion / Teacher Experience V2
+Automated implementation proof:
+- full implementation CI #463 GREEN;
+- calibrated baseline CI #465 / run `34806642996` GREEN;
+- calibrated report artifact `10333610875`;
+- report: 9 lessons, 0 errors, 0 warnings, Phase-5 catalog progress 9/24.
+
+Candidate history:
+- **QA1 / versionCode 20:** frozen at `07025d8cf35569179b1ee1e9443303bd92019093`; CI #471 failed because the freeze edit accidentally removed existing Compose UI test dependencies; no QA1 APK was distributed or accepted.
+- **QA2 / versionCode 21:** `0.5.0-curriculum-expansion-p5.2-qa2`; executable `2f36834d110cb1076b953f519eee4a8dc6e2e19d`; CI #477 / run `34808016949` GREEN; debug artifact `10333752707`; profile artifact `10333593024`; report artifact `10334126516`; profile APK 16,245,548 bytes; SHA-256 `725720ae1fbff232cbb56049d77b087d8214f959189269630dbbd9eeb0817cf6`; independent size/SHA verification matched CI.
+
+Focused QA2 physical/developer result:
+- Content Lab matrix: **20/20 PASS**;
+- normal-product smoke: PASS;
+- report verified at 9 lessons / 0 errors / 0 warnings;
+- user acceptance applies to the exact QA2 v21 binary above.
+
+QA matrix: `docs/10-execution/P5_2_QA.md`.
+
+Remaining P5.2 exit: final acceptance-doc exact-head CI → PR #77 ready/squash merge → merged-main CI → #76 close.
+
+Bulk P5.4–P5.6 content production remains blocked until this exit target is complete.
+
+### P5.3 — Companion / Teacher Experience V2 — NEXT AFTER P5.2
 
 Improve the patient-teacher presentation while preserving autonomy:
 - clearer teacher-turn vs child-turn state;

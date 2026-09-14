@@ -17,7 +17,7 @@ Production onboarding → lesson → coloring → Gallery journey physically pas
 
 **Target:** `0.5.0-curriculum-expansion`  
 **Parent epic:** #73  
-**Locked curriculum target before adaptive/release slices:** 24 production lessons.
+**Locked curriculum target before adaptive/release slices:** **24 production lessons** — reached in P5.6.
 
 ### P5.1 — Curriculum & Teaching Contract — COMPLETE
 Age 4–12 progression, lesson allocation, quality rubric, journey map and authorship philosophy locked.
@@ -34,11 +34,9 @@ Catalog 9 → 14. Content Lab 15/15, physical 30/30, merged-main CI #514 GREEN.
 ### P5.5 — Curriculum Expansion Set D — COMPLETE
 Catalog 14 → 20. PR #83 squash-merged at `6412e0e6cf346837b26e925cebc89662c27fba2c`; merged-main CI #528 GREEN. Accepted QA1 v24: 20 / 0 errors / 5 reviewed warnings; Content Lab 18/18; physical 36/36.
 
-### P5.6 — Curriculum Expansion Set E — IMPLEMENTED / AUTOMATED FINAL CONTENT GATE GREEN / PRE-FREEZE CONTENT LAB PENDING
+### P5.6 — Curriculum Expansion Set E — QA1 v25 GREEN / PHYSICAL ACCEPTANCE PENDING
 
 Issue #84. Draft PR #85. Branch `phase5/p5-6-curriculum-set-e`.
-
-Contract-first commit `f11f2a6dc857369651ee8a5cb33d95532736bd2b`; CI #529 GREEN.
 
 Delivered:
 1. Face & Expressions — Growing/Young, D3
@@ -46,59 +44,58 @@ Delivered:
 3. Create Your Character — Growing/Young, D4
 4. One-Point Room — Young, D5
 
-Implementation checkpoints:
-- Batch A Face + Body `fd44ab754e84191d3934f373c1dac05bcca51d1b`; CI #530 GREEN.
-- Batch B Character + Room `0393274a8d17290c88a49e9a383d155030fefcae`.
-- historical analyzer test finalized at `9244e776707826e613a0bec43a22f60edaae3ed0`.
-- exact-head CI #534 GREEN.
-
 Catalog is now **24 production lessons**.
 
-Final verified coverage:
+Verified final coverage:
 - Little 8
 - Creative 18
 - Growing 17
 - Young 10
+- D1 5 / D2 9 / D3 6 / D4 3 / D5 1
+- Draw With Me 23 / Watch Then Draw 17 / Trace 4
 
-Difficulty:
-- D1 5
-- D2 9
-- D3 6
-- D4 3
-- D5 1
+Content quality: **24 lessons / 0 errors / exactly 6 reviewed `NO_JOURNEY_MEMBERSHIP` warnings** only for Rainbow Weather, Tree Through Seasons, Ice Cream Shop, Simple Car, Sailboat Scene and One-Point Room.
 
 Character Creator:
 Face & Expressions → Simple Body & Pose → Create Your Character.
 
 One-Point Room remains intentionally standalone with Sailboat Scene prerequisite.
 
-Final content-quality checkpoint:
-- 24 lessons
-- 0 errors
-- exactly 6 reviewed `NO_JOURNEY_MEMBERSHIP` warnings only for Rainbow Weather, Tree Through Seasons, Ice Cream Shop, Simple Car, Sailboat Scene and One-Point Room
-- all Phase-5 lesson/age/difficulty/Watch-Then-Draw target flags met.
+Verified gates:
+- contract/docs CI #529 GREEN
+- Batch A 22-lesson CI #530 GREEN
+- final 24-lesson CI #534 GREEN
+- pre-freeze docs CI #535 GREEN
+- Content Lab **16/16 PASS**
+- QA1 `0.5.0-curriculum-expansion-p5.6-qa1`, versionCode **25**
+- exact QA1 head `9a8a0424d5f9b0bcb17b28bc4e64c0a8714c6ecb`
+- QA1 CI #538 / run `34846235868` **GREEN**
 
-**Pre-freeze gate:** Content Lab all four Set-E packages must pass **16/16** before the first distributed P5.6 QA candidate is cut.
+QA1 profile artifact for physical acceptance:
+- artifact `10348300909`
+- APK **16,311,900 bytes**
+- SHA-256 `0abb9da43315d118c67b9adf004753aed622dda992c95bce26eddc3727bf04b5`
 
-Engineering-only pre-freeze artifact from CI #534:
-- profile artifact `10346199935`
-- APK 16,311,900 bytes
-- SHA-256 `11d9459cbeefff3ff26a457b7a28b7e082ce08b55c8c8b70ce546444e24b4867`
-- this binary is not P5.6 QA1; inherited P5.5 version/artifact naming is intentionally retained until the pre-freeze Content Lab gate passes.
+**Current gate:** exact-profile physical acceptance **36/36 PASS** using `docs/10-execution/P5_6_FOCUSED_ACCEPTANCE_CHECKLIST.md`.
 
-After Content Lab 16/16:
-1. freeze `0.5.0-curriculum-expansion-p5.6-qa1`, versionCode 25;
-2. exact QA1 CI + immutable artifact evidence;
-3. focused physical acceptance;
-4. acceptance CI → PR ready → squash merge → merged-main CI → close #84.
+After genuine 36/36 PASS:
+1. commit acceptance evidence;
+2. exact-head acceptance-doc CI GREEN;
+3. PR #85 ready → squash merge;
+4. merged-main CI GREEN;
+5. close #84 and freeze P5.6.
 
-### P5.7 — Local Adaptive Teaching
+### P5.7 — Local Adaptive Teaching — NEXT AFTER P5.6 MERGE
 
-Starts only after P5.6 is accepted/merged. Deterministic/offline suggestions may use age, interests, completed skills, resume state and child-requested Help patterns. No permanent ability labels, cloud profiling, behavioral analytics upload, grades/rank/streak punishment, forced demotion or ML talent/quality judgment.
+Deterministic/offline adaptation may use age, interests, completed skills, resume state and child-requested Help patterns. No permanent ability labels, cloud child profiling, behavioral analytics upload, grades/rank/streak punishment, forced demotion or ML talent/quality judgement.
+
+P5.7 does **not** add a second cloud intelligence system. It adapts local recommendations/teaching choices while preserving child control and the frozen lesson/session/artwork ownership model.
 
 ### P5.8 — Cross-age Curriculum QA + 0.5 Release
 
-Final gate across all 24 lessons, four age bands, journeys, Companion, local adaptive teaching, offline/lifecycle/Gallery/recovery, production content report and exact release APK evidence.
+Final gate across all **24 lessons**, all four age bands, journeys, Companion, local adaptive teaching, offline/lifecycle/Gallery/recovery, production content report and exact release APK evidence.
+
+Completion of P5.8 produces the verified final `0.5.0-curriculum-expansion` milestone.
 
 ## Later direction after 0.5
 

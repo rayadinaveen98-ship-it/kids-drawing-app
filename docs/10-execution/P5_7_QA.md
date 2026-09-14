@@ -5,162 +5,65 @@
 **Branch:** `phase5/p5-7-local-adaptive-teaching`  
 **Candidate:** `0.5.0-curriculum-expansion-p5.7-qa1`  
 **versionCode:** **26**  
-**Status:** **QA1 FROZEN — EXACT-HEAD CI / APK EVIDENCE / PHYSICAL ACCEPTANCE PENDING**
+**Status:** **PHYSICALLY ACCEPTED — FINAL ACCEPTANCE CI PENDING**
 
-## 1. Pre-freeze evidence
+## Verified automated evidence
 
-The following gates were green before versionCode 26 was cut:
+- QA1 binary commit: `e258632e83e83a39ac649855ea19592c2f5003ae`.
+- Android CI #563 / run `34866700627`: **GREEN**.
+- content quality: **24 lessons / 0 errors / exactly 6 reviewed `NO_JOURNEY_MEMBERSHIP` warnings**.
+- permission allowlist: **PASS**.
+- debug artifact ID: `10357282156`.
+- debug APK size: `20,576,669` bytes.
+- debug SHA256: `08f9cdecb451f60d93db54d1ad6a45b1c3e98d90e7f40137123396159ee62b84`.
+- profile artifact ID: `10357367072`.
+- profile APK size: `16,344,676` bytes.
+- profile SHA256: `126b0c2d742a4c22b82239ded0502baf5119cf35a89883391ac68239c37b14d0`.
 
-- Batch A adaptive-state foundation: Android CI #557 — GREEN.
-- Batch B adaptive fresh recommendations: Android CI #558 — GREEN.
-- Adaptive primary reason presentation: Android CI #560 / run `34859897678` — GREEN.
-- Batch C child-controlled adaptive Help: Android CI #561 / run `34861064836` — GREEN.
-- Cross-age deterministic pre-QA gate: Android CI #562 / run `34861549191` — GREEN.
+Reviewed warning IDs:
+- `ice-cream-shop`
+- `one-point-room`
+- `rainbow-weather`
+- `sailboat-scene`
+- `simple-car`
+- `tree-through-seasons`
 
-The cross-age checkpoint head before the QA freeze was `c828d4bf801ddaf037b9b5b2b102588d7a0c6be8`.
+## Physical acceptance
 
-## 2. QA1 freeze contract
+**Acceptance date:** 2026-09-14  
+**Tester-reported device model:** **Not provided**  
+**Tester-reported Android/API:** **Not provided**  
+**Physical result:** **PASS**  
+**Passed:** **45 / 45**  
+**Failed:** **0 / 45**
 
-QA1 is the first P5.7 distributed binary candidate and therefore uses:
+The tester reported all focused P5.7 checks as good on the exact release-like profile APK above. Device model/API were not supplied and were not inferred.
 
-- versionName `0.5.0-curriculum-expansion-p5.7-qa1`;
-- versionCode **26**;
-- P5.7-specific CI artifact names;
-- debug APK for engineering inspection only;
-- release-like `profile` APK as the only binary eligible for physical acceptance.
+Accepted coverage includes:
+- install/startup and Airplane Mode;
+- sensible/stable fresh suggestions across all four age bands;
+- friendly explainable adaptive reason copy;
+- unchanged browse/category/journey visibility;
+- coloring resume → drawing resume → fresh precedence;
+- prerequisite, journey, completion and interest behavior;
+- no automatic Help;
+- child-invoked authored Help/Replay only;
+- no invented Trace and no Replay loop;
+- overlay/artwork isolation;
+- adaptive-state relaunch/default/reset safety;
+- fresh profile lifecycle does not expose old adaptive history;
+- Draw With Me, Watch Then Draw, authored Trace, Save & Leave/recovery, Gallery, Coloring and Free Draw regression smoke;
+- all 24 lessons remain discoverable.
 
-Any binary- or content-changing defect after this freeze invalidates QA1 and requires versionCode **>26** with new hashes/evidence. Documentation-only acceptance recording may remain on versionCode 26 if it does not alter the binary/content candidate.
+## Acceptance integrity
 
-## 3. Exact QA1 evidence
+The accepted APK remains the immutable binary from commit `e258632e83e83a39ac649855ea19592c2f5003ae`. Documentation-only acceptance recording does not alter the accepted candidate. Any later binary/content change requires versionCode >26 and new evidence.
 
-Populate only from the exact-head green CI run.
+## Remaining closure gate
 
-- QA1 freeze commit: `PENDING`
-- Android CI run: `PENDING`
-- content quality: expected **24 lessons / 0 errors / exactly 6 reviewed warnings**
-- permission allowlist: `PENDING`
-- debug artifact ID: `PENDING`
-- debug APK size: `PENDING`
-- debug SHA256: `PENDING`
-- profile artifact ID: `PENDING`
-- profile APK size: `PENDING`
-- profile SHA256: `PENDING`
-
-### Expected artifact names
-
-- `kids-drawing-0.5.0-curriculum-expansion-p5.7-qa1-debug`
-- `kids-drawing-0.5.0-curriculum-expansion-p5.7-qa1-profile`
-- profile APK: `Kids_Drawing_0.5.0_Curriculum_Expansion_P5.7_QA1-profile.apk`
-
-## 4. Automated acceptance requirements
-
-QA1 exact-head CI must prove:
-
-- unit tests pass;
-- lint passes;
-- debug / instrumentation / profile APKs compile;
-- AndroidX Ink ownership boundary passes;
-- production content remains 24 lessons with no content errors and only the six reviewed standalone-journey warnings;
-- no Android permission beyond the existing app-local dynamic-receiver permission is requested;
-- deterministic recommendation fixtures pass across all four age bands;
-- resume precedence remains coloring → drawing → fresh;
-- unmet prerequisites cannot become adaptive primary fresh suggestions;
-- completed lessons do not dominate while eligible fresh lessons exist;
-- adaptive recommendation reasons remain non-judgmental;
-- child Help remains explicitly initiated;
-- adaptive Help cannot invent Trace or exceed authored Help/replay choices;
-- missing/corrupt/incompatible adaptive state falls back safely;
-- reducer/store remain bounded and idempotent;
-- no artwork/strokes/score/ability/cloud/device payload is introduced.
-
-## 5. Focused physical acceptance — exact profile APK only
-
-Record device model/API exactly as reported by the tester. Do not infer them.
-
-**Acceptance date:** `PENDING`  
-**Tester-reported device model:** `PENDING`  
-**Tester-reported Android/API:** `PENDING`
-
-### A. Install / startup / offline
-
-- [ ] A1 QA1 profile APK installs successfully.
-- [ ] A2 app launches without crash.
-- [ ] A3 existing child profile loads normally.
-- [ ] A4 Airplane Mode: Home opens and recommendations remain available.
-- [ ] A5 Airplane Mode: guided lesson starts and works end-to-end.
-- [ ] A6 Airplane Mode: Gallery, Coloring and Free Draw remain usable.
-
-### B. Fresh adaptive recommendations
-
-For each age band, use a clean/local profile state appropriate to the existing product flow and verify the primary recommendation is sensible, stable and explainable.
-
-- [ ] B1 Little Artist receives a sensible fresh suggestion.
-- [ ] B2 Creative Explorer receives a sensible fresh suggestion.
-- [ ] B3 Growing Artist receives a sensible fresh suggestion.
-- [ ] B4 Young Artist receives a sensible fresh suggestion.
-- [ ] B5 unchanged state + repeated Home launches keeps the same primary suggestion.
-- [ ] B6 primary hero explanation is friendly/non-judgmental.
-- [ ] B7 browse/category/journey cards remain visible and are not globally hidden by adaptive eligibility.
-
-### C. Resume precedence
-
-- [ ] C1 create an in-progress drawing lesson, leave, return Home: drawing resume outranks fresh adaptation.
-- [ ] C2 create an active coloring session, leave, return Home: coloring resume outranks drawing/fresh.
-- [ ] C3 resume hero shows resume-progress copy rather than adaptive-reason copy.
-- [ ] C4 completing/exiting resume state returns Home to a sensible fresh recommendation.
-
-### D. Progression / prerequisites / interests
-
-- [ ] D1 an unmet-prerequisite lesson never becomes the fresh primary.
-- [ ] D2 completing prerequisite work allows contracted journey continuation to influence the fresh primary.
-- [ ] D3 completed lessons do not dominate while eligible fresh lessons remain.
-- [ ] D4 a completed lesson remains available through browse/repeat surfaces.
-- [ ] D5 changing an explicit interest through supported profile/onboarding flow changes suitable fresh recommendations where catalog content permits.
-- [ ] D6 no UI text describes the child as weak/advanced, scored, ranked, graded or talented.
-
-### E. Child-controlled adaptive Help
-
-- [ ] E1 no Help opens automatically while the child is drawing.
-- [ ] E2 tapping Help invokes only an authored Help/replay option.
-- [ ] E3 Little Artist follows authored Help order without adaptive replay substitution.
-- [ ] E4 for an older age band, repeated prior authored Help context may suggest Replay only when Replay is authored.
-- [ ] E5 after an adaptive Replay choice, a later Help request can return to authored Help rather than looping Replay forever.
-- [ ] E6 a step without authored Trace never receives Trace.
-- [ ] E7 Help overlays remain outside the child artwork.
-- [ ] E8 Less help / Hide help continue to work normally.
-
-### F. Persistence / fallback / profile lifecycle
-
-- [ ] F1 adaptive recommendation state survives ordinary app relaunch.
-- [ ] F2 lesson completion influences later fresh recommendation only after genuine completion.
-- [ ] F3 merely opening Home does not create visible progression changes.
-- [ ] F4 clearing/resetting app data returns to empty/default adaptive behavior safely.
-- [ ] F5 after a fresh local profile lifecycle, previous adaptive history is not visible/leaked.
-- [ ] F6 no network connection is required to rebuild useful Home/Help behavior.
-
-### G. P5.6 regression smoke
-
-- [ ] G1 Draw With Me still works.
-- [ ] G2 Watch Then Draw still works.
-- [ ] G3 Trace & Learn still works only where authored.
-- [ ] G4 Save & leave / recovery works.
-- [ ] G5 lesson completion reaches Gallery correctly.
-- [ ] G6 prepared Coloring works and child artwork remains isolated from overlays.
-- [ ] G7 Free Draw remains lesson-independent and saves with correct provenance.
-- [ ] G8 all 24 production lessons remain discoverable through expected surfaces.
-
-**Physical result:** `PENDING`  
-**Passed:** `PENDING / 45`  
-**Failed:** `PENDING / 45`
-
-## 6. Acceptance rule
-
-P5.7 cannot be marked complete, PR #87 cannot be made ready, and issue #86 cannot close until:
-
-1. the exact versionCode 26 QA1 head has green CI;
-2. exact profile APK artifact ID, size and SHA256 are recorded;
-3. the tester physically accepts that exact profile APK;
-4. acceptance documentation is committed without changing the accepted binary;
-5. acceptance-head CI is green;
-6. PR #87 is squash-merged;
-7. merged-main CI is green.
+1. acceptance documentation exact-head CI GREEN;
+2. mark PR #87 ready;
+3. squash-merge exact acceptance head;
+4. merged-main CI GREEN;
+5. close issue #86 completed;
+6. start P5.8 from that verified main.

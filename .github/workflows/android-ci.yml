@@ -50,7 +50,7 @@ jobs:
       - name: Unit tests, lint, debug APK, instrumentation APK, and profile APK compile
         run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleProfile
 
-      - name: Verify P5.2 content quality report
+      - name: Verify final content quality report
         shell: bash
         run: |
           set -euo pipefail
@@ -63,23 +63,24 @@ jobs:
           from pathlib import Path
 
           report = json.loads(Path("app/build/reports/content-quality/catalog-report.json").read_text())
+          assert report["lessonCount"] == 24, report
           assert report["errorCount"] == 0, report
-          assert report["lessonCount"] >= 1, report
-          print(f"P5.2 content quality: lessons={report['lessonCount']} errors={report['errorCount']} warnings={report['warningCount']}")
+          assert report["warningCount"] == 6, report
+          print(f"Final content quality: lessons={report['lessonCount']} errors={report['errorCount']} warnings={report['warningCount']}")
           PY
           cat "$REPORT_DIR/catalog-report.txt"
           {
-            echo "## P5.2 Content Quality"
+            echo "## Final 0.5 Content Quality"
             echo
             echo '```text'
             cat "$REPORT_DIR/catalog-report.txt"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload P5.2 content quality reports
+      - name: Upload final content quality reports
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-p5.2-content-quality-report
+          name: kids-drawing-0.5.0-final-content-quality-report
           path: |
             app/build/reports/content-quality/catalog-report.txt
             app/build/reports/content-quality/catalog-report.json
@@ -107,54 +108,54 @@ jobs:
 
             for permission in "${REQUESTED_PERMISSIONS[@]}"; do
               if [[ "$permission" != "$ALLOWED_PERMISSION" ]]; then
-                echo "Unexpected Android permission detected in milestone APK: $permission"
+                echo "Unexpected Android permission detected in final APK: $permission"
                 exit 1
               fi
             done
           done
 
-          echo "Permission allowlist passed for debug and profile APKs."
+          echo "Permission allowlist passed for final debug and profile APKs."
 
-      - name: Package P5.7 QA1 APK evidence
+      - name: Package 0.5 final APK evidence
         shell: bash
         run: |
           set -euo pipefail
-          EVIDENCE_DIR="app/build/outputs/milestone/0.5.0-curriculum-expansion-p5.7-qa1"
+          EVIDENCE_DIR="app/build/outputs/milestone/0.5.0-curriculum-expansion-final"
           mkdir -p "$EVIDENCE_DIR"
           cp app/build/outputs/apk/debug/app-debug.apk \
-            "$EVIDENCE_DIR/Kids_Drawing_0.5.0_Curriculum_Expansion_P5.7_QA1-debug.apk"
+            "$EVIDENCE_DIR/Kids_Drawing_0.5.0_Curriculum_Expansion_FINAL-debug.apk"
           cp app/build/outputs/apk/profile/app-profile.apk \
-            "$EVIDENCE_DIR/Kids_Drawing_0.5.0_Curriculum_Expansion_P5.7_QA1-profile.apk"
+            "$EVIDENCE_DIR/Kids_Drawing_0.5.0_Curriculum_Expansion_FINAL-profile.apk"
           (
             cd "$EVIDENCE_DIR"
             sha256sum \
-              Kids_Drawing_0.5.0_Curriculum_Expansion_P5.7_QA1-debug.apk \
-              Kids_Drawing_0.5.0_Curriculum_Expansion_P5.7_QA1-profile.apk \
+              Kids_Drawing_0.5.0_Curriculum_Expansion_FINAL-debug.apk \
+              Kids_Drawing_0.5.0_Curriculum_Expansion_FINAL-profile.apk \
               | tee SHA256SUMS.txt
             stat -c '%n %s bytes' \
-              Kids_Drawing_0.5.0_Curriculum_Expansion_P5.7_QA1-debug.apk \
-              Kids_Drawing_0.5.0_Curriculum_Expansion_P5.7_QA1-profile.apk \
+              Kids_Drawing_0.5.0_Curriculum_Expansion_FINAL-debug.apk \
+              Kids_Drawing_0.5.0_Curriculum_Expansion_FINAL-profile.apk \
               | tee APK_SIZES.txt
           )
 
-      - name: Upload P5.7 QA1 debug APK
+      - name: Upload 0.5 final debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-0.5.0-curriculum-expansion-p5.7-qa1-debug
+          name: kids-drawing-0.5.0-curriculum-expansion-final-debug
           path: |
-            app/build/outputs/milestone/0.5.0-curriculum-expansion-p5.7-qa1/Kids_Drawing_0.5.0_Curriculum_Expansion_P5.7_QA1-debug.apk
-            app/build/outputs/milestone/0.5.0-curriculum-expansion-p5.7-qa1/SHA256SUMS.txt
-            app/build/outputs/milestone/0.5.0-curriculum-expansion-p5.7-qa1/APK_SIZES.txt
+            app/build/outputs/milestone/0.5.0-curriculum-expansion-final/Kids_Drawing_0.5.0_Curriculum_Expansion_FINAL-debug.apk
+            app/build/outputs/milestone/0.5.0-curriculum-expansion-final/SHA256SUMS.txt
+            app/build/outputs/milestone/0.5.0-curriculum-expansion-final/APK_SIZES.txt
           if-no-files-found: error
           retention-days: 30
 
-      - name: Upload P5.7 QA1 release-like profile APK
+      - name: Upload 0.5 final release-like profile APK
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-0.5.0-curriculum-expansion-p5.7-qa1-profile
+          name: kids-drawing-0.5.0-curriculum-expansion-final-profile
           path: |
-            app/build/outputs/milestone/0.5.0-curriculum-expansion-p5.7-qa1/Kids_Drawing_0.5.0_Curriculum_Expansion_P5.7_QA1-profile.apk
-            app/build/outputs/milestone/0.5.0-curriculum-expansion-p5.7-qa1/SHA256SUMS.txt
-            app/build/outputs/milestone/0.5.0-curriculum-expansion-p5.7-qa1/APK_SIZES.txt
+            app/build/outputs/milestone/0.5.0-curriculum-expansion-final/Kids_Drawing_0.5.0_Curriculum_Expansion_FINAL-profile.apk
+            app/build/outputs/milestone/0.5.0-curriculum-expansion-final/SHA256SUMS.txt
+            app/build/outputs/milestone/0.5.0-curriculum-expansion-final/APK_SIZES.txt
           if-no-files-found: error
           retention-days: 30

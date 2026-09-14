@@ -51,8 +51,6 @@ Target milestone: `0.5.0-curriculum-expansion`.
 
 ## P5.2 — COMPLETE
 
-P5.2 delivered deterministic content-quality reporting and the read-only Content Lab without creating a second runtime.
-
 Accepted QA2 evidence:
 - `0.5.0-curriculum-expansion-p5.2-qa2`, versionCode 21;
 - executable `2f36834d110cb1076b953f519eee4a8dc6e2e19d`;
@@ -60,49 +58,46 @@ Accepted QA2 evidence:
 - profile artifact `10333593024`;
 - profile APK size `16,245,548 bytes`;
 - SHA-256 `725720ae1fbff232cbb56049d77b087d8214f959189269630dbbd9eeb0817cf6`;
-- independent SHA/size verification PASS;
 - report 9 lessons / 0 errors / 0 warnings;
-- focused Content Lab matrix 20/20 PASS and normal-product smoke PASS;
+- focused Content Lab matrix 20/20 PASS;
 - final acceptance-doc CI #481 GREEN;
 - PR #77 squash-merged at `c0e4c3708fd94102773d6438cbf401162815a9fc`;
 - merged-main CI #482 GREEN;
 - issue #76 closed completed.
 
-QA record: `docs/10-execution/P5_2_QA.md`.
-
-## P5.3 — Companion / Teacher Experience V2 — ACTIVE / QA1 FREEZE
+## P5.3 — Companion / Teacher Experience V2 — PHYSICALLY ACCEPTED / MERGE GATES PENDING
 
 Issue #78, draft PR #79, branch `phase5/p5-3-companion-teacher-v2`.
 
-Execution contract: `docs/10-execution/P5_3_EXECUTION_CONTRACT.md`.
-QA matrix: `docs/10-execution/P5_3_QA.md`.
-
 Implemented:
 - pure deterministic `ProductLessonPresentationPolicy` remains read-only over authoritative session/content state;
-- existing child profile age band now controls age-appropriate teacher tone;
+- existing child profile age band controls age-appropriate teacher tone;
 - Little / Creative / Growing / Young wording differs without changing lesson semantics;
 - teacher demo, child turn, Help, pause, completion and error states remain distinct;
 - Watch Then Draw overview remains distinct from per-step demonstration;
-- open-ended authorship is detected generically by `MANUAL_DONE + expectedStrokeRefs.isEmpty()`; no lesson-ID branch;
+- open-ended authorship is detected generically by `MANUAL_DONE + expectedStrokeRefs.isEmpty()`;
 - Trace/Help language normalizes direct support as practice with no scoring/failure pressure;
-- secondary companion cues are deterministic and presentation-only;
 - optional age-specific reflection appears only after drawing completion and does not block Color/Finish;
-- legacy `Cute Cat` / `save your cat` generic fallback wording removed from Guided Lesson UI;
+- legacy `Cute Cat` / `save your cat` generic fallback wording removed;
 - existing session commands/control visibility preserved.
 
-Automated evidence:
-- first policy CI #485 found one wording-test mismatch only;
+Accepted QA1 evidence:
+- `0.5.0-curriculum-expansion-p5.3-qa1`, versionCode 22;
+- exact physically tested executable `eef87b25478c6a30d6fefbd7580f75ded4eca3ab`;
 - corrected pure-policy CI #486 / run `34810895376` GREEN;
 - integrated Guided Lesson CI #487 / run `34811189264` GREEN;
-- all current session states and all four product age bands covered by deterministic JVM policy tests.
+- exact frozen QA1 CI #493 / run `34811688427` GREEN;
+- debug artifact `10335460247`;
+- profile artifact `10334873551`;
+- content-quality artifact `10334589314`;
+- profile APK size `16,245,553 bytes`;
+- profile APK SHA-256 `bed4c00bce4629822b50c6523527a1ebad66428fc0977580501a20c77ad3e5de`;
+- independent SHA/size recomputation MATCHED CI evidence;
+- content quality remains 9 lessons / 0 errors / 0 warnings;
+- focused physical/product matrix 20/20 PASS by user report on 2026-09-14;
+- device model / Android API were not restated by the user and are intentionally not inferred.
 
-### P5.3 QA1 identity — CURRENT
-
-- versionName `0.5.0-curriculum-expansion-p5.3-qa1`;
-- versionCode 22;
-- dedicated P5.3 QA1 debug/profile artifact packaging configured;
-- exact frozen candidate commit / CI / artifact IDs / APK SHA: PENDING final exact-head green build;
-- focused physical/product matrix: PENDING.
+Authoritative QA record: `docs/10-execution/P5_3_QA.md`.
 
 ## Frozen architecture invariants
 
@@ -119,13 +114,11 @@ Automated evidence:
 
 ## Immediate next action
 
-1. Freeze one exact P5.3 QA1 v22 head after QA/status/handoff/roadmap synchronization.
-2. Require exact-head Android CI green including unit/lint/debug/instrumentation/profile compile, content-quality gate, permissions and dedicated P5.3 APK artifacts.
-3. Download the exact profile artifact and independently verify size/SHA.
-4. Hand the exact v22 profile APK to the user for the focused 20-row P5.3 matrix.
-5. Record only checks actually reported.
-6. After physical acceptance: acceptance-doc CI → PR #79 ready/squash merge → merged-main CI → close #78.
-7. Only then advance to P5.4 curriculum expansion.
+1. Run final exact-head acceptance-doc CI after this evidence synchronization.
+2. If green, mark PR #79 ready and squash-merge with expected head SHA.
+3. Verify merged-main Android CI on the exact squash merge.
+4. Close issue #78 completed only after merged-main green.
+5. Then create P5.4 from verified `main` and begin Curriculum Expansion Set C under the frozen Phase-5 contract.
 
 ## Continuation rule
 

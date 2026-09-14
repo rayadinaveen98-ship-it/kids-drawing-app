@@ -24,7 +24,7 @@ Android-first children's drawing/art-learning app built as a patient personal ar
 - Draft PR: #79
 - Active branch: `phase5/p5-3-companion-teacher-v2`
 - Latest fully verified product release remains **`0.4.0-content-studio`, versionCode 19**
-- Current P5.3 candidate identity: **`0.5.0-curriculum-expansion-p5.3-qa1`, versionCode 22** — exact QA artifact/physical acceptance pending
+- P5.3 QA1 `0.5.0-curriculum-expansion-p5.3-qa1`, versionCode 22 — **focused physical/product acceptance PASS; final docs/merge gates pending**
 
 ## Exact accepted 0.4 baseline
 
@@ -39,13 +39,7 @@ Android-first children's drawing/art-learning app built as a patient personal ar
 - SHA-256 `f7a8f9a177d8edc6244796f7c08ff4fd32ad64eeb26e90b7ba00bb68fc9daa59`
 - final physical/product checklist PASS
 
-No Phase-5 work may retroactively change or overclaim this release evidence.
-
 ## P5.1 — COMPLETE curriculum contract
-
-Authoritative files:
-- `docs/10-execution/P5_1_CURRICULUM_RESEARCH.md`
-- `docs/10-execution/P5_1_CURRICULUM_CONTRACT.md`
 
 Locked target:
 - 24 total production guided lessons for 0.5;
@@ -57,8 +51,6 @@ Locked target:
 - Help remains child-controlled/non-punitive.
 
 ## P5.2 — COMPLETE content-production system
-
-P5.2 accepted deterministic quality reporting and a read-only engineering Content Lab over the real production catalog.
 
 Accepted QA2:
 - `0.5.0-curriculum-expansion-p5.2-qa2`, versionCode 21;
@@ -76,7 +68,7 @@ Accepted QA2:
 
 Content Lab remains engineering-only; `ProductActivity` remains the normal launcher.
 
-## P5.3 — ACTIVE / QA1 FREEZE
+## P5.3 — PHYSICALLY ACCEPTED / MERGE GATES PENDING
 
 Authoritative files:
 - `docs/10-execution/P5_3_EXECUTION_CONTRACT.md`
@@ -103,26 +95,29 @@ Authoritative files:
 - deterministic secondary cues for Replay/Help/Watch/Trace/context;
 - optional age-specific reflection at completion;
 - completion celebrates authorship/process without grading;
-- actual Guided Lesson screen now passes the existing child profile age band into policy;
+- Guided Lesson passes the existing child profile age band into policy;
 - secondary cue renders inside companion card;
 - reflection appears only at post-drawing boundary and never blocks color/finish actions;
 - legacy hardcoded `Cute Cat` / `save your cat` fallback copy removed;
 - all existing lesson commands/control visibility preserved.
 
-### Automated evidence so far
-
-- CI #485: one new Trace wording assertion failed; no compile/runtime defect.
-- copy refined instead of weakening the safety assertion.
-- corrected pure policy CI #486 / run `34810895376` GREEN.
-- integrated Guided Lesson UI CI #487 / run `34811189264` GREEN.
-
-### QA1 identity
+### Accepted QA1 evidence
 
 - versionName `0.5.0-curriculum-expansion-p5.3-qa1`;
 - versionCode 22;
-- dedicated P5.3 QA1 debug/profile CI packaging configured;
-- exact candidate commit/CI/artifact IDs/SHA: PENDING final freeze build;
-- 20-row focused physical matrix: PENDING.
+- physically tested executable `eef87b25478c6a30d6fefbd7580f75ded4eca3ab`;
+- corrected pure-policy CI #486 / run `34810895376` GREEN;
+- integrated Guided Lesson CI #487 / run `34811189264` GREEN;
+- exact frozen QA1 CI #493 / run `34811688427` GREEN;
+- debug artifact `10335460247`;
+- profile artifact `10334873551`;
+- content-quality artifact `10334589314`;
+- profile APK size `16,245,553 bytes`;
+- SHA-256 `bed4c00bce4629822b50c6523527a1ebad66428fc0977580501a20c77ad3e5de`;
+- independent local SHA/size recomputation MATCHED CI evidence;
+- content-quality report 9 lessons / 0 errors / 0 warnings;
+- focused physical/product matrix: **20/20 PASS** by user report on 2026-09-14;
+- device model/API were not restated and are not inferred.
 
 ## Frozen architecture constraints
 
@@ -139,13 +134,11 @@ Authoritative files:
 
 ## Immediate continuation
 
-1. Finish QA/status/handoff/roadmap synchronization and freeze one exact P5.3 QA1 v22 head.
-2. Require exact-head Android CI green with dedicated P5.3 APK artifacts.
-3. Download profile artifact and independently verify size/SHA against CI evidence.
-4. Hand exact QA1 APK to user for `P5_3_QA.md` focused Little + Young + Watch/Help/Trace/open-ended/completion pass.
-5. Record only checks actually reported.
-6. After acceptance: final docs CI → PR #79 ready/squash merge → merged-main CI → close #78.
-7. Begin P5.4 only from verified P5.3 main merge.
+1. Run final exact-head acceptance-doc CI on the evidence-synchronized P5.3 branch.
+2. If green, mark PR #79 ready and squash-merge with its exact head SHA.
+3. Verify merged-main Android CI on the squash merge.
+4. Close issue #78 completed only after merged-main green.
+5. Begin P5.4 only from verified P5.3 `main`.
 
 ## Resume protocol
 

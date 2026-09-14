@@ -3,16 +3,16 @@
 **Issue:** #64  
 **PR:** #72  
 **Branch:** `phase4/p4-7-final-release`  
-**Status:** final candidate preparation / physical QA pending
+**Status:** exact v19 release candidate accepted; repository closure pending
 
 ## Release identity
 
 - versionName: `0.4.0-content-studio`
-- initial candidate versionCode: 19
-- physically tested executable commit: PENDING
-- accepted documentation head: PENDING
+- versionCode: 19
+- physically tested executable commit: `f3843365d39540de00fe08a008883c15abe75599`
+- accepted documentation head: PENDING after final acceptance/status documentation commits
 - final squash/merge commit: PENDING
-- final tag: PENDING / create only if supported and verified
+- final tag: not created; repository tooling available in this session exposes no tag-creation action, so no tag is claimed
 
 ## Product delivered by Phase 4
 
@@ -45,61 +45,75 @@ Phase 4 expands the Phase-3 single vertical slice into an offline multi-lesson c
 
 ## Automated release evidence
 
-- exact-head Android CI: PENDING
-- committed JSON parsing: PENDING
-- AndroidX Ink boundary: PENDING
-- unit tests: PENDING
-- lint: PENDING
-- debug APK: PENDING
-- instrumentation APK: PENDING
-- profile APK: PENDING
-- permission allowlist: PENDING
-- final artifact packaging/upload: PENDING
+Exact final candidate commit: `f3843365d39540de00fe08a008883c15abe75599`.
+
+Android CI #440 / run `34801122118`: **GREEN**.
+- committed JSON parsing: PASS;
+- AndroidX Ink boundary: PASS;
+- unit tests: PASS;
+- lint: PASS;
+- debug APK build: PASS;
+- instrumentation APK build: PASS;
+- profile APK build: PASS;
+- permission allowlist: PASS;
+- final artifact packaging/upload: PASS.
+
+The P4.7 compare against verified P4.6 main contained no product/runtime behavior changes: only final version identity, CI artifact naming and release/QA/status documentation. Thus the accepted v19 binary is the exact final product candidate rather than a new feature build.
 
 ## APK evidence
 
-- debug artifact ID/name: PENDING
-- profile artifact ID/name: PENDING
-- profile APK filename: `Kids_Drawing_0.4.0_Content_Studio-profile.apk`
-- profile APK size: PENDING
-- profile APK SHA-256: PENDING
-- independent local hash/size verification: PENDING
+- debug artifact: `10331472910` / `kids-drawing-0.4.0-content-studio-debug`;
+- profile artifact: `10331363240` / `kids-drawing-0.4.0-content-studio-profile`;
+- profile APK filename: `Kids_Drawing_0.4.0_Content_Studio-profile.apk`;
+- profile APK size: `16,196,353 bytes`;
+- profile APK SHA-256: `f7a8f9a177d8edc6244796f7c08ff4fd32ad64eeb26e90b7ba00bb68fc9daa59`;
+- independent local hash/size verification: PASS, exact match with CI evidence;
+- profile artifact archive digest: `sha256:1a539ec2952707eeb66e40b49322dc83f7a855b496f55e245ca0715459218bd1`.
 
 ## Physical/product QA
 
 Authoritative matrix: `docs/10-execution/P4_7_FINAL_QA.md`.
 
-- device/model/API: PENDING — never infer
-- physical acceptance date: PENDING
-- matrix result: PENDING
-- P4.3 deferred Set-A coverage: PENDING
-- P4.4 deferred Free Draw coverage: PENDING
-- P4.5 deferred coloring coverage: PENDING
-- P4.6 deferred release-regression coverage: PENDING
-- Airplane Mode: PENDING
-- lifecycle/process recreation: PENDING
-- age-band/accessibility spot checks: PENDING
-- contamination/operation-loss checks: PENDING
-- stability result: PENDING
+- device/model/API: not restated by the user in the final acceptance turn; never infer;
+- physical acceptance date: 2026-09-14;
+- acceptance statement: user reported **“final passed bro”** after the complete ten-group final checklist;
+- matrix result: **PHYSICAL / PRODUCT / AUTOMATED RELEASE CANDIDATE PASS**;
+- P4.3 deferred Set-A coverage: PASS in final checklist;
+- P4.4 deferred Free Draw coverage: PASS in final checklist;
+- P4.5 deferred coloring coverage: PASS in final checklist;
+- P4.6 release-regression coverage: PASS in final checklist;
+- Airplane Mode: PASS in final checklist;
+- lifecycle/process recreation: PASS in final checklist;
+- all four age-band spot checks: PASS;
+- larger system font-scale spot check: PASS;
+- handedness / voice-off / reduced-motion product settings: NOT APPLICABLE because they are not exposed in this milestone;
+- contamination/operation-loss checks: PASS;
+- stability result: PASS — no crash, ANR, deadlock or unrecoverable blank state reported in the completed final checklist.
+
+Two cases are intentionally not misrepresented as physical injection:
+- resume-priority policy is backed by frozen deterministic P4.2 automated coverage;
+- missing/incompatible runtime fallback/no-stranded-artwork behavior is backed by frozen P2/P3 recovery tests.
 
 ## Defects found during final release QA
 
-PENDING. Record each release-blocking defect, fix commit, new versionCode if a changed APK was already distributed, and exact retest result. Do not erase failed history.
+No release-blocking defect was reported against the distributed v19 final candidate. No replacement binary was required, so versionCode remains 19.
 
 ## Known exceptions
 
-PENDING. Only document real hardware/tooling exceptions. Do not convert an unperformed check into an exception merely to finish the milestone.
+- Exact device/model/API was not restated in the final acceptance turn and is intentionally not inferred.
+- Handedness, voice-off and reduced-motion toggles are not exposed as product settings in this milestone; their conditional physical rows are N/A.
+- No release tag is created or claimed because available repository tooling does not expose tag creation.
 
 ## Repository closure evidence
 
-- P4.3 issue #60 closure: PENDING
-- P4.7 issue #64 closure: PENDING
-- Phase-4 epic #57 closure: PENDING
-- PR #72 ready/merge: PENDING
-- merged-main Android CI: PENDING
+- P4.3 issue #60 closure: PENDING after final acceptance-doc exact-head CI;
+- P4.7 issue #64 closure: PENDING after merge-main green;
+- Phase-4 epic #57 closure: PENDING after #64 closes;
+- PR #72 ready/merge: PENDING after final acceptance-doc exact-head CI;
+- merged-main Android CI: PENDING.
 
 ## Release decision
 
-**PENDING.**
+**EXACT V19 RELEASE CANDIDATE ACCEPTED.**
 
-`0.4.0-content-studio` is releasable only when the exact final candidate passes the required physical matrix, exact-head CI is green, evidence is committed, the release PR is merged, merged-main CI is green, and the final installable profile APK is delivered.
+`0.4.0-content-studio` has passed the required physical/product matrix and exact-candidate CI. Only repository closure gates remain: acceptance-documentation exact-head CI, deferred P4.3 issue closure, PR #72 merge, merged-main CI, and final issue/epic closure. These documentation/repository steps do not replace the physically accepted executable `f3843365d39540de00fe08a008883c15abe75599` or its verified APK hash.

@@ -82,32 +82,19 @@ Accepted QA2:
 
 Issue #78 closed completed. PR #79 squash-merged at `e3553414c591ae5def3d9016c1a63e9d1a350f39`; merged-main CI #498 GREEN.
 
-Delivered:
-- deterministic age-aware companion policy for Little / Creative / Growing / Young;
-- clearer teacher-turn, child-turn, Help, pause, completion and error presentation;
-- Watch Then Draw overview vs per-step distinction;
-- generic open-ended authorship detection without lesson-ID branches;
-- non-punitive Help/Trace language;
-- deterministic context cues for Replay/Watch/Trace/open choice;
-- optional non-blocking completion reflection;
-- Guided Lesson integration using the existing product profile age band;
-- secondary cue rendering inside companion card;
-- legacy `Cute Cat` / `save your cat` generic fallback copy removed;
-- control/session semantics preserved.
+Delivered deterministic age-aware Companion V2, clearer turn/help/completion presentation, Watch Then Draw overview distinction, generic open-authorship detection, non-punitive Help/Trace language, optional reflection, and preserved session/control semantics.
 
 Accepted QA1:
 - `0.5.0-curriculum-expansion-p5.3-qa1`, versionCode 22;
-- physically tested executable `eef87b25478c6a30d6fefbd7580f75ded4eca3ab`;
-- exact frozen QA1 CI #493 GREEN;
 - profile artifact `10334873551`;
 - profile APK 16,245,553 bytes;
 - SHA-256 `bed4c00bce4629822b50c6523527a1ebad66428fc0977580501a20c77ad3e5de`;
-- focused physical/product matrix **20/20 PASS**;
-- final merge gates completed and issue #78 closed.
+- focused physical/product matrix 20/20 PASS;
+- merged-main CI #498 GREEN.
 
-### P5.4 — Curriculum Expansion Set C — ACTIVE / AUTOMATED QA1 PASS
+### P5.4 — Curriculum Expansion Set C — COMPLETE
 
-Issue #80, draft PR #81, branch `phase5/p5-4-curriculum-set-c`.
+Issue #80 closed completed. PR #81 squash-merged at `00c618cb9b16444f77e534431b3ca417e85a3e10`; merged-main Android CI #514 / run `34834247565` GREEN.
 
 Delivered Set C:
 - Happy Lines;
@@ -116,39 +103,81 @@ Delivered Set C:
 - Tree Through Seasons;
 - Ice Cream Shop.
 
-Catalog is now **14 production release lessons**.
+Catalog grew from 9 to **14 production release lessons**.
 
-Automated QA1 candidate:
+Accepted QA1:
 - `0.5.0-curriculum-expansion-p5.4-qa1`, versionCode 23;
 - exact QA commit `797d2219c4fe7f643d31f1ada42e08bacf7d105f`;
-- complete Set-C CI #508 GREEN;
-- exact frozen QA1 CI #509 / run `34831113980` GREEN;
 - profile artifact `10342178179`;
 - profile APK 16,267,569 bytes;
 - profile SHA-256 `e220bb0ffc7a2a15e4cfedb9dd907a5850247e55611158cda2a29dc46c6d1200`;
-- debug artifact `10341973952`;
-- content-quality artifact `10342606597`;
-- content report 14 lessons / 0 errors / 3 reviewed `NO_JOURNEY_MEMBERSHIP` warnings;
-- permission allowlist green.
+- quality report 14 lessons / 0 errors / 3 reviewed `NO_JOURNEY_MEMBERSHIP` warnings;
+- Content Lab **15/15 PASS**;
+- focused physical acceptance **30/30 PASS**; device/API metadata was not provided and was not inferred;
+- final acceptance CI #513 GREEN;
+- merged-main CI #514 GREEN.
 
-P5.4 is **not complete yet**. Remaining required gates:
-- interactive Content Lab visual inspection of all five Set-C lessons;
-- focused physical-device pass on exact profile artifact `10342178179`;
-- acceptance evidence synchronization;
-- final exact-head acceptance-doc CI;
-- PR #81 ready/squash merge;
-- merged-main CI;
-- issue #80 close completed.
+P5.4 also documented ADR-008: intentional open-authorship steps inside Trace-capable lessons do not receive forced Trace overlays; generic structured Trace behavior remains intact.
 
-### P5.5 — Curriculum Expansion Set D
+### P5.5 — Curriculum Expansion Set D — ACTIVE / CONTRACT LOCKED
 
-Animals + vehicles + space. Planned lesson pool includes Snail Garden, Elephant From Shapes, Simple Car, Sailboat Scene, Planet With Rings and Friendly Alien.
+Issue #82, draft PR #83, branch `phase5/p5-5-curriculum-set-d`.
+
+Verified start:
+- `main` = `00c618cb9b16444f77e534431b3ca417e85a3e10`;
+- merged-main CI #514 GREEN.
+
+Execution contract:
+- `docs/10-execution/P5_5_EXECUTION_CONTRACT.md`;
+- first contract commit `d9be4436a77d7a1b967c44cebf7e59182fb6c56f`;
+- committed before any Set-D content implementation.
+
+Locked lessons:
+1. Snail Garden
+2. Elephant From Shapes
+3. Simple Car
+4. Sailboat Scene
+5. Planet With Rings
+6. Friendly Alien
+
+Target: **14 → 20 release lessons**.
+
+Required progressions:
+- `journey.animal_artist`: Little Fish → Snail Garden → Cute Cat → Friendly Owl → Elephant From Shapes → Fox Portrait;
+- `journey.space_artist`: Planet With Rings → Simple Rocket → Friendly Alien → Design Your Spaceship;
+- Simple Car + Sailboat Scene remain intentionally standalone vehicle/scene content rather than receiving an invented journey.
+
+Expected coverage checkpoint after Set D:
+- Little Artists: 8;
+- Creative Explorers: 18;
+- Growing Artists: 14;
+- Young Artists: 6.
+
+Expected final P5.5 quality state:
+- 20 release lessons;
+- 0 release errors;
+- exactly five reviewed `NO_JOURNEY_MEMBERSHIP` warnings may remain for Rainbow Weather, Tree Through Seasons, Ice Cream Shop, Simple Car and Sailboat Scene;
+- no other warning is accepted.
+
+Planned gated batches:
+1. Animal Batch A — Snail Garden + Elephant From Shapes;
+2. Vehicle/Scene Batch B — Simple Car + Sailboat Scene;
+3. Space Batch C — Planet With Rings + Friendly Alien;
+4. full 20-lesson quality/coverage + Companion integration;
+5. Content Lab inspection of all six;
+6. first distributed QA candidate `0.5.0-curriculum-expansion-p5.5-qa1`, versionCode **24**;
+7. exact APK artifact/size/SHA evidence + focused physical acceptance;
+8. acceptance-doc CI + squash merge + merged-main CI before #82 closes.
 
 ### P5.6 — Curriculum Expansion Set E
 
-People/characters + older-child technique. Planned lesson pool includes Face & Expressions, Simple Body & Pose, Create Your Character and One-Point Room.
+People/characters + older-child technique:
+- Face & Expressions
+- Simple Body & Pose
+- Create Your Character
+- One-Point Room
 
-Batching between P5.4–P5.6 may be balanced for QA efficiency, but the exact 24-lesson target must not silently drift.
+Expected catalog growth: **20 → 24 lessons**. P5.6 deliberately completes the remaining Young Artist technique/coverage floor rather than broadening easier lessons to all ages.
 
 ### P5.7 — Local Adaptive Teaching
 

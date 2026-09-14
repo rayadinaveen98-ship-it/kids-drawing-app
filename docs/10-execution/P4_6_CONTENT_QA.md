@@ -3,14 +3,16 @@
 **Issue:** #63  
 **PR:** #71  
 **Branch:** `phase4/p4-6-content-set-b`  
-**Target candidate:** `0.4.0-content-studio-p4.6-qa1` / versionCode 18  
-**Status:** QA candidate freeze in progress; physical/product rows remain unverified until run on the exact QA1 APK.
+**Candidate:** `0.4.0-content-studio-p4.6-qa1` / versionCode 18  
+**Status:** Focused physical/product acceptance PASS on 2026-09-14; final exact-head documentation CI, PR merge, and merged-main verification remain.
 
 ## Automated implementation evidence
 
 The nine-lesson implementation head `7928c712e65e180a1d97042c0ea5d131e61c65fb` passed Android CI #425 / run `34758790360` before QA1 version/artifact renaming.
 
-That run passed:
+Exact QA1 executable head `e96e452f41f545529712a35e9cf97553510252d8` passed Android CI #428 / run `34759214099`.
+
+The exact QA1 run passed:
 - committed JSON parsing;
 - Drawing Engine AndroidX Ink boundary check;
 - unit tests;
@@ -18,9 +20,8 @@ That run passed:
 - debug APK compile;
 - instrumentation APK compile;
 - profile APK compile;
-- milestone permission allowlist.
-
-This is implementation evidence only. The exact QA1 head created after version/workflow/docs changes still requires its own green CI before an APK is distributed.
+- milestone permission allowlist;
+- P4.6-specific evidence packaging and debug/profile artifact upload.
 
 ## Representative release set
 
@@ -36,7 +37,7 @@ This is implementation evidence only. The exact QA1 head created after version/w
 | Design Your Spaceship | Creative, Growing, Young | 3 | open-ended creative variation with no replica requirement |
 | Fox Portrait | Growing, Young | 4 | older-child proportion/detail/observation |
 
-Coverage intent after P4.6:
+Coverage after P4.6:
 - all four age bands represented;
 - difficulties 1–4 represented;
 - First Shapes to Pictures, Animal Artist and Space Artist each have multiple meaningful lessons;
@@ -71,54 +72,56 @@ Coverage intent after P4.6:
 - Creative child turn uses `manual_done`, `allowSkip=true`, and **empty `expectedStrokeRefs`**.
 - No Trace & Learn mode, therefore no replica/trace contract applies to the creative step.
 
-## Physical/product QA — exact QA1 APK required
+## Physical/product QA — exact QA1 APK
 
-Record device/model/API and exact APK evidence before marking PASS.
+The user installed the exact profile APK from QA1 head `e96e452f41f545529712a35e9cf97553510252d8` and reported the supplied focused P4.6 checklist **PASS** on 2026-09-14. Device/model/API were not re-stated in that acceptance, so this record does not invent them.
 
 | # | Check | Status |
 | ---: | --- | --- |
-| 1 | Fresh launch/Home shows all expected P4.6 lessons through generic discovery | NOT RUN |
-| 2 | Hot Air Balloon preview matches balloon artwork, not another lesson | NOT RUN |
-| 3 | Hot Air Balloon Draw With Me completes drawing steps normally | NOT RUN |
-| 4 | Hot Air Balloon guided coloring progresses center → both sides → basket | NOT RUN |
-| 5 | Side-panel guided step accepts both authored regions and advances only when both are filled | NOT RUN |
-| 6 | Hot Air Balloon Color Myself allows prepared-region recoloring; line art remains protected | NOT RUN |
-| 7 | Hot Air Balloon coloring Undo/Redo behaves correctly | NOT RUN |
-| 8 | Fox Portrait preview feels appropriate for older children | NOT RUN |
-| 9 | Fox Portrait Draw With Me has usable pacing and proportion/detail guidance | NOT RUN |
-| 10 | Fox Portrait Watch Then Draw replay works and no Trace UI appears | NOT RUN |
-| 11 | Design Your Spaceship structured steps work in Draw With Me | NOT RUN |
-| 12 | `make_it_yours` clearly invites choosing/combining/inventing rather than exact copying | NOT RUN |
-| 13 | Creative step can complete without matching teacher accessory geometry | NOT RUN |
-| 14 | Design Your Spaceship Watch Then Draw remains replayable | NOT RUN |
-| 15 | Young Artist profile receives credible Fox/Spaceship discovery/recommendations | NOT RUN |
-| 16 | Switching between new lessons does not leak child ink/session state | NOT RUN |
-| 17 | Existing Smiling Sun/Friendly Owl/Simple Rocket/Easy Flower still open correctly | NOT RUN |
-| 18 | Little Fish prepared Fill still works | NOT RUN |
-| 19 | Cute Cat legacy freehand coloring still does not expose deceptive prepared Fill | NOT RUN |
-| 20 | Free Draw remains independent and working | NOT RUN |
-| 21 | Gallery promotion/reopen still preserves artwork/source provenance | NOT RUN |
-| 22 | Airplane mode supports catalog/new lessons end-to-end | DEFERRED TO P4.7 unless explicitly rerun here |
-| 23 | Process recreation/recovery across a P4.6 lesson | DEFERRED TO P4.7 unless explicitly rerun here |
-| 24 | Small-screen/age-adaptive regression | DEFERRED TO P4.7 unless explicitly rerun here |
+| 1 | Home/Studio shows the three P4.6 lessons through generic discovery | PASS — user reported |
+| 2 | Hot Air Balloon preview matches balloon artwork | PASS — user reported |
+| 3 | Hot Air Balloon Draw With Me completes drawing steps normally | PASS — user reported |
+| 4 | Hot Air Balloon guided coloring progresses center → both sides → basket | PASS — user reported |
+| 5 | Side-panel step advances only after both authored side regions are filled | PASS — user reported |
+| 6 | Hot Air Balloon Color Myself supports prepared-region recoloring and protected line art | PASS — user reported |
+| 7 | Hot Air Balloon coloring Undo/Redo behaves correctly | PASS — user reported |
+| 8 | Fox Portrait preview feels appropriate for older children | PASS — user reported |
+| 9 | Fox Portrait Draw With Me pacing/proportion/detail guidance is usable | PASS — user reported |
+| 10 | Fox Portrait Watch Then Draw replay works and no Trace UI appears | PASS — user reported |
+| 11 | Design Your Spaceship structured Draw With Me steps work | PASS — user reported |
+| 12 | `make_it_yours` communicates choosing/combining/inventing rather than exact copying | PASS — user reported |
+| 13 | Creative step completes without matching teacher accessory geometry | PASS — user reported |
+| 14 | Design Your Spaceship Watch Then Draw remains replayable | PASS — user reported |
+| 15 | Young Artist discovery makes Fox Portrait / Design Your Spaceship available appropriately | PASS — user reported |
+| 16 | Switching between new lessons does not leak child ink/session state | PASS — user reported |
+| 17 | Smiling Sun/Friendly Owl/Simple Rocket/Easy Flower focused physical regression | NOT RUN in supplied P4.6 checklist; defer to P4.7 |
+| 18 | Little Fish prepared Fill still works | PASS — user reported |
+| 19 | Cute Cat legacy freehand coloring still avoids deceptive prepared Fill | PASS — user reported |
+| 20 | Free Draw remains independent and working | PASS — user reported |
+| 21 | Gallery promotion/reopen preserves artwork/source provenance for a new lesson | PASS — user reported |
+| 22 | Airplane mode supports catalog/new lessons end-to-end | DEFERRED TO P4.7 |
+| 23 | Process recreation/recovery across a P4.6 lesson | DEFERRED TO P4.7 |
+| 24 | Small-screen/age-adaptive regression | DEFERRED TO P4.7 |
 
-## QA1 evidence to fill after exact-head CI
+## QA1 evidence
 
-- executable commit: PENDING
-- Android CI run: PENDING
-- debug artifact ID/name: PENDING
-- profile artifact ID/name: PENDING
-- profile APK size: PENDING
-- profile APK SHA-256: PENDING
-- physical device/API: PENDING
-- user physical acceptance: PENDING
+- executable commit: `e96e452f41f545529712a35e9cf97553510252d8`
+- versionName: `0.4.0-content-studio-p4.6-qa1`
+- versionCode: `18`
+- Android CI: #428 / run `34759214099` — GREEN
+- debug artifact: `10318167923` / `kids-drawing-0.4.0-content-studio-p4.6-qa1-debug`
+- profile artifact: `10318307419` / `kids-drawing-0.4.0-content-studio-p4.6-qa1-profile`
+- profile APK size: `16,196,362 bytes`
+- profile APK SHA-256: `e207d006893747a91a0c8dd6935d7764417fc77532a992a6d1120ec8bd613a4e`
+- physical device/API: not re-stated by user in this acceptance
+- user physical acceptance: focused supplied checklist PASS on 2026-09-14
 
-## Exit rule
+## Exit rule / current gate
 
-Do not mark P4.6 complete or merge PR #71 until:
-1. exact QA1 head CI is green;
-2. exact profile APK evidence is recorded;
-3. focused physical/product QA proves Hot Air Balloon coloring, Fox Portrait older-child experience and Spaceship creative variation;
-4. any failures are fixed with a new monotonic versionCode if a materially different APK was already distributed;
-5. PR is marked ready only after accepted evidence;
-6. merged-main CI is green before issue #63 closes.
+P4.6 product acceptance is satisfied for the focused QA1 scope. Remaining repository gates before issue #63 can close:
+1. exact-head CI after acceptance-documentation commits must be green;
+2. mark PR #71 ready;
+3. squash-merge PR #71;
+4. require merged-main CI green;
+5. close issue #63 completed;
+6. move deferred rows 17 and 22–24 into P4.7 final regression rather than overclaiming them here.

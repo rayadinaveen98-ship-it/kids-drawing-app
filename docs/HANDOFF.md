@@ -11,85 +11,114 @@ Git is authoritative when chat and repository state disagree.
 - P5.1 #74 — COMPLETE.
 - P5.2 #76 — COMPLETE.
 - P5.3 #78 — COMPLETE; merged-main CI #498 GREEN; physical 20/20 PASS.
-- P5.4 #80 — COMPLETE; PR #81 merged; merged-main CI #514 GREEN; Content Lab 15/15 + physical 30/30 PASS.
-- P5.5 #82 — **ACCEPTED; FINAL CLOSURE IN PROGRESS**.
-- PR #83; branch `phase5/p5-5-curriculum-set-d`.
-- Catalog: **20 release lessons**.
-- QA1: `0.5.0-curriculum-expansion-p5.5-qa1`, versionCode **24**.
-- Exact QA app/content commit: `3a538b5f7c2db118a0006176b7093b0e22961f9b`.
+- P5.4 #80 — COMPLETE; merged-main CI #514 GREEN; Content Lab 15/15 + physical 30/30 PASS.
+- P5.5 #82 — COMPLETE; PR #83 squash-merged at `6412e0e6cf346837b26e925cebc89662c27fba2c`; merged-main CI #528 GREEN; Content Lab 18/18 + physical 36/36 PASS.
+- Current slice: **P5.6 Curriculum Expansion Set E #84**.
+- Active branch: `phase5/p5-6-curriculum-set-e`.
+- P5.6 content implementation: **NOT STARTED**.
+- Current catalog: **20 lessons**; P5.6 target: **24**.
 
-## P5.5 accepted result
+## Verified starting baseline
 
-Delivered Set D:
-- Snail Garden
-- Elephant From Shapes
-- Simple Car
-- Sailboat Scene
-- Planet With Rings
-- Friendly Alien
+P5.6 starts only from verified main:
+`6412e0e6cf346837b26e925cebc89662c27fba2c`
 
-Implemented journeys:
-- Animal Artist: Little Fish → Snail Garden → Cute Cat → Friendly Owl → Elephant From Shapes → Fox Portrait.
-- Space Artist: Planet With Rings → Simple Rocket → Friendly Alien → Design Your Spaceship.
+Merged-main Android CI #528 / run `34840361689` is GREEN.
 
-Simple Car and Sailboat Scene remain intentionally standalone.
-
-Coverage checkpoint:
-- Little 8
-- Creative 18
-- Growing 14
-- Young 6
-
-Automated QA:
-- Android CI #525 GREEN on exact QA binary commit;
-- evidence/checklist CI #526 GREEN;
-- 20 lessons / 0 errors / exactly 5 reviewed `NO_JOURNEY_MEMBERSHIP` warnings;
-- only Rainbow Weather, Tree Through Seasons, Ice Cream Shop, Simple Car and Sailboat Scene warn.
-
-Exact profile APK:
+P5.5 accepted profile evidence remains:
+- versionCode 24;
 - artifact `10344519403`;
-- APK size **16,293,898 bytes**;
+- APK 16,293,898 bytes;
 - SHA-256 `9e23562b5bea4f2b406a48a1b64e339887f91926ad8789deaa160bbc93301629`.
 
-Interactive acceptance reported 2026-09-14:
-- Content Lab **18/18 PASS**;
-- exact-profile physical **36/36 PASS**;
-- no binary/content-changing defect reported;
-- device model/API not provided and not inferred.
+## P5.6 locked contract
 
-Authoritative acceptance docs:
-- `docs/10-execution/P5_5_QA.md`
-- `docs/10-execution/P5_5_FOCUSED_ACCEPTANCE_CHECKLIST.md`
-- `docs/10-execution/P5_5_EXECUTION_CONTRACT.md`
+Execution contract: `docs/10-execution/P5_6_EXECUTION_CONTRACT.md`  
+First P5.6 branch commit: `f11f2a6dc857369651ee8a5cb33d95532736bd2b`  
+This commit contains the contract before any Set-E lesson assets.
 
-## Immediate continuation
+Locked lessons:
+1. **Face & Expressions** — Growing + Young; D3; face construction, landmarks, expression variation; DWM + WTD; Character Creator entry.
+2. **Simple Body & Pose** — Growing + Young; D4; body construction, proportion, pose, silhouette; DWM + WTD; Character Creator progression.
+3. **Create Your Character** — Growing + Young; D4; synthesized authored character design; no similarity requirement.
+4. **One-Point Room** — Young only; D5; one-point perspective/depth scale/scene composition; standalone advanced technique.
 
-1. require final acceptance-doc exact-head CI GREEN;
-2. mark PR #83 ready;
-3. squash-merge verified head;
-4. verify merged-main Android CI GREEN;
-5. close #82 completed;
-6. create P5.6 issue/branch/draft PR from that verified `main`;
-7. lock P5.6 execution contract before authoring Set-E content.
+Stable identities:
+- `face-and-expressions@1`
+- `simple-body-and-pose@1`
+- `create-your-character@1`
+- `one-point-room@1`
 
-## P5.6 next scope
+Character Creator journey:
+Face & Expressions → Simple Body & Pose → Create Your Character.
 
-Set E is exactly:
-1. Face & Expressions
-2. Simple Body & Pose
-3. Create Your Character
-4. One-Point Room
+Prerequisites:
+- Face: none
+- Body: Face
+- Character: Body
+- One-Point Room: Sailboat Scene
 
-Target catalog: **20 → 24 lessons**. The emphasis is people/characters plus older-child proportion, pose, expression, perspective and creative authorship. Do not dilute younger lessons merely to inflate Young Artist coverage.
+One-Point Room is intentionally standalone; do not invent a journey merely to remove its reviewed warning.
+
+## Final Phase-5 curriculum checkpoint expected after P5.6
+
+Age coverage:
+- Little 8
+- Creative 18
+- Growing 17
+- Young 10
+
+Difficulty:
+- D1 5
+- D2 9
+- D3 6
+- D4 3
+- D5 1
+
+Quality warning policy after Set E:
+exactly six reviewed `NO_JOURNEY_MEMBERSHIP` warnings only for:
+- Rainbow Weather
+- Tree Through Seasons
+- Ice Cream Shop
+- Simple Car
+- Sailboat Scene
+- One-Point Room
+
+No other warning/error accepted.
+
+## Planned P5.6 execution
+
+1. continuation docs + draft PR;
+2. contract/docs CI GREEN;
+3. Batch A: Face & Expressions + Simple Body & Pose → 22 lessons;
+4. exact-head CI GREEN;
+5. Batch B: Create Your Character + One-Point Room → 24 lessons;
+6. final quality/age/difficulty/Character Creator + Companion gates;
+7. Content Lab all four;
+8. freeze `0.5.0-curriculum-expansion-p5.6-qa1`, versionCode **25**;
+9. immutable APK evidence + exact-profile physical acceptance;
+10. acceptance CI → squash merge → merged-main CI → close #84.
 
 ## Frozen constraints
 
-- lessons remain generic structured content;
-- no lesson-ID-specific product/runtime branches;
-- `LessonSessionState` remains teaching-state truth;
-- Companion presentation does not mutate Help/completion/artwork/persistence;
-- overlays never become child artwork;
+- generic structured lessons only;
+- no lesson-ID-specific runtime UI;
+- `LessonSessionState` is teaching-state truth;
+- Companion is read-only relative to session/artwork;
+- no Trace for Set-E older-child content;
+- teacher/help/reference overlays never enter child artwork;
 - AndroidX Ink remains behind owned drawing infrastructure;
 - offline/account-free/ad-free core remains unchanged;
-- no scoring/rank/stars/XP/permanent ability labels/punitive streaks/cloud child profiling;
-- engine changes require a concrete defect + explicit contract/ADR.
+- no scoring/rank/stars/XP/permanent labels/punitive streaks/cloud profiling.
+
+## Resume protocol
+
+Read:
+1. `PROJECT_STATUS.md`
+2. this file
+3. `ROADMAP.md`
+4. issue #84
+5. `docs/10-execution/P5_6_EXECUTION_CONTRACT.md`
+6. `docs/10-execution/P5_1_CURRICULUM_CONTRACT.md`
+7. P5.2 tooling docs as needed
+8. P5.5 QA only for frozen baseline evidence.

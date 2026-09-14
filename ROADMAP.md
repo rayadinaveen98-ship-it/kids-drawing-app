@@ -33,64 +33,63 @@ Catalog 9→14; Content Lab 15/15; physical 30/30.
 Catalog 14→20; Content Lab 18/18; physical 36/36; merged-main CI #528 GREEN.
 
 ### P5.6 — Curriculum Expansion Set E — COMPLETE / FROZEN
+Catalog 20→24; Content Lab 16/16; physical 36/36; merged-main CI #552 GREEN.
 
-Catalog 20→24.
+### P5.7 — Local Adaptive Teaching — PHYSICALLY ACCEPTED / MERGE CLOSURE ACTIVE
 
-Accepted gates:
-- final curriculum 24 lessons / 0 errors / six reviewed standalone warnings;
-- Content Lab **16/16 PASS**;
-- QA1 `0.5.0-curriculum-expansion-p5.6-qa1`, versionCode 25;
-- exact-profile physical **36/36 PASS**;
-- PR #85 squash-merged at `91bc7584994224852d3d44749e78749d39ff954b`;
-- merged-main Android CI #552 / run `34849748403` **GREEN**;
-- issue #84 closed completed.
+Issue #86. PR #87.
 
-### P5.7 — Local Adaptive Teaching — ACTIVE
+Delivered:
+- local bounded/versioned adaptive state;
+- deterministic/idempotent reducer and corruption-safe store;
+- prerequisite-safe progression-aware fresh recommendations;
+- explainable primary reason copy;
+- coloring resume → drawing resume → fresh precedence preserved;
+- browse/category/journey discovery preserved;
+- child-controlled adaptive Help over authored Help/Replay only;
+- no invented Trace, automatic Help, ability labels, scores/ranks or network dependency;
+- deterministic cross-age pre-QA gate across all four age bands.
 
-Issue #86. Branch `phase5/p5-7-local-adaptive-teaching`.
+Accepted QA1:
+- `0.5.0-curriculum-expansion-p5.7-qa1`;
+- versionCode **26**;
+- binary commit `e258632e83e83a39ac649855ea19592c2f5003ae`;
+- Android CI #563 / run `34866700627` **GREEN**;
+- profile artifact `10357367072`;
+- profile SHA256 `126b0c2d742a4c22b82239ded0502baf5119cf35a89883391ac68239c37b14d0`;
+- physical acceptance **45/45 PASS** on 2026-09-14;
+- tester device/API not provided;
+- no reported defects.
 
-Contract-first commit: `5225e82bcae4afae7a0d5dc65bacd1a5054d4b19`.
+Remaining P5.7 gates:
+1. acceptance-doc exact-head CI GREEN;
+2. mark PR #87 ready;
+3. squash merge;
+4. merged-main CI GREEN;
+5. close #86 completed.
 
-Goal: extend the existing local Home recommendation + authored Help presentation with deterministic, bounded, explainable adaptation while preserving child control and all existing ownership boundaries.
+### P5.8 — Cross-age Curriculum QA + 0.5 Release — NEXT
 
-Architecture direction:
-- owned advisory layer under `product/adaptive`;
-- local/versioned/corruption-tolerant state only;
-- deterministic idempotent reducer from genuine completion and child-requested Help events;
-- `StudioPrimarySelectionPolicy` resume precedence remains coloring → drawing → fresh suggestion;
-- `StudioRecommendationPolicy` remains the Home recommendation surface;
-- fresh adaptive primary suggestions respect prerequisites and exact age fit;
-- journey continuation, underexposed/new skills, explicit interests, mode preference, sensible difficulty context and bounded recent-repeat avoidance may influence deterministic ordering;
-- recommendation reasons remain human-readable policy facts, not ability scores;
-- Help adaptation may only suggest existing authored Help/replay **after the child asks**.
+P5.8 is the final Phase-5 release gate. It must validate the complete integrated product, not add a parallel lesson system.
 
-Forbidden:
-- raw stroke/artwork quality analysis;
-- permanent ability labels;
-- score/grade/rank/XP/punitive streaks;
-- cloud child profiling/analytics upload;
-- network dependence;
-- forced demotion;
-- automatic Help escalation;
-- lesson-ID-specific adaptive branches.
+Final scope:
+- all **24 lessons**;
+- all four age bands;
+- journeys, prerequisites and discovery;
+- Companion + authored Help Ladder;
+- P5.7 local adaptive recommendations and Help;
+- offline / Airplane Mode;
+- lifecycle, recovery and resume precedence;
+- Gallery, Coloring and Free Draw;
+- content quality **24 / 0 errors / six reviewed warnings** unless a documented content change deliberately changes that contract;
+- permission/network/privacy boundaries;
+- final versionName **`0.5.0-curriculum-expansion`**;
+- new final release versionCode reserved and cut only at the final QA freeze;
+- exact debug/profile/release evidence;
+- focused physical acceptance;
+- merge + merged-main CI before Phase 5 closes.
 
-Delivery gates:
-1. contract/docs CI GREEN;
-2. Batch A adaptive state/store/reducer → CI GREEN;
-3. Batch B progression-aware fresh recommendations → CI GREEN;
-4. Batch C child-controlled adaptive Help → CI GREEN;
-5. deterministic/offline/corruption/privacy QA;
-6. QA1 freeze `0.5.0-curriculum-expansion-p5.7-qa1`, versionCode **26**;
-7. exact APK evidence + physical acceptance;
-8. acceptance CI → merge → merged-main CI → close #86.
-
-VersionCode 26 is not used before QA freeze.
-
-### P5.8 — Cross-age Curriculum QA + 0.5 Release
-
-Final gate across all 24 lessons, all four age bands, journeys, Companion, local adaptive teaching, offline/lifecycle/Gallery/recovery, content-quality report and exact final release APK evidence.
-
-Completion of P5.8 produces verified `0.5.0-curriculum-expansion`.
+Completion of P5.8 produces verified **`0.5.0-curriculum-expansion`**.
 
 ## Permanent delivery rule
 

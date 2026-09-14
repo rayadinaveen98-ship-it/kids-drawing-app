@@ -16,6 +16,10 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".ContentLabActivity"
+            android:exported="true"
+            android:label="Kids Drawing Content Lab" />
+        <activity
             android:name=".LessonLabActivity"
             android:exported="true"
             android:label="Kids Drawing Lesson Lab" />

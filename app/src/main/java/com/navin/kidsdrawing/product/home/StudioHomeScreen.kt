@@ -673,13 +673,19 @@ private fun greetingSubtitle(ageBand: AgeBand): String = when (ageBand) {
     AgeBand.YOUNG_ARTIST -> "Pick a lesson or explore your own idea"
 }
 
-private fun recommendationReason(
+internal fun recommendationReason(
     profile: ChildProfile,
     recommendation: LessonRecommendation,
-): String = when (recommendation.reason) {
-    RecommendationReason.INTEREST_MATCH -> "Picked because it matches what you like"
-    RecommendationReason.AGE_MATCH -> "A good fit for ${profile.ageBand.displayName.lowercase()}s"
-    RecommendationReason.STARTER_PICK -> "A calm place to start"
+): String {
+    recommendation.adaptiveReasonCopy
+        ?.takeIf { it.isNotBlank() }
+        ?.let { return it }
+
+    return when (recommendation.reason) {
+        RecommendationReason.INTEREST_MATCH -> "Picked because it matches what you like"
+        RecommendationReason.AGE_MATCH -> "A good fit for ${profile.ageBand.displayName.lowercase()}s"
+        RecommendationReason.STARTER_PICK -> "A calm place to start"
+    }
 }
 
 private fun heroMetadata(

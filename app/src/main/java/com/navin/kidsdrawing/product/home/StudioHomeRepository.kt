@@ -68,13 +68,14 @@ class StudioHomeRepository(context: Context) {
             recommendations = projected.map(ProjectedLesson::recommendation),
         )
         val adaptiveState = adaptiveRepository.loadForPolicy()
-        val freshRanked = adaptiveState?.let { state ->
+        val adaptiveDecisions = adaptiveState?.let { state ->
             StudioRecommendationPolicy.adaptiveFreshDecisions(
                 profile = profile,
                 recommendations = ranked,
                 state = state,
-            ).map { it.recommendation }
-        } ?: ranked
+            )
+        }
+        val freshRanked = adaptiveDecisions?.map { it.recommendation } ?: ranked
         val projectedByKey = projected.associateBy {
             it.recommendation.lessonId to it.recommendation.lessonRevision
         }
@@ -134,12 +135,28 @@ class StudioHomeRepository(context: Context) {
         val primaryKey = primary.lessonId?.let { lessonId ->
             primary.lessonRevision?.let { revision -> lessonId to revision }
         }
+        val freshPrimaryDecision = if (primary.drawingResume == null && primary.coloringResume == null) {
+            primaryKey?.let { key ->
+                adaptiveDecisions?.firstOrNull { decision ->
+                    decision.recommendation.lessonId == key.first &&
+                        decision.recommendation.lessonRevision == key.second
+                }
+            }
+        } else {
+            null
+        }
         val primaryRecommendation = primaryKey?.let { key ->
-            projectedByKey[key]?.recommendation
+            projectedByKey[key]?.recommendation?.let { baseline ->
+                freshPrimaryDecision?.let { decision ->
+                    baseline.copy(adaptiveReasonCopy = decision.reasonCopy)
+                } ?: baseline
+            }
         } ?: if (adaptiveState == null) {
             ranked.firstOrNull()
         } else {
-            freshRanked.firstOrNull()
+            adaptiveDecisions?.firstOrNull()?.let { decision ->
+                decision.recommendation.copy(adaptiveReasonCopy = decision.reasonCopy)
+            }
         }
         val activeLessonId = primary.coloringResume?.lessonId ?: primary.drawingResume?.lessonId
 

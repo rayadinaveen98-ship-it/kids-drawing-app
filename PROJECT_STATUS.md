@@ -9,7 +9,7 @@
 **Current slice:** P5.7 — Local Adaptive Teaching #86  
 **Active branch:** `phase5/p5-7-local-adaptive-teaching`  
 **Draft PR:** #87  
-**Current P5.7 state:** **BATCH A VERIFIED GREEN; BATCH B IMPLEMENTED; ADAPTIVE PRIMARY REASON PATCH READY FOR CI**  
+**Current P5.7 state:** **BATCH A VERIFIED GREEN; BATCH B IMPLEMENTED; ADAPTIVE PRIMARY REASON PATCH APPLIED; EXACT-HEAD CI PENDING**  
 **Current production catalog:** **24 release lessons**  
 **Verified starting main:** `91bc7584994224852d3d44749e78749d39ff954b`  
 **Last updated:** 2026-09-14
@@ -71,15 +71,15 @@ Implemented:
 - Android CI #558: **GREEN**.
 
 Adaptive reason presentation patch:
-- commit object `b2ed60477c3fb02200988255d2aac341e2a5afa3`;
-- primary fresh recommendation carries the adaptive explanation copy;
+- primary fresh recommendation now carries the adaptive explanation copy into the existing Home hero;
 - browse cards remain baseline/generic;
-- resume copy still outranks adaptive copy;
+- resume progress copy still outranks adaptive copy;
+- JVM regression tests cover adaptive-visible, baseline-generic and blank-fallback behavior;
 - exact-head CI required before Batch C.
 
 ## Immediate gate
 
-1. move PR #87 to adaptive-reason patch head and require exact-head Android CI GREEN;
+1. adaptive-reason patch exact-head Android CI must be GREEN;
 2. only then begin Batch C child-controlled adaptive Help;
 3. Batch C must attach to genuine child `RequestHelp` flow and may only suggest existing authored Help/replay options;
 4. versionCode **26** remains reserved for the first P5.7 distributed QA freeze.

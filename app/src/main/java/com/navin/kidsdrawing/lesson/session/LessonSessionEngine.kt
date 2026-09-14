@@ -452,7 +452,7 @@ class LessonSessionEngine private constructor(
         val current = state as? LessonSessionState.RecoverableError
             ?: return reject(
                 LessonCommandRejectionCode.INVALID_STATE,
-                "RetryRecoverable is only valid from a recoverable lesson error.",
+                "Retry is only valid from a recoverable lesson error.",
             )
 
         val events = mutableListOf<LessonSessionEvent>(LessonRuntimeResetRequested)
@@ -759,7 +759,13 @@ class LessonSessionEngine private constructor(
             )
         }
         if (context.mode == TeachingMode.TRACE_AND_LEARN) {
-            return LessonGuideOverlayFactory.traceForStep(lessonPackage, step)
+            val isIntentionalOpenAuthorship =
+                step.childTurn.completionPolicy == ChildCompletionPolicy.MANUAL_DONE &&
+                    step.childTurn.allowSkip &&
+                    step.childTurn.expectedStrokeRefs.isEmpty()
+            if (!isIntentionalOpenAuthorship) {
+                return LessonGuideOverlayFactory.traceForStep(lessonPackage, step)
+            }
         }
         return null
     }

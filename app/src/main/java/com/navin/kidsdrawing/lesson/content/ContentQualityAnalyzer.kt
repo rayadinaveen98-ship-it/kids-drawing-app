@@ -1,9 +1,11 @@
 package com.navin.kidsdrawing.lesson.content
 
 import com.navin.kidsdrawing.lesson.model.AgeBand
+import com.navin.kidsdrawing.lesson.model.AuthoredColorRegion
 import com.navin.kidsdrawing.lesson.model.AuthoredStroke
 import com.navin.kidsdrawing.lesson.model.LessonRuntimePackage
 import com.navin.kidsdrawing.lesson.model.TeachingMode
+import kotlin.math.abs
 import kotlin.math.max
 
 enum class ContentQualitySeverity {
@@ -16,6 +18,12 @@ enum class ContentQualityDiagnosticCode {
     MISSING_RUNTIME_PACKAGE,
     EXCESSIVE_STEP_COUNT,
     TINY_EXPECTED_TARGET,
+    TINY_TEACHER_DEMO,
+    DUPLICATE_TEACHER_STROKE_REFERENCE,
+    DUPLICATE_EXPECTED_STROKE_REFERENCE,
+    NON_CONTIGUOUS_HELP_LADDER,
+    GROUPED_DEMO_SINGLE_STROKE,
+    TINY_PREPARED_REGION,
     NO_JOURNEY_MEMBERSHIP,
 }
 
@@ -158,6 +166,18 @@ data class ContentQualityPolicy(
         AgeBand.CREATIVE_EXPLORERS to 0.03f,
         AgeBand.GROWING_ARTISTS to 0.02f,
         AgeBand.YOUNG_ARTISTS to 0.015f,
+    ),
+    val tinyTeacherDemoThresholdByYoungestAge: Map<AgeBand, Float> = linkedMapOf(
+        AgeBand.LITTLE_ARTISTS to 0.03f,
+        AgeBand.CREATIVE_EXPLORERS to 0.025f,
+        AgeBand.GROWING_ARTISTS to 0.018f,
+        AgeBand.YOUNG_ARTISTS to 0.012f,
+    ),
+    val tinyPreparedRegionAreaFractionByYoungestAge: Map<AgeBand, Float> = linkedMapOf(
+        AgeBand.LITTLE_ARTISTS to 0.01f,
+        AgeBand.CREATIVE_EXPLORERS to 0.0075f,
+        AgeBand.GROWING_ARTISTS to 0.005f,
+        AgeBand.YOUNG_ARTISTS to 0.003f,
     ),
     val maximumStepCountByYoungestAge: Map<AgeBand, Int> = linkedMapOf(
         AgeBand.LITTLE_ARTISTS to 7,
@@ -305,17 +325,77 @@ class ContentQualityAnalyzer(
             )
         }
 
-        val tinyThreshold = youngestAge?.let { policy.tinyTargetThresholdByYoungestAge[it] }
-        if (tinyThreshold != null) {
-            runtime.lesson.drawing.steps.forEach { step ->
-                val expected = step.childTurn.expectedStrokeRefs
-                if (expected.isEmpty()) return@forEach
-                val extent = normalizedExpectedExtent(runtime, expected)
-                if (extent != null && extent < tinyThreshold) {
+        val tinyTargetThreshold = youngestAge?.let { policy.tinyTargetThresholdByYoungestAge[it] }
+        val tinyTeacherThreshold = youngestAge?.let { policy.tinyTeacherDemoThresholdByYoungestAge[it] }
+        runtime.lesson.drawing.steps.forEach { step ->
+            val expected = step.childTurn.expectedStrokeRefs
+            if (tinyTargetThreshold != null && expected.isNotEmpty()) {
+                val extent = normalizedStrokeExtent(runtime, expected)
+                if (extent != null && extent < tinyTargetThreshold) {
                     diagnostics += warning(
                         ContentQualityDiagnosticCode.TINY_EXPECTED_TARGET,
                         entry,
-                        "Step '${step.id}' expected geometry occupies only ${(extent * 100f).formatOneDecimal()}% of the larger canvas axis; review target size for ${youngestAge.name}.",
+                        "Step '${step.id}' expected geometry occupies only ${(extent * 100f).formatOneDecimal()}% of the larger canvas axis; review target size for ${youngestAge?.name}.",
+                    )
+                }
+            }
+
+            val teacherRefs = step.teacher.strokeRefs
+            if (tinyTeacherThreshold != null && teacherRefs.isNotEmpty()) {
+                val extent = normalizedStrokeExtent(runtime, teacherRefs)
+                if (extent != null && extent < tinyTeacherThreshold) {
+                    diagnostics += warning(
+                        ContentQualityDiagnosticCode.TINY_TEACHER_DEMO,
+                        entry,
+                        "Step '${step.id}' teacher demonstration occupies only ${(extent * 100f).formatOneDecimal()}% of the larger canvas axis; review visibility for ${youngestAge?.name}.",
+                    )
+                }
+            }
+
+            if (teacherRefs.size != teacherRefs.distinct().size) {
+                diagnostics += warning(
+                    ContentQualityDiagnosticCode.DUPLICATE_TEACHER_STROKE_REFERENCE,
+                    entry,
+                    "Step '${step.id}' repeats one or more teacher stroke references; review for accidental duplicate playback.",
+                )
+            }
+            if (expected.size != expected.distinct().size) {
+                diagnostics += warning(
+                    ContentQualityDiagnosticCode.DUPLICATE_EXPECTED_STROKE_REFERENCE,
+                    entry,
+                    "Step '${step.id}' repeats one or more expected child stroke references; review for accidental duplicate target geometry.",
+                )
+            }
+            if (step.teacher.playAsGroup && teacherRefs.distinct().size < 2) {
+                diagnostics += warning(
+                    ContentQualityDiagnosticCode.GROUPED_DEMO_SINGLE_STROKE,
+                    entry,
+                    "Step '${step.id}' is marked playAsGroup but contains fewer than two distinct teacher strokes.",
+                )
+            }
+
+            val helpLevels = step.help.map { it.level }.sorted()
+            if (helpLevels.isNotEmpty()) {
+                val expectedLevels = (1..helpLevels.last()).toList()
+                if (helpLevels != expectedLevels) {
+                    diagnostics += warning(
+                        ContentQualityDiagnosticCode.NON_CONTIGUOUS_HELP_LADDER,
+                        entry,
+                        "Step '${step.id}' Help Ladder levels are ${helpLevels.joinToString()} instead of contiguous ${expectedLevels.joinToString()}.",
+                    )
+                }
+            }
+        }
+
+        val tinyRegionThreshold = youngestAge?.let { policy.tinyPreparedRegionAreaFractionByYoungestAge[it] }
+        if (tinyRegionThreshold != null) {
+            runtime.coloringRegionCatalog?.regions.orEmpty().forEach { region ->
+                val areaFraction = normalizedRegionArea(runtime, region)
+                if (areaFraction < tinyRegionThreshold) {
+                    diagnostics += warning(
+                        ContentQualityDiagnosticCode.TINY_PREPARED_REGION,
+                        entry,
+                        "Prepared coloring region '${region.id}' occupies only ${(areaFraction * 100f).formatOneDecimal()}% of canvas area; review tap/fill usability for ${youngestAge?.name}.",
                     )
                 }
             }
@@ -337,12 +417,12 @@ class ContentQualityAnalyzer(
         )
     }
 
-    private fun normalizedExpectedExtent(
+    private fun normalizedStrokeExtent(
         runtime: LessonRuntimePackage,
-        expectedStrokeRefs: List<String>,
+        strokeRefs: List<String>,
     ): Float? {
         val strokesById = runtime.strokeCatalog.strokes.associateBy(AuthoredStroke::id)
-        val points = expectedStrokeRefs
+        val points = strokeRefs
             .distinct()
             .mapNotNull(strokesById::get)
             .flatMap { it.points }
@@ -357,6 +437,23 @@ class ContentQualityAnalyzer(
         val canvasWidth = runtime.lesson.canvas.width.toFloat().coerceAtLeast(1f)
         val canvasHeight = runtime.lesson.canvas.height.toFloat().coerceAtLeast(1f)
         return max(width / canvasWidth, height / canvasHeight)
+    }
+
+    private fun normalizedRegionArea(
+        runtime: LessonRuntimePackage,
+        region: AuthoredColorRegion,
+    ): Float {
+        if (region.points.size < 3) return 0f
+        var twiceArea = 0.0
+        region.points.indices.forEach { index ->
+            val current = region.points[index]
+            val next = region.points[(index + 1) % region.points.size]
+            twiceArea += current.x.toDouble() * next.y.toDouble() - next.x.toDouble() * current.y.toDouble()
+        }
+        val area = abs(twiceArea) / 2.0
+        val canvasArea = runtime.lesson.canvas.width.toDouble().coerceAtLeast(1.0) *
+            runtime.lesson.canvas.height.toDouble().coerceAtLeast(1.0)
+        return (area / canvasArea).toFloat()
     }
 
     private fun youngestAge(ageBands: Set<AgeBand>): AgeBand? =

@@ -29,7 +29,7 @@ class ContentQualityAnalyzerTest {
         AgeBand.entries.forEach { ageBand ->
             assertTrue("No production lessons reported for $ageBand", (first.ageBandCounts[ageBand] ?: 0) > 0)
         }
-        (1..4).forEach { difficulty ->
+        (1..5).forEach { difficulty ->
             assertTrue("Difficulty $difficulty disappeared from production coverage", (first.difficultyCounts[difficulty] ?: 0) > 0)
         }
         TeachingMode.entries.forEach { mode ->
@@ -39,7 +39,10 @@ class ContentQualityAnalyzerTest {
         assertTrue(first.preparedColoringLessonCount > 0)
         assertEquals(first.lessonCount, first.phase5Progress.lessonCount)
         assertEquals(24, first.phase5Progress.lessonTarget)
-        assertFalse(first.phase5Progress.lessonTargetMet)
+        assertTrue(first.phase5Progress.lessonTargetMet)
+        assertTrue(first.phase5Progress.ageBandTargetsMet)
+        assertTrue(first.phase5Progress.difficultyTargetsMet)
+        assertTrue(first.phase5Progress.watchThenDrawTargetMet)
         assertEquals(first, second)
         assertEquals(first.renderText(), second.renderText())
     }

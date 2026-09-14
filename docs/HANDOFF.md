@@ -23,7 +23,7 @@ Android-first children's drawing/art-learning app built as a patient personal ar
 - Draft PR: #77
 - Active branch: `phase5/p5-2-content-production-v2`
 - Latest fully verified product release remains **`0.4.0-content-studio`, versionCode 19**
-- Current P5.2 candidate: **QA2 `0.5.0-curriculum-expansion-p5.2-qa2`, versionCode 21** — exact candidate evidence/physical acceptance pending
+- P5.2 QA2 `0.5.0-curriculum-expansion-p5.2-qa2`, versionCode 21 — **focused physical/developer acceptance PASS; final docs/merge gates pending**
 
 ## Exact accepted 0.4 baseline
 
@@ -57,11 +57,11 @@ Locked target:
 - Help remains child-controlled/non-punitive;
 - culturally specific content requires sourcing/context/review.
 
-## P5.2 — ACTIVE
+## P5.2 — ACCEPTED CANDIDATE / MERGE GATES PENDING
 
 ### Purpose
 
-Scale content production safely before authoring 15 additional lessons. Tooling must consume the real production content model and never become a second lesson runtime.
+Scale content production safely before authoring 15 additional lessons. Tooling consumes the real production content model and does not become a second lesson runtime.
 
 ### Implemented quality/reporting system
 
@@ -72,20 +72,6 @@ Scale content production safely before authoring 15 additional lessons. Tooling 
 - CI verifies report existence/JSON/errorCount and uploads `kids-drawing-p5.2-content-quality-report` for 30 days.
 - Negative tests cover structural-error projection plus suspicious tiny geometry, step count, duplicate refs, grouped-demo misuse, non-monotonic Help ordering and tiny prepared regions.
 - Production structural truth remains `LessonPackageLoader`, `LessonCatalog`, schema and `ColoringRegionValidator`.
-
-### Calibrated accepted baseline
-
-CI #465 / run `34806642996`: GREEN.
-
-Calibrated report artifact `10333610875` proves:
-- 9 release lessons;
-- 0 quality errors;
-- 0 quality warnings;
-- Little 4 / Creative 8 / Growing 7 / Young 2;
-- difficulty 1–4 present, difficulty 5 still future Phase-5 work;
-- Watch Then Draw 6/6 target minimum already present;
-- 3 coloring lessons, 2 prepared-coloring lessons;
-- Phase-5 catalog progress 9/24.
 
 ### Read-only Content Lab
 
@@ -109,30 +95,32 @@ Safety boundary:
 - no mutation API into child artwork/progress/Gallery;
 - local bundled assets only.
 
-Complete implementation baseline including Content Lab passed CI #463. Calibrated analyzer baseline passed CI #465.
+### Candidate history
 
-## P5.2 candidate history
-
-### QA1 — REJECTED BEFORE DISTRIBUTION
-
-- identity `0.5.0-curriculum-expansion-p5.2-qa1`, versionCode 20;
+QA1 was rejected before distribution:
+- `0.5.0-curriculum-expansion-p5.2-qa1`, versionCode 20;
 - frozen head `07025d8cf35569179b1ee1e9443303bd92019093`;
-- CI #471 / run `34807204480` FAILED in `compileDebugAndroidTestKotlin`;
-- QA-freeze edit had accidentally removed Compose UI test dependencies from `app/build.gradle.kts`;
+- CI #471 / run `34807204480` failed at instrumentation-test compilation because the freeze edit removed Compose UI test dependencies;
 - no QA1 APK was distributed or accepted.
 
-### QA2 — CURRENT
-
+QA2 is the accepted focused physical/developer candidate:
 - versionName `0.5.0-curriculum-expansion-p5.2-qa2`;
 - versionCode 21;
-- missing Compose test dependencies restored from last green implementation baseline;
-- dedicated QA2 debug/profile artifact filenames/names configured;
-- QA file: `docs/10-execution/P5_2_QA.md`;
-- exact QA2 candidate commit/CI/artifact IDs/SHA: PENDING final exact-head green run;
-- Content Lab physical/developer matrix: PENDING;
-- normal product smoke: PENDING.
+- executable `2f36834d110cb1076b953f519eee4a8dc6e2e19d`;
+- exact-head CI #477 / run `34808016949` GREEN;
+- debug artifact `10333752707`;
+- profile artifact `10333593024`;
+- content-quality report artifact `10334126516`;
+- profile APK size `16,245,548 bytes`;
+- SHA-256 `725720ae1fbff232cbb56049d77b087d8214f959189269630dbbd9eeb0817cf6`;
+- independent local size/SHA verification matched CI evidence;
+- report remains 9 lessons / 0 errors / 0 warnings;
+- Content Lab focused matrix: **20/20 PASS** by user report on exact QA2 APK;
+- normal product smoke: PASS.
 
-Launch engineering lab after installing QA2:
+QA file: `docs/10-execution/P5_2_QA.md`.
+
+Launch engineering lab on this accepted QA2 if reinspection is ever needed:
 `adb shell am start -n com.navin.kidsdrawing/.ContentLabActivity`
 
 Do not add a child-facing navigation entry merely to make the engineering lab easier to open.
@@ -153,14 +141,12 @@ Do not add a child-facing navigation entry merely to make the engineering lab ea
 
 ## Immediate continuation
 
-1. Complete QA2 status/handoff/roadmap synchronization and freeze one exact head.
-2. Require exact-head CI green including instrumentation compile, P5.2 report + QA2 APK packaging.
-3. Fetch content-report/debug/profile artifact IDs.
-4. Download profile APK, independently verify size/SHA against CI evidence.
-5. Hand exact QA2 APK to user; run `P5_2_QA.md` focused Content Lab matrix + normal product smoke.
-6. Record only checks actually reported.
-7. After acceptance: docs-only evidence commit + exact-head CI → PR #77 ready/squash merge → merged-main CI → close #76.
-8. Continue to P5.3 only after P5.2 is formally closed. Bulk P5.4–P5.6 lesson authoring remains blocked until then.
+1. Run final exact-head acceptance-doc CI after QA/status/handoff/roadmap synchronization.
+2. If green, mark PR #77 ready and squash-merge it.
+3. Verify merged-main Android CI on the squash merge.
+4. Close #76 completed only after merged-main green.
+5. Create P5.3 from verified `main`, lock its execution contract, then implement Companion / Teacher Experience V2.
+6. Bulk P5.4–P5.6 lesson authoring remains blocked until P5.2 is formally closed.
 
 ## Resume protocol
 

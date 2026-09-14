@@ -50,6 +50,42 @@ jobs:
       - name: Unit tests, lint, debug APK, instrumentation APK, and profile APK compile
         run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleProfile
 
+      - name: Verify P5.2 content quality report
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT_DIR="app/build/reports/content-quality"
+          test -s "$REPORT_DIR/catalog-report.txt"
+          test -s "$REPORT_DIR/catalog-report.json"
+          python -m json.tool "$REPORT_DIR/catalog-report.json" > /dev/null
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          report = json.loads(Path("app/build/reports/content-quality/catalog-report.json").read_text())
+          assert report["errorCount"] == 0, report
+          assert report["lessonCount"] >= 1, report
+          print(f"P5.2 content quality: lessons={report['lessonCount']} errors={report['errorCount']} warnings={report['warningCount']}")
+          PY
+          cat "$REPORT_DIR/catalog-report.txt"
+          {
+            echo "## P5.2 Content Quality"
+            echo
+            echo '```text'
+            cat "$REPORT_DIR/catalog-report.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload P5.2 content quality reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: kids-drawing-p5.2-content-quality-report
+          path: |
+            app/build/reports/content-quality/catalog-report.txt
+            app/build/reports/content-quality/catalog-report.json
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Verify milestone APK permission allowlist
         shell: bash
         run: |

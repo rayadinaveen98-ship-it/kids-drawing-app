@@ -21,7 +21,7 @@ enum class ContentQualityDiagnosticCode {
     TINY_TEACHER_DEMO,
     DUPLICATE_TEACHER_STROKE_REFERENCE,
     DUPLICATE_EXPECTED_STROKE_REFERENCE,
-    NON_CONTIGUOUS_HELP_LADDER,
+    NON_MONOTONIC_HELP_LADDER,
     GROUPED_DEMO_SINGLE_STROKE,
     TINY_PREPARED_REGION,
     NO_JOURNEY_MEMBERSHIP,
@@ -174,10 +174,10 @@ data class ContentQualityPolicy(
         AgeBand.YOUNG_ARTISTS to 0.012f,
     ),
     val tinyPreparedRegionAreaFractionByYoungestAge: Map<AgeBand, Float> = linkedMapOf(
-        AgeBand.LITTLE_ARTISTS to 0.01f,
-        AgeBand.CREATIVE_EXPLORERS to 0.0075f,
-        AgeBand.GROWING_ARTISTS to 0.005f,
-        AgeBand.YOUNG_ARTISTS to 0.003f,
+        AgeBand.LITTLE_ARTISTS to 0.003f,
+        AgeBand.CREATIVE_EXPLORERS to 0.0025f,
+        AgeBand.GROWING_ARTISTS to 0.002f,
+        AgeBand.YOUNG_ARTISTS to 0.0015f,
     ),
     val maximumStepCountByYoungestAge: Map<AgeBand, Int> = linkedMapOf(
         AgeBand.LITTLE_ARTISTS to 7,
@@ -374,16 +374,13 @@ class ContentQualityAnalyzer(
                 )
             }
 
-            val helpLevels = step.help.map { it.level }.sorted()
-            if (helpLevels.isNotEmpty()) {
-                val expectedLevels = (1..helpLevels.last()).toList()
-                if (helpLevels != expectedLevels) {
-                    diagnostics += warning(
-                        ContentQualityDiagnosticCode.NON_CONTIGUOUS_HELP_LADDER,
-                        entry,
-                        "Step '${step.id}' Help Ladder levels are ${helpLevels.joinToString()} instead of contiguous ${expectedLevels.joinToString()}.",
-                    )
-                }
+            val helpLevels = step.help.map { it.level }
+            if (helpLevels != helpLevels.sorted()) {
+                diagnostics += warning(
+                    ContentQualityDiagnosticCode.NON_MONOTONIC_HELP_LADDER,
+                    entry,
+                    "Step '${step.id}' Help Ladder levels are authored out of ascending order: ${helpLevels.joinToString()}.",
+                )
             }
         }
 

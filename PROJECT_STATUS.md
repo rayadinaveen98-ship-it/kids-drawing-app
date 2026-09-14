@@ -5,102 +5,52 @@
 **Latest fully verified product release:** `0.4.0-content-studio`, versionCode 19  
 **Current phase:** Phase 5 — Curriculum & Teaching Experience Expansion / `0.5.0-curriculum-expansion` — **ACTIVE**  
 **Parent epic:** #73  
-**Current slice:** P5.5 — Curriculum Expansion Set D #82  
-**PR:** #83  
-**Active branch:** `phase5/p5-5-curriculum-set-d`  
-**Current P5.5 state:** **ACCEPTED — FINAL CLOSURE IN PROGRESS**  
-**Current production catalog:** **20 release lessons**  
-**QA candidate:** `0.5.0-curriculum-expansion-p5.5-qa1`, versionCode 24  
-**Exact QA app/content commit:** `3a538b5f7c2db118a0006176b7093b0e22961f9b`  
+**Current slice:** P5.6 — Curriculum Expansion Set E #84  
+**Active branch:** `phase5/p5-6-curriculum-set-e`  
+**PR:** #85  
+**Current P5.6 state:** **24 LESSONS COMPLETE; CONTENT LAB 16/16 PASS; QA1 v25 CI GREEN; PHYSICAL 36/36 PASS; FINAL ACCEPTANCE CI PENDING**  
+**QA1 candidate:** `0.5.0-curriculum-expansion-p5.6-qa1`, versionCode **25**  
+**Exact QA1 binary head:** `9a8a0424d5f9b0bcb17b28bc4e64c0a8714c6ecb`  
 **Last updated:** 2026-09-14
 
 Git is authoritative when chat memory and repository state disagree.
 
-## Completed milestones
+## P5.6 verified state
 
-- Phase 0 — COMPLETE.
-- Phase 1 — Drawing Engine 0.1 — COMPLETE/frozen.
-- Phase 2 — Lesson Engine 0.2 — COMPLETE/frozen; physical 32/32 PASS.
-- Phase 3 — First Vertical Slice 0.3 — COMPLETE; physical 41/41 PASS.
-- Phase 4 — Content & Studio Expansion 0.4 — COMPLETE/frozen.
-- P5.1 #74 — COMPLETE; PR #75 merged; merged-main CI #452 GREEN.
-- P5.2 #76 — COMPLETE; PR #77 merged; merged-main CI #482 GREEN.
-- P5.3 #78 — COMPLETE; PR #79 merged; merged-main CI #498 GREEN; physical 20/20 PASS.
-- P5.4 #80 — COMPLETE; PR #81 merged at `00c618cb9b16444f77e534431b3ca417e85a3e10`; Content Lab 15/15 PASS; physical 30/30 PASS; merged-main CI #514 GREEN.
+- Set E: Face & Expressions, Simple Body & Pose, Create Your Character, One-Point Room.
+- Catalog: **24 production lessons**.
+- Quality: **24 lessons / 0 errors / exactly 6 reviewed standalone warnings**.
+- Age coverage: Little 8 / Creative 18 / Growing 17 / Young 10.
+- Difficulty: D1 5 / D2 9 / D3 6 / D4 3 / D5 1.
+- Character Creator: Face → Body/Pose → Create Character.
+- One-Point Room is standalone with Sailboat Scene prerequisite; vanishing point guide-only.
+- Content Lab: **16/16 PASS**.
+- QA1 CI #538 / run `34846235868`: **GREEN**.
+- Physical acceptance: **36/36 PASS** reported by tester on 2026-09-14.
+- Device/API: **not provided; not inferred**.
 
-No 0.5 release/tag is claimed until P5.8 finishes the whole Phase-5 milestone.
+## Immutable accepted QA1 profile
 
-## P5.5 — Set D accepted
+Artifact `10348300909`  
+`Kids_Drawing_0.5.0_Curriculum_Expansion_P5.6_QA1-profile.apk`  
+Size **16,311,900 bytes**  
+SHA-256 `0abb9da43315d118c67b9adf004753aed622dda992c95bce26eddc3727bf04b5`
 
-Delivered:
-1. Snail Garden
-2. Elephant From Shapes
-3. Simple Car
-4. Sailboat Scene
-5. Planet With Rings
-6. Friendly Alien
+## Immediate gate
 
-Catalog: **14 → 20 lessons**.
-
-Coverage:
-- Little 8
-- Creative 18
-- Growing 14
-- Young 6
-
-Journeys:
-- `journey.animal_artist`: Little Fish → Snail Garden → Cute Cat → Friendly Owl → Elephant From Shapes → Fox Portrait.
-- `journey.space_artist`: Planet With Rings → Simple Rocket → Friendly Alien → Design Your Spaceship.
-
-Simple Car and Sailboat Scene remain intentionally standalone.
-
-### Accepted QA1 evidence
-
-- exact app/content commit `3a538b5f7c2db118a0006176b7093b0e22961f9b`;
-- Android CI #525 GREEN;
-- evidence/checklist CI #526 GREEN;
-- content quality **20 lessons / 0 errors / exactly 5 reviewed warnings**;
-- profile artifact `10344519403`;
-- profile APK **16,293,898 bytes**;
-- profile SHA-256 `9e23562b5bea4f2b406a48a1b64e339887f91926ad8789deaa160bbc93301629`;
-- Content Lab **18/18 PASS**;
-- exact-profile physical acceptance **36/36 PASS**;
-- device/API not provided and not inferred;
-- no binary/content-changing defect reported.
-
-Acceptance records:
-- `docs/10-execution/P5_5_QA.md`
-- `docs/10-execution/P5_5_FOCUSED_ACCEPTANCE_CHECKLIST.md`
-
-## Remaining P5.5 closure
-
-1. final exact-head acceptance-document CI GREEN;
-2. mark PR #83 ready;
-3. squash-merge verified head;
-4. merged-main Android CI GREEN;
-5. close #82 completed;
-6. start P5.6 only from verified post-P5.5 `main`.
-
-## Next roadmap slice after closure
-
-P5.6 — Curriculum Expansion Set E:
-- Face & Expressions
-- Simple Body & Pose
-- Create Your Character
-- One-Point Room
-
-Expected catalog growth: **20 → 24 lessons**. P5.6 is responsible for completing the older-child/Young Artist technique floor before P5.7 adaptive teaching.
+1. acceptance-evidence exact-head CI must be GREEN;
+2. mark PR #85 ready;
+3. squash merge using exact verified head;
+4. merged-main CI GREEN;
+5. close #84 completed and freeze P5.6;
+6. start P5.7 from verified post-P5.6 main.
 
 ## Frozen architecture invariants
 
-- UI never owns artwork/history/lesson truth.
-- Lessons remain structured content; no lesson-ID-specific tutorial code.
-- `LessonSessionState` remains teaching-state truth.
-- Companion remains read-only relative to Help/completion/artwork/persistence.
-- teacher/trace/help/reference overlays never become child artwork.
-- AndroidX Ink stays behind owned drawing infrastructure.
-- coloring/fill remains below protected line art.
-- Free Draw remains lesson-independent.
-- core remains offline-first, account-free, ad-free and free of behavioral analytics.
+- generic structured lessons only;
+- `LessonSessionState` remains teaching-state truth;
+- Companion remains read-only relative to Help/completion/artwork/persistence;
+- teacher/help/reference overlays never enter child artwork;
+- AndroidX Ink stays behind owned drawing infrastructure;
+- offline/account-free/ad-free core;
 - no similarity scoring, grades, rank, stars/XP, permanent ability labels, punitive streaks or cloud child profiling.
-- P5.7 owns future local adaptive teaching.

@@ -16,17 +16,31 @@ class ProductionContentQualityGateTest {
         assertTrue("Production catalog diagnostics: ${snapshot.diagnostics}", snapshot.diagnostics.isEmpty())
         assertEquals("Content quality errors: ${report.diagnostics}", 0, report.errorCount)
         val warnings = report.diagnostics.filter { it.severity == ContentQualitySeverity.WARNING }
-        val reviewed = setOf("rainbow-weather", "tree-through-seasons", "ice-cream-shop", "simple-car", "sailboat-scene")
-        assertEquals("Unexpected content quality warnings: $warnings", 5, warnings.size)
+        val reviewed = setOf("rainbow-weather", "tree-through-seasons", "ice-cream-shop", "simple-car", "sailboat-scene", "one-point-room")
+        assertEquals("Unexpected content quality warnings: $warnings", 6, warnings.size)
         assertEquals(reviewed, warnings.mapNotNull { it.lessonId }.toSet())
         assertTrue("Only reviewed standalone-lesson warnings are allowed: $warnings", warnings.all { it.code == ContentQualityDiagnosticCode.NO_JOURNEY_MEMBERSHIP })
-        assertEquals(20, report.lessonCount)
+        assertEquals(24, report.lessonCount)
+        assertEquals(8, report.ageBandCounts.getValue(com.navin.kidsdrawing.lesson.model.AgeBand.LITTLE_ARTISTS))
+        assertEquals(18, report.ageBandCounts.getValue(com.navin.kidsdrawing.lesson.model.AgeBand.CREATIVE_EXPLORERS))
+        assertEquals(17, report.ageBandCounts.getValue(com.navin.kidsdrawing.lesson.model.AgeBand.GROWING_ARTISTS))
+        assertEquals(10, report.ageBandCounts.getValue(com.navin.kidsdrawing.lesson.model.AgeBand.YOUNG_ARTISTS))
+        assertEquals(5, report.difficultyCounts.getValue(1))
+        assertEquals(9, report.difficultyCounts.getValue(2))
+        assertEquals(6, report.difficultyCounts.getValue(3))
+        assertEquals(3, report.difficultyCounts.getValue(4))
+        assertEquals(1, report.difficultyCounts.getValue(5))
+        assertTrue(report.phase5Progress.lessonTargetMet)
+        assertTrue(report.phase5Progress.ageBandTargetsMet)
+        assertTrue(report.phase5Progress.difficultyTargetsMet)
+        assertTrue(report.phase5Progress.watchThenDrawTargetMet)
+
         val text = report.renderText()
         val json = report.renderJson()
         val parsed = Json.parseToJsonElement(json).jsonObject
-        assertEquals(20, parsed.getValue("lessonCount").jsonPrimitive.content.toInt())
+        assertEquals(24, parsed.getValue("lessonCount").jsonPrimitive.content.toInt())
         assertEquals(0, parsed.getValue("errorCount").jsonPrimitive.content.toInt())
-        assertEquals(5, parsed.getValue("warningCount").jsonPrimitive.content.toInt())
+        assertEquals(6, parsed.getValue("warningCount").jsonPrimitive.content.toInt())
         val outputDir = File("build/reports/content-quality").apply { mkdirs() }
         val textFile = File(outputDir, "catalog-report.txt")
         val jsonFile = File(outputDir, "catalog-report.json")
@@ -36,6 +50,7 @@ class ProductionContentQualityGateTest {
         assertTrue(jsonFile.isFile && jsonFile.length() > 0L)
         println(text)
     }
+
     private class FileAssetCatalogSource(private val root: File) : LessonCatalogSource {
         override fun readText(path: String): String? = File(root, path).takeIf(File::isFile)?.readText()
         override fun list(path: String): List<String>? = File(root, path).list()?.toList()

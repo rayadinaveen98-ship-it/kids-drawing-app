@@ -4,8 +4,8 @@
 **Issue:** #76  
 **PR:** #77  
 **Branch:** `phase5/p5-2-content-production-v2`  
-**QA target:** `0.5.0-curriculum-expansion-p5.2-qa1` / versionCode 20  
-**Status:** QA1 freeze in progress; physical/developer inspection pending
+**QA target:** `0.5.0-curriculum-expansion-p5.2-qa2` / versionCode 21  
+**Status:** QA2 freeze in progress; physical/developer inspection pending
 
 ## 1. Scope
 
@@ -13,7 +13,7 @@ P5.2 proves that content can scale beyond the Phase-4 representative catalog wit
 
 The quality system is read-only over the production `LessonCatalog`, `LessonPackageLoader`, validated runtime models and prepared-coloring geometry. The child-facing product remains the normal launcher. `ContentLabActivity` is a separate engineering inspection activity and has no child document/session persistence dependency.
 
-## 2. Automated evidence already proven before QA1 freeze
+## 2. Automated evidence already proven before QA freeze
 
 Implementation baseline `1b63530dd3e466311921cebc5fa7c0497c57cb93` passed Android CI #465 / run `34806642996`.
 
@@ -68,23 +68,37 @@ The following are covered by deterministic JVM/production-catalog tests:
 
 Production `LessonPackageLoader` / `LessonCatalog` remain authoritative for structural failures such as malformed JSON/schema, unsafe asset paths, invalid IDs, duplicate IDs, missing stroke/guide references, out-of-canvas/invalid stroke geometry, unsupported content API, invalid Trace support, missing localization/assets, duplicate release lesson IDs, missing prerequisite lesson references and mathematically invalid prepared regions.
 
-## 4. QA1 immutable artifact evidence
+## 4. Candidate history and immutable artifact evidence
 
-Fill only after the exact frozen QA1 head is green.
+### QA1 — rejected before distribution
 
+QA1 identity was `0.5.0-curriculum-expansion-p5.2-qa1`, versionCode 20, frozen at `07025d8cf35569179b1ee1e9443303bd92019093`.
+
+Android CI #471 / run `34807204480` failed in `compileDebugAndroidTestKotlin`. The QA-freeze edit to `app/build.gradle.kts` had accidentally removed the existing Compose UI test dependencies:
+- `androidTestImplementation(libs.compose.ui.test.junit4)`
+- `debugImplementation(libs.compose.ui.test.manifest)`
+
+Production/debug/profile Kotlin had compiled before the instrumentation-test compile failure. No QA1 APK was distributed or accepted. The dependency tail was restored from the last green implementation baseline, and the next candidate uses a new versionCode as required.
+
+### QA2 — current candidate
+
+Fill only after the exact frozen QA2 head is green.
+
+- versionName: `0.5.0-curriculum-expansion-p5.2-qa2`
+- versionCode: 21
 - executable commit: PENDING
 - exact-head Android CI: PENDING
 - debug artifact ID: PENDING
 - profile artifact ID: PENDING
 - content-quality report artifact ID: PENDING
-- profile APK filename: `Kids_Drawing_0.5.0_Curriculum_Expansion_P5.2_QA1-profile.apk`
+- profile APK filename: `Kids_Drawing_0.5.0_Curriculum_Expansion_P5.2_QA2-profile.apk`
 - profile APK size: PENDING
 - profile APK SHA-256: PENDING
 - independent local size/hash verification: PENDING
 
 ## 5. Physical / developer Content Lab matrix
 
-Do not mark a row PASS unless it was actually exercised on the QA1 APK.
+Do not mark a row PASS unless it was actually exercised on the QA2 APK.
 
 | # | Scenario | Status |
 |---:|---|---|
@@ -124,8 +138,8 @@ Status: PENDING physical smoke.
 ## 7. Exit rule
 
 P5.2 is complete only when:
-1. exact frozen QA1 CI is green;
-2. QA1 APK/report artifacts have reproducible IDs, size and SHA evidence;
+1. exact frozen QA2 CI is green;
+2. QA2 APK/report artifacts have reproducible IDs, size and SHA evidence;
 3. focused Content Lab device matrix is accepted;
 4. normal product smoke is accepted;
 5. QA/status/handoff docs record only evidence actually obtained;

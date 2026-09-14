@@ -9,7 +9,7 @@
 **Current slice:** P5.7 — Local Adaptive Teaching #86  
 **Active branch:** `phase5/p5-7-local-adaptive-teaching`  
 **Draft PR:** #87  
-**Current P5.7 state:** **BATCH A + B VERIFIED GREEN; BATCH C CHILD-CONTROLLED ADAPTIVE HELP IMPLEMENTED; BATCH-C CI PENDING**  
+**Current P5.7 state:** **BATCH A/B/C + CROSS-AGE PRE-QA VERIFIED GREEN; QA1 VERSIONCODE 26 FROZEN; EXACT-HEAD CI / PHYSICAL ACCEPTANCE PENDING**  
 **Current production catalog:** **24 release lessons**  
 **Verified starting main:** `91bc7584994224852d3d44749e78749d39ff954b`  
 **Last updated:** 2026-09-14
@@ -51,32 +51,48 @@ Git is authoritative when chat memory and repository state disagree.
 - Android CI #558: **GREEN**.
 
 Adaptive primary-reason completion:
-- real branch head `291587a767cd5eab99891d05feb711558af5e64d` before Batch C;
+- branch head `291587a767cd5eab99891d05feb711558af5e64d` before Batch C;
 - adaptive fresh primary carries its explainable reason into the Home hero only;
 - browse cards remain baseline/generic and resume progress copy still wins;
 - Android CI #560 / run `34859897678`: **GREEN**.
 
 ## Batch C — child-controlled adaptive Help
 
-Implemented for the next exact-head gate:
-- pure `AdaptiveHelpSuggestionPolicy` runs only after a child Help request;
+- implementation commit `803286d95191c5a955b0ad5f82d09b993363400a`;
+- adaptive Help runs only after explicit child Help action;
 - choices are limited to the next authored Help entry or already-authored Replay;
 - missing/corrupt/incompatible adaptive state preserves original `RequestHelp` order;
-- Little Artist keeps authored Help order rather than adaptive replay substitution;
-- bounded prior Help-kind/choice summaries may occasionally suggest Replay for older bands;
-- replay choice is itself counted so the policy returns to authored Help instead of looping;
-- no Trace can be invented; it is reachable only when the current step authors it;
-- `ProductAdaptiveHelpCoordinator` dispatches existing Lesson Engine commands and records only accepted actions;
-- Help persistence failure cannot turn an accepted lesson command into failure;
-- existing Companion presentation remains read-only and reacts to the resulting Lesson Engine state;
-- Help button remains the explicit child initiation point.
+- Little Artist keeps authored Help order;
+- bounded older-band history may choose authored Replay without replay loops;
+- Trace cannot be invented;
+- Lesson Engine remains teaching-state authority and Companion remains read-only;
+- Android CI #561 / run `34861064836`: **GREEN**.
+
+## Cross-age pre-QA gate
+
+- test checkpoint `c828d4bf801ddaf037b9b5b2b102588d7a0c6be8`;
+- deterministic fixtures cover all four age bands and non-judgmental reason copy;
+- Android CI #562 / run `34861549191`: **GREEN**.
+
+## QA1 freeze
+
+The contract now permits the first distributed P5.7 candidate:
+
+- versionName `0.5.0-curriculum-expansion-p5.7-qa1`;
+- versionCode **26**;
+- P5.7-specific CI debug/profile artifact packaging;
+- exact release-like profile APK is the only binary eligible for physical acceptance;
+- `docs/10-execution/P5_7_QA.md` owns the exact evidence and focused physical checklist.
+
+Any binary/content-changing defect after this freeze requires versionCode **>26** and new evidence.
 
 ## Immediate gate
 
-1. Batch-C exact-head Android CI must be GREEN;
-2. after Batch C green, run focused deterministic/offline/privacy/adaptive-policy fixtures across all four age bands;
-3. only then freeze `0.5.0-curriculum-expansion-p5.7-qa1`, versionCode **26**;
-4. exact APK evidence + physical acceptance follow before PR #87 can become ready.
+1. QA1 versionCode 26 exact-head Android CI must be GREEN;
+2. capture exact debug/profile artifact IDs, sizes and SHA256 values from that run;
+3. distribute the exact profile APK for physical acceptance;
+4. do not mark acceptance until the tester reports results for that exact binary;
+5. after physical PASS, commit acceptance evidence, require acceptance-head CI GREEN, ready PR #87, squash merge, then require merged-main CI GREEN before closing #86.
 
 ## Frozen architecture invariants
 

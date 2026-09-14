@@ -9,7 +9,7 @@
 **Current slice:** P5.7 — Local Adaptive Teaching #86  
 **Active branch:** `phase5/p5-7-local-adaptive-teaching`  
 **Draft PR:** #87  
-**Current P5.7 state:** **EXECUTION CONTRACT + BATCH-A ADAPTIVE STATE FOUNDATION IMPLEMENTED; BATCH-A CI PENDING**  
+**Current P5.7 state:** **BATCH A VERIFIED GREEN; BATCH B IMPLEMENTED; ADAPTIVE PRIMARY REASON PATCH READY FOR CI**  
 **Current production catalog:** **24 release lessons**  
 **Verified starting main:** `91bc7584994224852d3d44749e78749d39ff954b`  
 **Last updated:** 2026-09-14
@@ -51,14 +51,38 @@ Implemented under `product/adaptive`:
 - deterministic reset path for profile replacement;
 - codec/privacy tests proving no artwork/stroke/score/ability/device/cloud payload shape.
 
-No Home recommendation behavior or Help presentation behavior changes in Batch A.
+Additional foundation safety fix:
+- incompatible future-format primary state never falls back to and overwrites an older backup;
+- fix commit `95ac76dac95f663484cfc357c5673bd7b8ab424d`;
+- Android CI #557: **GREEN**.
+
+## P5.7 Batch B
+
+Adaptive fresh-recommendation implementation commit: `76f6b64f540e579f94af4265cc8084638a7055d2`.
+
+Implemented:
+- prerequisite-safe adaptive fresh-primary eligibility;
+- exact-age fresh-first pool with safe fresh fallback before repeats;
+- deterministic journey continuation / underexposed-skill / interest / mode / difficulty / repeat ordering;
+- successful Gallery lesson completion emits bounded `LessonCompleted` advisory events;
+- adaptive persistence failure cannot fail Gallery completion;
+- browse/category/journey projections remain baseline/full-catalog;
+- resume precedence remains coloring → drawing → fresh;
+- Android CI #558: **GREEN**.
+
+Adaptive reason presentation patch:
+- commit object `b2ed60477c3fb02200988255d2aac341e2a5afa3`;
+- primary fresh recommendation carries the adaptive explanation copy;
+- browse cards remain baseline/generic;
+- resume copy still outranks adaptive copy;
+- exact-head CI required before Batch C.
 
 ## Immediate gate
 
-1. Batch-A exact-head Android CI must be GREEN.
-2. Only after Batch A is green: implement Batch B progression-aware fresh recommendations.
-3. Batch C child-controlled adaptive Help follows only after Batch B exact-head CI is GREEN.
-4. versionCode **26** is reserved for the first P5.7 distributed QA freeze and is not used for intermediate batches.
+1. move PR #87 to adaptive-reason patch head and require exact-head Android CI GREEN;
+2. only then begin Batch C child-controlled adaptive Help;
+3. Batch C must attach to genuine child `RequestHelp` flow and may only suggest existing authored Help/replay options;
+4. versionCode **26** remains reserved for the first P5.7 distributed QA freeze.
 
 ## Frozen architecture invariants
 

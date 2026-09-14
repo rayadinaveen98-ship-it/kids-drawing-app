@@ -1,6 +1,7 @@
 package com.navin.kidsdrawing.lesson.content
 
 import com.navin.kidsdrawing.lesson.model.AuthoredStroke
+import com.navin.kidsdrawing.lesson.model.ChildCompletionPolicy
 import com.navin.kidsdrawing.lesson.model.ColoringRegionCatalogSource
 import com.navin.kidsdrawing.lesson.model.HelpKind
 import com.navin.kidsdrawing.lesson.model.LessonRuntimePackage
@@ -389,14 +390,18 @@ object LessonPackageValidator {
             }
 
             if (TeachingMode.TRACE_AND_LEARN in lesson.supportedModes) {
+                val isIntentionalOpenAuthorship =
+                    step.childTurn.completionPolicy == ChildCompletionPolicy.MANUAL_DONE &&
+                        step.childTurn.allowSkip &&
+                        step.childTurn.expectedStrokeRefs.isEmpty()
                 val hasTraceHelp = step.help.any { it.kind == HelpKind.TRACE_PATH && it.guideRefs.isNotEmpty() }
                 val hasExpectedTrace = step.childTurn.expectedStrokeRefs.isNotEmpty()
-                if (!hasTraceHelp && !hasExpectedTrace) {
+                if (!isIntentionalOpenAuthorship && !hasTraceHelp && !hasExpectedTrace) {
                     add(
                         LessonDiagnostic(
                             LessonDiagnosticCode.INVALID_TRACE_SUPPORT,
                             base,
-                            "Trace & Learn requires an authored trace_path guide or expectedStrokeRefs for every drawing step.",
+                            "Trace & Learn requires an authored trace source for structured steps; intentional skippable open-authorship steps may omit trace geometry.",
                         ),
                     )
                 }

@@ -8,40 +8,33 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/**
- * CI-facing baseline gate over the real bundled release catalog.
- *
- * The files written here are evidence only. Product/runtime truth remains owned by LessonCatalog and
- * LessonPackageLoader; this test merely persists the deterministic analyzer projection for CI review.
- */
 class ProductionContentQualityGateTest {
     @Test
     fun bundledReleaseCatalogPassesAndEmitsDeterministicReports() {
         val snapshot = LessonCatalog(FileAssetCatalogSource(File("src/main/assets"))).load()
         val report = ContentQualityAnalyzer().analyze(snapshot)
-
         assertTrue("Production catalog diagnostics: ${snapshot.diagnostics}", snapshot.diagnostics.isEmpty())
         assertEquals("Content quality errors: ${report.diagnostics}", 0, report.errorCount)
-        assertEquals(9, report.lessonCount)
-
+        val warnings = report.diagnostics.filter { it.severity == ContentQualitySeverity.WARNING }
+        assertEquals("Unexpected content quality warnings: $warnings", 3, warnings.size)
+        assertEquals(setOf("rainbow-weather", "tree-through-seasons", "ice-cream-shop"), warnings.mapNotNull { it.lessonId }.toSet())
+        assertTrue("Only reviewed P5.4 standalone-lesson warnings are allowed: $warnings", warnings.all { it.code == ContentQualityDiagnosticCode.NO_JOURNEY_MEMBERSHIP })
+        assertEquals(14, report.lessonCount)
         val text = report.renderText()
         val json = report.renderJson()
         val parsed = Json.parseToJsonElement(json).jsonObject
-        assertEquals(9, parsed.getValue("lessonCount").jsonPrimitive.content.toInt())
+        assertEquals(14, parsed.getValue("lessonCount").jsonPrimitive.content.toInt())
         assertEquals(0, parsed.getValue("errorCount").jsonPrimitive.content.toInt())
-
+        assertEquals(3, parsed.getValue("warningCount").jsonPrimitive.content.toInt())
         val outputDir = File("build/reports/content-quality").apply { mkdirs() }
         val textFile = File(outputDir, "catalog-report.txt")
         val jsonFile = File(outputDir, "catalog-report.json")
         textFile.writeText(text + "\n")
         jsonFile.writeText(json + "\n")
-
         assertTrue(textFile.isFile && textFile.length() > 0L)
         assertTrue(jsonFile.isFile && jsonFile.length() > 0L)
-
         println(text)
     }
-
     private class FileAssetCatalogSource(private val root: File) : LessonCatalogSource {
         override fun readText(path: String): String? = File(root, path).takeIf(File::isFile)?.readText()
         override fun list(path: String): List<String>? = File(root, path).list()?.toList()

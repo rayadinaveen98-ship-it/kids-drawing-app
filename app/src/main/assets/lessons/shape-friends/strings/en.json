@@ -1,0 +1,19 @@
+{
+  "lesson.shape_friends.title":"Shape Friends",
+  "lesson.shape_friends.summary":"Practice a circle, square and triangle, combine them into a simple friend, then choose your own details.",
+  "lesson.shape_friends.step.circle":"Start with a roomy circle. Travel all the way around until your line meets where it began.",
+  "lesson.shape_friends.help.circle":"Go slowly around the curve. Your circle can be a little wobbly and still be yours.",
+  "lesson.shape_friends.complete.circle":"Your circle came all the way around.",
+  "lesson.shape_friends.step.square":"Next, draw a big square. Make four sides and turn at each corner.",
+  "lesson.shape_friends.help.square":"Look for the next corner before you change direction.",
+  "lesson.shape_friends.complete.square":"Four sides made one closed shape.",
+  "lesson.shape_friends.step.triangle":"Now make a triangle with three long sides that meet.",
+  "lesson.shape_friends.help.triangle":"Start at the top, travel to one bottom corner, across to the other, then back home.",
+  "lesson.shape_friends.complete.triangle":"Three sides joined into a triangle.",
+  "lesson.shape_friends.step.build_friend":"Let’s combine shapes: a circle for the head, a square body underneath, and a triangle hat on top.",
+  "lesson.shape_friends.help.build_friend":"Notice where the shapes sit: head above body, hat above head. They do not need to touch exactly like mine.",
+  "lesson.shape_friends.complete.build_friend":"You combined simple shapes into a character.",
+  "lesson.shape_friends.step.make_friend_yours":"Eyes, smiles, arms and hat details are just ideas. Add any details you want—or invent different ones.",
+  "lesson.shape_friends.help.make_friend_yours":"Ask what your friend likes, wears or carries. One small detail can give them a personality.",
+  "lesson.shape_friends.complete.drawing":"Your shapes became a friend, and your choices made the character yours."
+}

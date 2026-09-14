@@ -11,9 +11,9 @@ Structured lessons, all teaching modes, Help Ladder and recovery proven; physica
 Production onboarding → lesson → coloring → Gallery journey physically passed 41/41.
 
 ## Phase 4 — Content & Studio Expansion 0.4 — COMPLETE
-`0.4.0-content-studio`, versionCode 19 remains the latest fully released milestone.
+`0.4.0-content-studio`, versionCode 19 remains the latest fully released milestone until Phase 5 closes.
 
-## Phase 5 — Curriculum & Teaching Experience Expansion 0.5 — ACTIVE
+## Phase 5 — Curriculum & Teaching Experience Expansion 0.5 — ACTIVE / FINAL SLICE
 
 **Target:** `0.5.0-curriculum-expansion`  
 **Parent epic:** #73  
@@ -35,61 +35,53 @@ Catalog 14→20; Content Lab 18/18; physical 36/36; merged-main CI #528 GREEN.
 ### P5.6 — Curriculum Expansion Set E — COMPLETE / FROZEN
 Catalog 20→24; Content Lab 16/16; physical 36/36; merged-main CI #552 GREEN.
 
-### P5.7 — Local Adaptive Teaching — PHYSICALLY ACCEPTED / MERGE CLOSURE ACTIVE
+### P5.7 — Local Adaptive Teaching — COMPLETE / FROZEN
 
-Issue #86. PR #87.
-
-Delivered:
+- issue #86 closed completed;
+- PR #87 squash-merged at `e4fb0ddd2053f6583b7c1457ee65e034d43707a8`;
+- merged-main Android CI #571 / run `34869966116` GREEN;
+- QA1 `0.5.0-curriculum-expansion-p5.7-qa1`, versionCode 26;
+- physical acceptance 45/45 PASS;
 - local bounded/versioned adaptive state;
-- deterministic/idempotent reducer and corruption-safe store;
-- prerequisite-safe progression-aware fresh recommendations;
-- explainable primary reason copy;
+- deterministic prerequisite-safe explainable fresh recommendations;
 - coloring resume → drawing resume → fresh precedence preserved;
-- browse/category/journey discovery preserved;
 - child-controlled adaptive Help over authored Help/Replay only;
-- no invented Trace, automatic Help, ability labels, scores/ranks or network dependency;
-- deterministic cross-age pre-QA gate across all four age bands.
+- no invented Trace, automatic Help, ability labels, scores/ranks or network dependency.
 
-Accepted QA1:
-- `0.5.0-curriculum-expansion-p5.7-qa1`;
-- versionCode **26**;
-- binary commit `e258632e83e83a39ac649855ea19592c2f5003ae`;
-- Android CI #563 / run `34866700627` **GREEN**;
-- profile artifact `10357367072`;
-- profile SHA256 `126b0c2d742a4c22b82239ded0502baf5119cf35a89883391ac68239c37b14d0`;
-- physical acceptance **45/45 PASS** on 2026-09-14;
-- tester device/API not provided;
-- no reported defects.
+### P5.8 — Cross-age Curriculum QA + 0.5 Release — ACTIVE
 
-Remaining P5.7 gates:
-1. acceptance-doc exact-head CI GREEN;
-2. mark PR #87 ready;
-3. squash merge;
-4. merged-main CI GREEN;
-5. close #86 completed.
+Issue #88. Branch `phase5/p5-8-final-release`.
 
-### P5.8 — Cross-age Curriculum QA + 0.5 Release — NEXT
-
-P5.8 is the final Phase-5 release gate. It must validate the complete integrated product, not add a parallel lesson system.
+P5.8 is the final Phase-5 integrated release gate. It validates the complete accepted product rather than adding a new feature system.
 
 Final scope:
 - all **24 lessons**;
 - all four age bands;
 - journeys, prerequisites and discovery;
-- Companion + authored Help Ladder;
-- P5.7 local adaptive recommendations and Help;
+- Draw With Me / Watch Then Draw / authored Trace;
+- Companion + authored Help Ladder + Replay;
+- P5.7 local adaptive recommendations and child-controlled adaptive Help;
 - offline / Airplane Mode;
 - lifecycle, recovery and resume precedence;
 - Gallery, Coloring and Free Draw;
-- content quality **24 / 0 errors / six reviewed warnings** unless a documented content change deliberately changes that contract;
+- content quality **24 / 0 errors / six reviewed warnings**;
 - permission/network/privacy boundaries;
 - final versionName **`0.5.0-curriculum-expansion`**;
-- new final release versionCode reserved and cut only at the final QA freeze;
-- exact debug/profile/release evidence;
+- final versionCode **27 reserved and cut only at final QA freeze**;
+- exact debug/profile evidence;
 - focused physical acceptance;
-- merge + merged-main CI before Phase 5 closes.
+- acceptance-doc CI + squash merge + merged-main CI before Phase 5 closes.
 
-Completion of P5.8 produces verified **`0.5.0-curriculum-expansion`**.
+Contract-first commit:
+- `0bb87cb845b9ae713a4cefcf46b55a57fdce6148`.
+
+Pre-freeze order:
+1. contract/docs CI GREEN;
+2. integrated cross-age Phase-5 regression gate GREEN;
+3. only then cut final versionCode 27 candidate;
+4. exact artifact evidence + final physical acceptance;
+5. merge + merged-main CI;
+6. mark Phase 5 COMPLETE and make `0.5.0-curriculum-expansion` the latest fully verified milestone.
 
 ## Permanent delivery rule
 

@@ -4,6 +4,7 @@
 Git is authoritative when chat and repository state disagree.
 
 ## Product
+
 Android-first children's drawing/art-learning app built as a patient personal art teacher.
 
 **Product promise:** **Draw together with a teacher who never runs out of patience.**
@@ -14,57 +15,109 @@ Android-first children's drawing/art-learning app built as a patient personal ar
 - Phase 1 / Drawing Engine 0.1 — COMPLETE and frozen
 - Phase 2 / Lesson Engine 0.2 — COMPLETE and frozen
 - Phase 3 / First Vertical Slice 0.3 — COMPLETE
-- Phase 4 / Content & Studio Expansion 0.4 — **COMPLETE**
-- Active branch: `main`
-- Latest verified milestone: **`0.4.0-content-studio`, versionCode 19**
-- Closed parent epic: #57
-- Final release issue: #64 closed
-- Final release PR: #72 squash-merged
+- Phase 4 / Content & Studio Expansion 0.4 — COMPLETE and frozen
+- Phase 5 / Curriculum & Teaching Experience Expansion 0.5 — **PLANNING ACTIVE**
+- Parent epic: #73
+- Current slice: P5.1 Curriculum & Teaching Contract #74
+- Active branch: `phase5/p5-1-curriculum-contract`
+- Latest verified product release remains `0.4.0-content-studio`, versionCode 19
 
-## Exact accepted release binary
+## Exact accepted 0.4 baseline
 
-- versionName `0.4.0-content-studio`
-- versionCode 19
 - physically tested executable `f3843365d39540de00fe08a008883c15abe75599`
-- candidate Android CI #440 / run `34801122118` GREEN
-- acceptance-documentation head `84771ba4a19692953bc79a1cf185c9a5d5c491b5`, CI #445 GREEN
 - final squash merge `9f9a21b7d77b2471e1c4e1a7035ce7ec258f35a4`
-- merged-main Android CI #446 / run `34802235303` GREEN
-- profile artifact `10331363240` / `kids-drawing-0.4.0-content-studio-profile`
-- APK `Kids_Drawing_0.4.0_Content_Studio-profile.apk`
-- size `16,196,353 bytes`
+- final closure `main` head `e8215bedea6f8d55c0ca08ca4015a46062d45769`
+- accepted candidate CI #440 GREEN
+- merged-main CI #446 GREEN
+- closure-doc CI #450 GREEN
+- profile artifact `10331363240`
+- APK size `16,196,353 bytes`
 - SHA-256 `f7a8f9a177d8edc6244796f7c08ff4fd32ad64eeb26e90b7ba00bb68fc9daa59`
-- independent local size/hash verification PASS
-- user final physical/product checklist PASS on 2026-09-14
+- final physical/product checklist PASS
 
-Later release-report/status commits are documentation only. They do not replace the exact physically accepted v19 binary above.
+No Phase-5 work may retroactively change or overclaim this release evidence.
 
-No `v0.4.0-content-studio` tag is claimed because connected repository tooling did not expose tag creation.
+## P5.1 source-of-truth files
 
-## Phase-4 product foundation now proven
+Read:
+- `docs/10-execution/P5_1_CURRICULUM_RESEARCH.md`
+- `docs/10-execution/P5_1_CURRICULUM_CONTRACT.md`
 
-- deterministic bundled lesson catalog and strict package validation;
-- Studio discovery, categories and Art Journeys;
-- deterministic age/interest recommendations and resume routing;
-- nine representative production lessons across ages 4–12 and difficulty 1–4;
-- Trace & Learn, Draw With Me and Watch Then Draw;
-- full authored Help Ladder and grouped demonstrations;
-- cumulative teacher construction overlays isolated from child history;
-- production Free Draw with Pencil/Crayon/Marker/Eraser, palette/size, Undo/Redo/Clear, recovery and Gallery provenance;
-- prepared-region Fill, authored Color With Me progression, Color Myself and legacy freehand coloring;
-- reversible schema-3 fill operations with older-document readability;
-- protected line art;
-- lifecycle/process recovery across lesson, coloring and Free Draw;
-- Gallery reopen/delete/source isolation;
-- core product fully usable in Airplane Mode;
-- final age-band, larger-font, integrity and stability sweep.
+The research uses the repository baseline plus authoritative guidance from NCERT NCF-SE 2023, National Core Arts Standards, NAEYC process/developmentally appropriate art guidance, UNESCO culture/arts education guidance and NEP principles.
 
-## Final physical QA truth
+## Locked Phase-5 direction
 
-Authoritative matrix: `docs/10-execution/P4_7_FINAL_QA.md`.
-Release report: `docs/10-execution/P4_7_RELEASE_REPORT.md`.
+### Milestone target
 
-The final supplied checklist passed. Conditional settings rows for handedness, voice-off and reduced motion are N/A because those product controls are not exposed in 0.4. Deterministic resume-priority and missing/incompatible-content fallback remain backed by automated contracts rather than fabricated failure injection.
+`0.5.0-curriculum-expansion`
+
+### Catalog target
+
+- 24 total production guided lessons for 0.5;
+- 9 existing Phase-4 lessons retained;
+- 15 new lessons;
+- eventual 36-lesson public-V1 target remains later, after the 24-lesson workflow/content quality is proven.
+
+### New lessons
+
+1. Happy Lines
+2. Shape Friends
+3. Snail Garden
+4. Elephant From Shapes
+5. Rainbow Weather
+6. Tree Through Seasons
+7. Ice Cream Shop
+8. Simple Car
+9. Sailboat Scene
+10. Planet With Rings
+11. Friendly Alien
+12. Face & Expressions
+13. Simple Body & Pose
+14. Create Your Character
+15. One-Point Room
+
+### Age progression
+
+- **4–5 / Little Artists:** marks, basic shapes, simple combination, large geometry, optional Trace only where justified, short concrete teacher language.
+- **6–7 / Creative Explorers:** shape fluency, symmetry/spacing, simple overlap, Watch Then Draw, patterns and simple scenes, meaningful variation.
+- **8–9 / Growing Artists:** proportion, contour, overlap/depth, foreground/background, texture/detail, character/scene choices, lightweight reflection.
+- **10–12 / Young Artists:** deliberate proportion, basic perspective, value/shading foundations, face/body/pose, character design, composition, planning/refinement and non-toddler teacher tone.
+
+### Teaching philosophy
+
+- copying is a learning tool, not the curriculum;
+- process and child ownership are first-class;
+- creative authorship increases with age;
+- no similarity scores, grades, leaderboards or permanent ability labels;
+- Help remains child-controlled and never punitive;
+- older lessons prefer conceptual/anchor help over tracing;
+- optional Responding/Connecting prompts are brief and non-graded;
+- culturally specific lessons require explicit sourcing/context/review and are not generic decorative imitation.
+
+### Coverage gates
+
+At 0.5 release:
+- Little Artists: 8+ suitable lessons;
+- Creative Explorers: 14+;
+- Growing Artists: 14+;
+- Young Artists: 10+;
+- at least 3 credible difficulty-4 experiences;
+- at least 1 difficulty-5 lesson (`One-Point Room`);
+- at least 8 meaningful creative-choice lessons;
+- at least 6 Watch Then Draw / observation-memory experiences where pedagogically appropriate.
+
+## Phase-5 slice plan
+
+1. **P5.1 — Curriculum & Teaching Contract** — active.
+2. **P5.2 — Content Production System V2** — next after P5.1 acceptance.
+3. **P5.3 — Companion / Teacher Experience V2**.
+4. **P5.4 — Curriculum Expansion Set C**.
+5. **P5.5 — Curriculum Expansion Set D**.
+6. **P5.6 — Curriculum Expansion Set E**.
+7. **P5.7 — Local Adaptive Teaching**.
+8. **P5.8 — Cross-age curriculum QA + final 0.5 release**.
+
+Do not skip P5.2 and manually author all 15 lessons first. The production/validation workflow must scale before the content catalog does.
 
 ## Frozen architecture constraints
 
@@ -73,27 +126,21 @@ The final supplied checklist passed. Conditional settings rows for handedness, v
 - UI cannot set arbitrary engine/session state;
 - AndroidX Ink stays behind drawing infrastructure adapters;
 - teacher/trace/help/reference overlays never become child artwork;
-- coloring/fill stays structurally below protected line art;
+- coloring/fill remains structurally below protected line art;
 - Free Draw is lesson-independent with explicit Gallery provenance;
 - persistence stores editable operations, not screenshots;
 - core product remains offline-first;
-- no mandatory child account, ads, behavioral analytics, network dependency or sensitive permissions.
+- no mandatory child account, ads, behavioral analytics, network dependency or sensitive permissions;
+- engine changes require a concrete defect + explicit contract/ADR.
 
-## Next-work rule
+## Immediate continuation
 
-There is no active post-Phase-4 build slice yet. Before implementation resumes:
-1. define the next milestone/epic in Git;
-2. lock scope and acceptance criteria;
-3. preserve the verified 0.4 engine/product foundation unless a concrete defect requires change;
-4. continue installable-APK + exact-commit + CI evidence discipline.
-
-Likely future directions already identified:
-- companion expression/voice polish;
-- curriculum expansion toward public V1 24–36 lessons;
-- adaptive local recommendations/help;
-- Parent Zone and parent-controlled export/settings;
-- broader accessibility/device hardening and Beta;
-- eventual V1.0 release gates.
+1. Finish P5.1 roadmap/status/docs on branch.
+2. Open draft P5.1 PR.
+3. Require exact-head Android CI green.
+4. Review and accept P5.1; merge to `main` and verify merged-main CI.
+5. Close #74 only after merge-main is green.
+6. Create/execute P5.2 Content Production System V2 from that verified baseline.
 
 ## Resume protocol
 
@@ -101,8 +148,11 @@ Read in order:
 1. `PROJECT_STATUS.md`
 2. this file
 3. `ROADMAP.md`
-4. `docs/10-execution/P4_7_RELEASE_REPORT.md`
-5. `docs/10-execution/P4_7_FINAL_QA.md`
-6. closed Phase-4 epic #57 and release issue #64 when historical detail is needed.
+4. epic #73
+5. issue #74
+6. `P5_1_CURRICULUM_RESEARCH.md`
+7. `P5_1_CURRICULUM_CONTRACT.md`
+8. `docs/17_TAXONOMY_AND_STARTER_CURRICULUM.md`
+9. `docs/05_CONTENT_ARCHITECTURE.md`
 
 Do not reopen proven foundations merely because a chat changes.

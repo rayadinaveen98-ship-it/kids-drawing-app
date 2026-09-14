@@ -8,48 +8,31 @@ Git is authoritative when chat and repository state disagree.
 - Phase 0–4 — COMPLETE/frozen.
 - Phase 5 / `0.5.0-curriculum-expansion` — ACTIVE.
 - Parent epic: #73.
-- P5.1 #74 — COMPLETE.
-- P5.2 #76 — COMPLETE.
-- P5.3 #78 — COMPLETE; merged-main CI #498 GREEN; physical 20/20 PASS.
-- P5.4 #80 — COMPLETE; merged-main CI #514 GREEN; Content Lab 15/15 + physical 30/30 PASS.
-- P5.5 #82 — COMPLETE; PR #83 squash-merged at `6412e0e6cf346837b26e925cebc89662c27fba2c`; merged-main CI #528 GREEN; Content Lab 18/18 + physical 36/36 PASS.
+- P5.1–P5.5 — COMPLETE.
+- P5.5 verified main baseline: `6412e0e6cf346837b26e925cebc89662c27fba2c`, merged-main CI #528 GREEN.
 - Current slice: **P5.6 Curriculum Expansion Set E #84**.
-- Active branch: `phase5/p5-6-curriculum-set-e`.
-- P5.6 content implementation: **NOT STARTED**.
-- Current catalog: **20 lessons**; P5.6 target: **24**.
+- Branch: `phase5/p5-6-curriculum-set-e`.
+- Draft PR: #85.
+- Current head: `9244e776707826e613a0bec43a22f60edaae3ed0`.
+- P5.6 implementation: **COMPLETE at 24 lessons**.
+- Automated final content gate: **GREEN — CI #534**.
+- Pre-freeze Content Lab: **PENDING 16/16**.
+- P5.6 versionCode 25: **NOT CUT YET**.
 
-## Verified starting baseline
+## P5.6 locked Set E
 
-P5.6 starts only from verified main:
-`6412e0e6cf346837b26e925cebc89662c27fba2c`
+1. Face & Expressions — Growing + Young, D3.
+2. Simple Body & Pose — Growing + Young, D4.
+3. Create Your Character — Growing + Young, D4.
+4. One-Point Room — Young, D5.
 
-Merged-main Android CI #528 / run `34840361689` is GREEN.
-
-P5.5 accepted profile evidence remains:
-- versionCode 24;
-- artifact `10344519403`;
-- APK 16,293,898 bytes;
-- SHA-256 `9e23562b5bea4f2b406a48a1b64e339887f91926ad8789deaa160bbc93301629`.
-
-## P5.6 locked contract
-
-Execution contract: `docs/10-execution/P5_6_EXECUTION_CONTRACT.md`  
-First P5.6 branch commit: `f11f2a6dc857369651ee8a5cb33d95532736bd2b`  
-This commit contains the contract before any Set-E lesson assets.
-
-Locked lessons:
-1. **Face & Expressions** — Growing + Young; D3; face construction, landmarks, expression variation; DWM + WTD; Character Creator entry.
-2. **Simple Body & Pose** — Growing + Young; D4; body construction, proportion, pose, silhouette; DWM + WTD; Character Creator progression.
-3. **Create Your Character** — Growing + Young; D4; synthesized authored character design; no similarity requirement.
-4. **One-Point Room** — Young only; D5; one-point perspective/depth scale/scene composition; standalone advanced technique.
-
-Stable identities:
+Stable IDs:
 - `face-and-expressions@1`
 - `simple-body-and-pose@1`
 - `create-your-character@1`
 - `one-point-room@1`
 
-Character Creator journey:
+Character Creator:
 Face & Expressions → Simple Body & Pose → Create Your Character.
 
 Prerequisites:
@@ -58,67 +41,77 @@ Prerequisites:
 - Character: Body
 - One-Point Room: Sailboat Scene
 
-One-Point Room is intentionally standalone; do not invent a journey merely to remove its reviewed warning.
+One-Point Room remains intentionally standalone; do not invent a journey for it.
 
-## Final Phase-5 curriculum checkpoint expected after P5.6
+## Implementation checkpoints
 
-Age coverage:
-- Little 8
-- Creative 18
-- Growing 17
-- Young 10
+- execution contract first commit `f11f2a6dc857369651ee8a5cb33d95532736bd2b`; contract/docs CI #529 GREEN.
+- Batch A Face + Body commit `fd44ab754e84191d3934f373c1dac05bcca51d1b`; 22-lesson CI #530 GREEN.
+- Batch B Character + Room commit `0393274a8d17290c88a49e9a383d155030fefcae`.
+- CI #533 found one stale historical analyzer expectation (`lessonTargetMet` still expected false).
+- test-only correction `9244e776707826e613a0bec43a22f60edaae3ed0` now requires all final Phase-5 coverage targets.
+- exact-head CI #534 / run `34843509513` GREEN.
 
-Difficulty:
-- D1 5
-- D2 9
-- D3 6
-- D4 3
-- D5 1
+## Final verified 24-lesson report
 
-Quality warning policy after Set E:
-exactly six reviewed `NO_JOURNEY_MEMBERSHIP` warnings only for:
-- Rainbow Weather
-- Tree Through Seasons
-- Ice Cream Shop
-- Simple Car
-- Sailboat Scene
-- One-Point Room
+- lessons **24**
+- errors **0**
+- warnings **6**, all `NO_JOURNEY_MEMBERSHIP`
+- warning IDs only: Rainbow Weather, Tree Through Seasons, Ice Cream Shop, Simple Car, Sailboat Scene, One-Point Room
+- age coverage Little **8**, Creative **18**, Growing **17**, Young **10**
+- difficulty D1 **5**, D2 **9**, D3 **6**, D4 **3**, D5 **1**
+- DWM **23**, WTD **17**, Trace **4**
+- coloring **4**, prepared coloring **3**
+- all Phase-5 target flags met
 
-No other warning/error accepted.
+Set-E behavior remains:
+- no Trace mode/help;
+- mature construction/anchor Help;
+- open final authorship turns have no expected child strokes;
+- One-Point Room vanishing point is guide-only, never a required tiny mark;
+- Companion integration remains generic/non-scoring.
 
-## Planned P5.6 execution
+## Pre-freeze inspection binary
 
-1. continuation docs + draft PR;
-2. contract/docs CI GREEN;
-3. Batch A: Face & Expressions + Simple Body & Pose → 22 lessons;
-4. exact-head CI GREEN;
-5. Batch B: Create Your Character + One-Point Room → 24 lessons;
-6. final quality/age/difficulty/Character Creator + Companion gates;
-7. Content Lab all four;
-8. freeze `0.5.0-curriculum-expansion-p5.6-qa1`, versionCode **25**;
-9. immutable APK evidence + exact-profile physical acceptance;
-10. acceptance CI → squash merge → merged-main CI → close #84.
+Engineering-only CI #534 profile artifact:
+- artifact ID `10346199935`
+- exact head `9244e776707826e613a0bec43a22f60edaae3ed0`
+- APK size **16,311,900 bytes**
+- SHA-256 `11d9459cbeefff3ff26a457b7a28b7e082ce08b55c8c8b70ce546444e24b4867`
+- content-quality artifact `10347106293`
+
+The artifact name/version still carries the P5.5 QA1 label because P5.6 versionCode 25 and workflow artifact rename are intentionally deferred until Content Lab acceptance. Treat this binary only as an engineering inspection build.
+
+## Immediate continuation
+
+1. Read `docs/10-execution/P5_6_PRE_FREEZE_CONTENT_LAB_CHECKLIST.md`.
+2. Launch engineering-only Content Lab and inspect all four Set-E lessons.
+3. Require **16/16 PASS** with no content-changing defect.
+4. Only then freeze `0.5.0-curriculum-expansion-p5.6-qa1`, versionCode 25 and update CI artifact names.
+5. Run exact v25 QA1 CI; record immutable profile/debug artifact IDs, APK sizes and SHA-256.
+6. Run focused physical acceptance on exact v25 profile binary.
+7. Commit genuine acceptance → exact-head CI → PR #85 ready → squash merge → merged-main CI → close #84.
+8. Start P5.7 only from verified post-P5.6 main.
 
 ## Frozen constraints
 
 - generic structured lessons only;
 - no lesson-ID-specific runtime UI;
 - `LessonSessionState` is teaching-state truth;
-- Companion is read-only relative to session/artwork;
-- no Trace for Set-E older-child content;
+- Companion cannot mutate session/artwork/persistence;
 - teacher/help/reference overlays never enter child artwork;
 - AndroidX Ink remains behind owned drawing infrastructure;
-- offline/account-free/ad-free core remains unchanged;
-- no scoring/rank/stars/XP/permanent labels/punitive streaks/cloud profiling.
+- offline/account-free/ad-free core;
+- no similarity scoring, grades, rank, stars/XP, permanent ability labels, punitive streaks or cloud child profiling.
 
 ## Resume protocol
 
-Read:
+Read in order:
 1. `PROJECT_STATUS.md`
 2. this file
 3. `ROADMAP.md`
-4. issue #84
+4. issue #84 / PR #85
 5. `docs/10-execution/P5_6_EXECUTION_CONTRACT.md`
-6. `docs/10-execution/P5_1_CURRICULUM_CONTRACT.md`
-7. P5.2 tooling docs as needed
-8. P5.5 QA only for frozen baseline evidence.
+6. `docs/10-execution/P5_6_PRE_FREEZE_CONTENT_LAB_CHECKLIST.md`
+7. `docs/10-execution/P5_1_CURRICULUM_CONTRACT.md`
+8. P5.2 tooling docs as needed.

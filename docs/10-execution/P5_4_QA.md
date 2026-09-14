@@ -5,13 +5,13 @@
 **Branch:** `phase5/p5-4-curriculum-set-c`  
 **QA candidate:** `0.5.0-curriculum-expansion-p5.4-qa1`  
 **versionCode:** 23  
-**Exact QA commit:** `797d2219c4fe7f643d31f1ada42e08bacf7d105f`  
-**Status:** **AUTOMATED QA1 PASS / INTERACTIVE CONTENT LAB + PHYSICAL ACCEPTANCE PENDING**  
+**Exact app/content QA commit:** `797d2219c4fe7f643d31f1ada42e08bacf7d105f`  
+**Status:** **ACCEPTED — AUTOMATED + CONTENT LAB + PHYSICAL QA PASS**  
 **Last updated:** 2026-09-14
 
 ## 1. Scope delivered
 
-Set C adds five production lessons through the existing production `LessonPackageLoader` / `LessonCatalog` path:
+P5.4 adds five production lessons through the existing `LessonPackageLoader` / `LessonCatalog` path:
 
 1. `happy-lines@1`
 2. `shape-friends@1`
@@ -21,223 +21,123 @@ Set C adds five production lessons through the existing production `LessonPackag
 
 The production catalog grows from 9 to **14 release lessons**.
 
-The slice preserves the frozen Phase-5 teaching/product contract:
+Frozen Phase-5 boundaries remain intact: no lesson-ID runtime branches, no similarity scoring/grades/stars/rank/XP/permanent ability labels/cloud profiling, Companion V2 remains deterministic/read-only, and the offline/account-free/ad-free core is unchanged.
 
-- no lesson-ID-specific product or runtime branches;
-- no scores, grades, stars, ranks, XP, permanent ability labels, punitive streaks, or similarity judgement;
-- offline/account-free/ad-free core remains unchanged;
-- Companion V2 remains a deterministic read-only presentation layer over authoritative lesson/session state;
-- open creative turns use authored teacher ideas without forced expected geometry.
+## 2. Generic Trace/open-authorship compatibility rule
 
-## 2. Narrow engine compatibility fix
-
-Set C exposed one concrete pre-existing Trace contract mismatch. The accepted generic rule is now:
+Set C exposed one concrete pre-existing Trace contract mismatch. The accepted generic rule is:
 
 - structured Trace & Learn steps remain traceable;
-- an intentional open-authorship step is identified by `MANUAL_DONE + allowSkip + expectedStrokeRefs.isEmpty()` and receives no forced Trace overlay;
+- an intentional open-authorship step is `MANUAL_DONE + allowSkip + expectedStrokeRefs.isEmpty()` and receives no forced Trace overlay;
 - an authored Trace guide is preferred when present;
 - otherwise validated expected child geometry can provide the Trace overlay.
 
-This is documented by `docs/adr/ADR-008-trace-open-authorship.md` and `docs/10-execution/P5_4_CONTRACT_CLARIFICATION_01_TRACE_OPEN_AUTHORSHIP.md`. It is not a lesson-ID special case or state-machine redesign.
+This is documented in `docs/adr/ADR-008-trace-open-authorship.md` and `docs/10-execution/P5_4_CONTRACT_CLARIFICATION_01_TRACE_OPEN_AUTHORSHIP.md`.
 
-## 3. Automated curriculum/content acceptance
+## 3. Content-quality acceptance
 
-### Happy Lines
-
-- Little + Creative;
-- difficulty 1;
-- Draw With Me + selected Trace;
-- line-control progression;
-- final `make_marks_yours` turn has no expected geometry and preserves authorship.
-
-### Shape Friends
-
-- Little + Creative;
-- difficulty 1;
-- prerequisite Happy Lines;
-- Draw With Me + selected Trace;
-- shape construction and combined friend;
-- final `make_friend_yours` turn has no expected geometry.
-
-### Rainbow Weather
-
-- Little + Creative;
-- difficulty 2;
-- Draw With Me;
-- prerequisite Smiling Sun;
-- exactly three large prepared rainbow coloring regions;
-- suggested colors are not enforced;
-- final weather-detail turn is open authorship.
-
-### Tree Through Seasons
-
-- Creative + Growing + Young;
-- difficulty 3;
-- Draw With Me + Watch Then Draw;
-- prerequisite Easy Flower;
-- no Trace Help;
-- direction-anchor/visual support remains observational;
-- final season/story turn is open authorship.
-
-### Ice Cream Shop
-
-- Creative + Growing;
-- difficulty 2;
-- Draw With Me;
-- prerequisite Shape Friends;
-- cone/base, scoop stack, shop sign construction;
-- final topping/sign customization has no expected geometry.
-
-## 4. Content-quality evidence
-
-Exact QA1 CI report on commit `797d2219c4fe7f643d31f1ada42e08bacf7d105f`:
+Exact QA1 report:
 
 - release lessons: **14**;
 - errors: **0**;
 - warnings: **3**;
-- reviewed warning code: `NO_JOURNEY_MEMBERSHIP` only;
-- reviewed warning lesson IDs: exactly `rainbow-weather`, `tree-through-seasons`, `ice-cream-shop`;
-- any other content-quality warning remains a gate failure.
+- accepted warning code: `NO_JOURNEY_MEMBERSHIP` only;
+- accepted warning lessons: `rainbow-weather`, `tree-through-seasons`, `ice-cream-shop` only.
 
-The analyzer itself was not weakened. The three warnings are intentionally retained because the frozen P5.4 contract gives those lessons no journey membership and forbids inventing an unapproved journey merely to clear a warning. See `P5_4_CONTENT_QA.md`.
+Any other content-quality warning remains a failure. The analyzer was not weakened.
 
-Reported coverage at QA1:
+Coverage at QA1:
 
 - Little Artists: 7 lessons;
 - Creative Explorers: 13 lessons;
 - Growing Artists: 9 lessons;
 - Young Artists: 3 lessons;
-- difficulty 1: 5;
-- difficulty 2: 6;
-- difficulty 3: 2;
-- difficulty 4: 1;
 - Draw With Me: 13;
 - Watch Then Draw: 7;
 - Trace & Learn: 4;
 - coloring lessons: 4;
 - prepared-coloring lessons: 3.
 
-These are progress values toward the P5.1 final 24-lesson target, not final Phase-5 coverage claims.
+## 4. CI progression
 
-## 5. Companion V2 Set-C integration
+- CI #503 — failed only on stale tests hardcoded to exactly 9 lessons.
+- CI #506 / run `34829658746` — GREEN after expansion-safe regression fixes.
+- CI #507 / run `34830243526` — GREEN for Rainbow Weather + Tree Through Seasons.
+- CI #508 / run `34830695250` — GREEN for the complete 14-lesson Set C catalog.
+- CI #509 / run `34831113980` — GREEN on exact frozen QA1 app/content commit.
+- CI #510 / run `34832017058` — GREEN after QA/handoff synchronization.
+- CI #511 / run `34832366705` — GREEN on the locked focused-acceptance checklist head before human acceptance recording.
 
-`P5_4SetCCompanionIntegrationTest` exercises the five real production open-authorship turns across Little / Creative / Growing / Young profiles.
-
-Automated assertions verify:
-
-- Done remains available;
-- authored optional Skip remains available;
-- wording supports choice/authorship;
-- presentation does not introduce copy/match pressure;
-- presentation does not expose score/points/stars/XP/rank/grade/accuracy language;
-- behavior is derived generically from lesson/session semantics rather than lesson IDs.
-
-## 6. CI progression
-
-- CI #503 — failed only on three historical tests hardcoded to exactly 9 production lessons; no runtime/content parser failure.
-- CI #506 / run `34829658746` — GREEN after making historical coverage tests expansion-safe.
-- CI #507 / run `34830243526` — GREEN for Rainbow Weather + Tree Through Seasons batch.
-- CI #508 / run `34830695250` — GREEN for the complete 14-lesson Set C catalog including Ice Cream Shop and Companion integration.
-- **CI #509 / run `34831113980` — GREEN on exact frozen QA1 commit `797d2219c4fe7f643d31f1ada42e08bacf7d105f`.**
-
-QA1 #509 passed:
-
-- JSON parsing;
-- AndroidX Ink boundary verification;
-- JVM unit tests;
-- lint;
-- debug APK compile;
-- instrumentation APK compile;
-- release-like profile APK compile;
-- P5.2 content-quality report verification;
-- Android permission allowlist;
-- P5.4 QA1 evidence packaging and artifact upload.
-
-## 7. Immutable QA1 APK evidence
+## 5. Immutable QA1 APK evidence
 
 ### Release-like profile APK
 
-- artifact name: `kids-drawing-0.5.0-curriculum-expansion-p5.4-qa1-profile`
+- artifact: `kids-drawing-0.5.0-curriculum-expansion-p5.4-qa1-profile`
 - artifact ID: `10342178179`
 - APK: `Kids_Drawing_0.5.0_Curriculum_Expansion_P5.4_QA1-profile.apk`
-- APK size: **16,267,569 bytes**
+- size: **16,267,569 bytes**
 - SHA-256: `e220bb0ffc7a2a15e4cfedb9dd907a5850247e55611158cda2a29dc46c6d1200`
 
 ### Debug APK
 
-- artifact name: `kids-drawing-0.5.0-curriculum-expansion-p5.4-qa1-debug`
 - artifact ID: `10341973952`
-- APK: `Kids_Drawing_0.5.0_Curriculum_Expansion_P5.4_QA1-debug.apk`
-- APK size: **20,480,506 bytes**
+- size: **20,480,506 bytes**
 - SHA-256: `c47aa4167716ceb9123b683f23c546fb6460d5160ac80e060188db4038360e9d`
 
 ### Content-quality artifact
 
-- artifact name: `kids-drawing-p5.2-content-quality-report`
 - artifact ID: `10342606597`
 
-All three artifacts were generated from workflow run `34831113980` whose head SHA is the exact QA1 commit above.
+The Android permission allowlist passed; no unexpected sensitive permission was introduced.
 
-## 8. Permission evidence
+## 6. Interactive Content Lab acceptance — PASS
 
-Both debug and profile milestone APKs passed the existing allowlist. The only requested/generated permission observed by the gate was:
+On 2026-09-14 the tester reported the fixed P5.4 Content Lab acceptance matrix **all good**. The complete 15-row matrix is recorded in `P5_4_FOCUSED_ACCEPTANCE_CHECKLIST.md` as:
 
-`com.navin.kidsdrawing.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`
+- **15/15 PASS**;
+- all five Set-C lessons inspected;
+- previews/step geometry/help/localization accepted;
+- Rainbow prepared regions accepted;
+- Tree confirmed without Trace;
+- open-authorship turns accepted;
+- diagnostics accepted with only the three reviewed standalone warnings;
+- no binary-changing defect reported.
 
-No unexpected sensitive permission was introduced by P5.4.
+## 7. Focused physical-device acceptance — PASS
 
-## 9. Content Lab acceptance
+The tester reported the fixed 30-row physical matrix **all good** against the exact QA1 profile candidate.
 
-### Automated inspection-model coverage — PASS
+Recorded result:
 
-Production catalog/package tests verify that the expanded catalog is discoverable through the existing inspection repository and strict production loader, and that package preview/thumbnail/strings/quality metadata remain available.
+- **30/30 PASS**;
+- 14-lesson discovery accepted;
+- Happy Lines / Shape Friends / Rainbow Weather / Tree Through Seasons / Ice Cream Shop flows accepted;
+- age-band Companion presentation accepted;
+- save/reopen/session isolation accepted;
+- Gallery accepted;
+- Cute Cat / Little Fish / Free Draw regression smokes accepted;
+- Airplane/offline core accepted;
+- background/return accepted;
+- no crash, ANR, deadlock, lost artwork, blocking overlay, unexpected permission/account/network requirement, or binary-changing defect reported.
 
-### Interactive Content Lab visual inspection — PENDING
+Tester/device metadata:
 
-This gate requires real inspection of all five new lessons in Content Lab. It has **not** been claimed complete by automated tests.
+- tester: `User / product tester`;
+- date: `2026-09-14`;
+- device model: `not provided`;
+- Android version/API: `not provided`.
 
-Required review:
+The missing device/API metadata is explicitly recorded rather than inferred. It does not change the reported functional pass result.
 
-- metadata and age/difficulty/category/skills;
-- preview/thumbnail quality;
-- step order and help progression;
-- teacher/reference geometry;
-- Rainbow prepared regions;
-- open-authorship turns;
-- absence of unintended Trace on Tree;
-- no unexpected diagnostics beyond the three reviewed standalone warnings.
+## 8. P5.4 acceptance decision
 
-## 10. Focused physical-device acceptance — PENDING
+P5.4 QA1 is the accepted physical candidate. No new versionCode is required because no binary-changing defect was reported.
 
-The QA1 profile APK has been produced, but physical acceptance has not yet been claimed.
+Remaining closure gates only:
 
-Required focused matrix:
-
-- 14-lesson product discovery;
-- Happy Lines complete flow including selected Trace and open final turn;
-- Shape Friends complete flow including construction Trace fallback and open final turn;
-- Rainbow Weather drawing + prepared coloring, recolor, Undo/Redo, protected line art;
-- Tree Through Seasons in Draw With Me and Watch Then Draw, Help without Trace, open season/story turn;
-- Ice Cream Shop construction + open topping/sign customization;
-- age-band presentation checks across Little / Creative / Growing / Young;
-- save/reopen/session isolation;
-- Gallery completion visibility;
-- Cute Cat / Little Fish / Free Draw regression smoke;
-- Airplane/offline core smoke;
-- no crash, ANR, lost artwork, unexpected permission, account requirement, or network dependency.
-
-Device model/API and pass counts must be recorded from the actual physical run; they are intentionally not inferred here.
-
-## 11. Remaining release gates
-
-1. Perform interactive Content Lab inspection for all five Set-C lessons and record results.
-2. Install the exact profile artifact `10342178179` and perform the focused physical matrix above.
-3. Record the exact physical candidate identity, device/API, pass/fail matrix, and any defects.
-4. If defects require code/content changes, cut a new QA candidate/versionCode and repeat exact-head evidence.
-5. If acceptance passes, synchronize final P5.4 acceptance docs.
-6. Run final exact-head acceptance-doc CI.
-7. Mark PR #81 ready and squash-merge only after all P5.4 gates pass.
-8. Verify merged-main Android CI on the exact squash merge.
-9. Close issue #80 completed only after merged-main green.
-
-Until those gates pass, P5.4 remains an accepted **automated QA candidate**, not a merged/completed slice.
+1. final exact-head acceptance-document CI;
+2. mark PR #81 ready for review;
+3. squash-merge using the verified PR head SHA;
+4. verify merged-main Android CI;
+5. close issue #80 as completed;
+6. freeze P5.4 and start P5.5 from verified `main`.

@@ -15,7 +15,8 @@ class ContentInspectionRepositoryTest {
 
         assertTrue(inspection.catalogDiagnostics.toString(), inspection.catalogDiagnostics.isEmpty())
         assertEquals(0, inspection.qualityReport.errorCount)
-        assertEquals(9, inspection.lessons.size)
+        assertEquals(inspection.qualityReport.lessonCount, inspection.lessons.size)
+        assertTrue("Production inspection unexpectedly lost baseline lessons", inspection.lessons.size >= 9)
         inspection.lessons.forEach { lesson ->
             assertTrue("${lesson.entry.identity.lessonId} preview missing", !lesson.previewSvg.isNullOrBlank())
             assertTrue("${lesson.entry.identity.lessonId} thumbnail missing", !lesson.thumbnailSvg.isNullOrBlank())

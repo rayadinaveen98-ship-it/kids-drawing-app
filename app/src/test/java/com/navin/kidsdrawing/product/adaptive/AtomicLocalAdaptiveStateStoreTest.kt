@@ -50,14 +50,34 @@ class AtomicLocalAdaptiveStateStoreTest {
             store.save(first)
             store.save(second)
         }
-        File(root, "adaptive_state.json").writeText("not-json")
 
+        File(root, "adaptive_state.json").writeText("not-json")
         val loaded = runBlocking { store.load() }
 
         assertTrue(loaded is AtomicLocalAdaptiveStateStore.LoadResult.Loaded)
         loaded as AtomicLocalAdaptiveStateStore.LoadResult.Loaded
         assertEquals(AtomicLocalAdaptiveStateStore.LoadSource.BACKUP, loaded.source)
         assertEquals(first, loaded.state)
+    }
+
+    @Test
+    fun incompatiblePrimaryNeverFallsBackToOlderBackup() = withTempDirectory { root ->
+        val store = AtomicLocalAdaptiveStateStore(root)
+        val first = LocalAdaptiveState(revision = 1, processedEventKeys = listOf("event:first"))
+        val second = LocalAdaptiveState(revision = 2, processedEventKeys = listOf("event:first", "event:second"))
+        runBlocking {
+            store.save(first)
+            store.save(second)
+        }
+        File(root, "adaptive_state.json").writeText(
+            """{"formatVersion":44,"revision":3,"completedLessons":[],"skillExposureCounts":{},"recentCompletions":[],"helpRequestCounts":{},"processedEventKeys":[]}""",
+        )
+
+        val loaded = runBlocking { store.load() }
+
+        assertTrue(loaded is AtomicLocalAdaptiveStateStore.LoadResult.Incompatible)
+        loaded as AtomicLocalAdaptiveStateStore.LoadResult.Incompatible
+        assertEquals(44, loaded.formatVersion)
     }
 
     @Test
@@ -73,7 +93,6 @@ class AtomicLocalAdaptiveStateStoreTest {
 
     @Test
     fun unsupportedFutureFormatReturnsIncompatibleWithoutGuessingMigration() = withTempDirectory { root ->
-        check(root.mkdirs() || root.isDirectory)
         File(root, "adaptive_state.json").writeText(
             """{"formatVersion":44,"revision":0,"completedLessons":[],"skillExposureCounts":{},"recentCompletions":[],"helpRequestCounts":{},"processedEventKeys":[]}""",
         )

@@ -78,22 +78,25 @@ class AtomicLocalAdaptiveStateStore(
             ensureRootDirectory()
             val files = files()
             val primary = decode(files.target)
-            if (primary is DecodeResult.Success) {
-                return@withLock LoadResult.Loaded(primary.state, LoadSource.PRIMARY)
+            when (primary) {
+                is DecodeResult.Success -> return@withLock LoadResult.Loaded(primary.state, LoadSource.PRIMARY)
+                is DecodeResult.Incompatible -> return@withLock LoadResult.Incompatible(primary.formatVersion)
+                DecodeResult.Missing,
+                is DecodeResult.Failure,
+                -> Unit
             }
+
             val backup = decode(files.backup)
-            if (backup is DecodeResult.Success) {
-                return@withLock LoadResult.Loaded(backup.state, LoadSource.BACKUP)
+            when (backup) {
+                is DecodeResult.Success -> return@withLock LoadResult.Loaded(backup.state, LoadSource.BACKUP)
+                is DecodeResult.Incompatible -> return@withLock LoadResult.Incompatible(backup.formatVersion)
+                DecodeResult.Missing,
+                is DecodeResult.Failure,
+                -> Unit
             }
 
             if (primary is DecodeResult.Missing && backup is DecodeResult.Missing) {
                 return@withLock LoadResult.Missing
-            }
-            val incompatible = listOf(primary, backup)
-                .filterIsInstance<DecodeResult.Incompatible>()
-                .firstOrNull()
-            if (incompatible != null) {
-                return@withLock LoadResult.Incompatible(incompatible.formatVersion)
             }
             LoadResult.Corrupt(
                 primaryFailure = (primary as? DecodeResult.Failure)?.message,

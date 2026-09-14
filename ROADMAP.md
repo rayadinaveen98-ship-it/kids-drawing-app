@@ -14,21 +14,9 @@ Structured lesson loading/validation, all three teaching modes, Help Ladder, fiv
 
 ## Phase 4 — Content & Studio Expansion 0.4 — COMPLETE
 
-Released milestone: `0.4.0-content-studio` / versionCode 19.  
-Parent epic #57 closed. Final PR #72 squash-merged at `9f9a21b7d77b2471e1c4e1a7035ce7ec258f35a4`. Merged-main CI #446 GREEN; closure-doc CI #450 GREEN.
+Released milestone: `0.4.0-content-studio` / versionCode 19. Parent epic #57 closed. Final PR #72 squash-merged at `9f9a21b7d77b2471e1c4e1a7035ce7ec258f35a4`. Merged-main CI #446 GREEN; closure-doc CI #450 GREEN.
 
-Phase 4 proved the reusable offline product foundation:
-- nine production lessons;
-- multi-lesson Studio/categories/Art Journeys;
-- deterministic recommendations and safe resume;
-- Trace & Learn / Draw With Me / Watch Then Draw;
-- Help Ladder and grouped demos;
-- Free Draw;
-- prepared + legacy coloring;
-- lifecycle/recovery;
-- Gallery safety;
-- Airplane Mode core journeys;
-- cross-age final physical QA.
+Phase 4 proved the reusable offline product foundation: nine production lessons, multi-lesson Studio/categories/Art Journeys, deterministic recommendations/resume, all three teaching modes, Help Ladder/grouped demos, Free Draw, prepared + legacy coloring, lifecycle/recovery, Gallery safety, Airplane Mode core journeys and cross-age final physical QA.
 
 ## Phase 5 — Curriculum & Teaching Experience Expansion 0.5 — ACTIVE
 
@@ -49,10 +37,6 @@ Locked catalog target for 0.5:
 ### P5.1 — Curriculum & Teaching Contract — COMPLETE
 
 Issue #74 closed completed. PR #75 squash-merged at `cea06e219290c82b9a1f8f8007069c61841bbc95`. Exact-head CI #451 GREEN; merged-main CI #452 GREEN.
-
-Authoritative research/contract:
-- `docs/10-execution/P5_1_CURRICULUM_RESEARCH.md`
-- `docs/10-execution/P5_1_CURRICULUM_CONTRACT.md`
 
 Key contract:
 - increase creative authorship as age/difficulty rises;
@@ -79,57 +63,57 @@ Phase-5 exact new lesson target:
 14. Create Your Character
 15. One-Point Room
 
-### P5.2 — Content Production System V2 — ACCEPTED CANDIDATE / FINAL MERGE GATES
+### P5.2 — Content Production System V2 — COMPLETE
 
-Issue #76, draft PR #77, branch `phase5/p5-2-content-production-v2`.
+Issue #76 closed completed. PR #77 squash-merged at `c0e4c3708fd94102773d6438cbf401162815a9fc`; merged-main CI #482 / run `34809175064` GREEN.
 
-Purpose: build scalable authoring validation/inspection before adding 15 lessons. The system reuses production lesson/catalog contracts and is not a second runtime.
+Accepted QA2:
+- `0.5.0-curriculum-expansion-p5.2-qa2`, versionCode 21;
+- executable `2f36834d110cb1076b953f519eee4a8dc6e2e19d`;
+- CI #477 GREEN;
+- profile artifact `10333593024`;
+- profile APK 16,245,548 bytes;
+- SHA-256 `725720ae1fbff232cbb56049d77b087d8214f959189269630dbbd9eeb0817cf6`;
+- Content Lab focused matrix 20/20 PASS;
+- final acceptance-doc CI #481 GREEN;
+- merged-main CI #482 GREEN.
 
-Implemented:
-- deterministic catalog coverage/readiness report in text + JSON;
-- release errors projected from production catalog/package validation;
-- Phase-5 target progress for lesson/age/difficulty/mode coverage;
-- conservative authoring warnings for suspicious step/geometry/reference/help/prepared-region patterns;
-- deliberate negative JVM fixtures;
-- CI report gate + GitHub step summary + report artifact;
-- calibrated existing nine-lesson baseline = **0 errors, 0 warnings**;
-- read-only `ContentInspectionRepository`;
-- engineering-only `ContentLabActivity` showing real bundled preview/thumbnail SVG, lesson metadata, step/help/coloring contract, teacher/expected/help/prepared-region geometry and localization;
-- Content Lab has no child document/session mutation path and is not part of the child-facing launcher flow.
+### P5.3 — Companion / Teacher Experience V2 — PHYSICALLY ACCEPTED / FINAL MERGE GATES
 
-Automated implementation proof:
-- full implementation CI #463 GREEN;
-- calibrated baseline CI #465 / run `34806642996` GREEN;
-- calibrated report artifact `10333610875`;
-- report: 9 lessons, 0 errors, 0 warnings, Phase-5 catalog progress 9/24.
+Issue #78, draft PR #79, branch `phase5/p5-3-companion-teacher-v2`.
 
-Candidate history:
-- **QA1 / versionCode 20:** frozen at `07025d8cf35569179b1ee1e9443303bd92019093`; CI #471 failed because the freeze edit accidentally removed existing Compose UI test dependencies; no QA1 APK was distributed or accepted.
-- **QA2 / versionCode 21:** `0.5.0-curriculum-expansion-p5.2-qa2`; executable `2f36834d110cb1076b953f519eee4a8dc6e2e19d`; CI #477 / run `34808016949` GREEN; debug artifact `10333752707`; profile artifact `10333593024`; report artifact `10334126516`; profile APK 16,245,548 bytes; SHA-256 `725720ae1fbff232cbb56049d77b087d8214f959189269630dbbd9eeb0817cf6`; independent size/SHA verification matched CI.
+Delivered:
+- deterministic age-aware companion policy for Little / Creative / Growing / Young;
+- clearer teacher-turn, child-turn, Help, pause, completion and error presentation;
+- Watch Then Draw overview vs per-step distinction;
+- generic open-ended authorship detection without lesson-ID branches;
+- non-punitive Help/Trace language;
+- deterministic context cues for Replay/Watch/Trace/open choice;
+- optional non-blocking completion reflection;
+- Guided Lesson integration using the existing product profile age band;
+- secondary cue rendering inside companion card;
+- legacy `Cute Cat` / `save your cat` generic fallback copy removed;
+- control/session semantics preserved.
 
-Focused QA2 physical/developer result:
-- Content Lab matrix: **20/20 PASS**;
-- normal-product smoke: PASS;
-- report verified at 9 lessons / 0 errors / 0 warnings;
-- user acceptance applies to the exact QA2 v21 binary above.
+Accepted QA1:
+- `0.5.0-curriculum-expansion-p5.3-qa1`, versionCode 22;
+- physically tested executable `eef87b25478c6a30d6fefbd7580f75ded4eca3ab`;
+- corrected pure-policy CI #486 / run `34810895376` GREEN;
+- integrated Guided Lesson CI #487 / run `34811189264` GREEN;
+- exact frozen QA1 CI #493 / run `34811688427` GREEN;
+- debug artifact `10335460247`;
+- profile artifact `10334873551`;
+- content-quality artifact `10334589314`;
+- profile APK 16,245,553 bytes;
+- SHA-256 `bed4c00bce4629822b50c6523527a1ebad66428fc0977580501a20c77ad3e5de`;
+- independent SHA/size verification matched CI evidence;
+- content-quality report 9 lessons / 0 errors / 0 warnings;
+- focused physical/product matrix **20/20 PASS** by user report on 2026-09-14;
+- device model/API not restated and not inferred.
 
-QA matrix: `docs/10-execution/P5_2_QA.md`.
+Remaining P5.3 exit: final acceptance-doc exact-head CI → PR #79 ready/squash merge → merged-main CI → #78 close.
 
-Remaining P5.2 exit: final acceptance-doc exact-head CI → PR #77 ready/squash merge → merged-main CI → #76 close.
-
-Bulk P5.4–P5.6 content production remains blocked until this exit target is complete.
-
-### P5.3 — Companion / Teacher Experience V2 — NEXT AFTER P5.2
-
-Improve the patient-teacher presentation while preserving autonomy:
-- clearer teacher-turn vs child-turn state;
-- context-aware encouragement;
-- age-appropriate tone;
-- optional reflection/creative-extension prompts;
-- Help presentation tuned by age/difficulty;
-- celebration without scoring/pressure.
-
-### P5.4 — Curriculum Expansion Set C
+### P5.4 — Curriculum Expansion Set C — NEXT AFTER P5.3
 
 Foundations + early-child/nature/everyday content. Planned lesson pool includes Happy Lines, Shape Friends, Rainbow Weather, Tree Through Seasons and Ice Cream Shop, balanced against QA scope.
 
@@ -165,13 +149,7 @@ Must verify:
 
 ## Later direction after 0.5
 
-Potential next milestones, not yet locked:
-- Parent Zone + parent-controlled export/settings;
-- broader accessibility/device hardening;
-- culturally specific/folk-art curriculum after sourcing/review policy is operational;
-- public Beta/store readiness;
-- expand from 24 toward the 36-lesson public-V1 target;
-- V1.0 only after product, privacy/safety, content and store-release gates pass.
+Potential next milestones, not yet locked: Parent Zone + parent-controlled export/settings; broader accessibility/device hardening; culturally specific/folk-art curriculum after sourcing/review policy is operational; public Beta/store readiness; expand from 24 toward the 36-lesson public-V1 target; V1.0 only after product, privacy/safety, content and store-release gates pass.
 
 ## Permanent delivery rule
 

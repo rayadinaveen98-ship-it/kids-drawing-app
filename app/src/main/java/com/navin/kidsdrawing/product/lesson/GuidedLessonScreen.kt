@@ -156,7 +156,11 @@ fun GuidedLessonScreen(
         }
     }
 
-    val presentation = ProductLessonPresentationPolicy.from(sessionState, runtime.packageData)
+    val presentation = ProductLessonPresentationPolicy.from(
+        state = sessionState,
+        packageData = runtime.packageData,
+        ageBand = ageBand,
+    )
     val childCanDraw = sessionState is LessonSessionState.AwaitingChild ||
         sessionState is LessonSessionState.HelpActive
 
@@ -243,6 +247,7 @@ fun GuidedLessonScreen(
 
                 if (presentation.showPostDrawingChoices) {
                     PostDrawingBoundary(
+                        reflectionPrompt = presentation.reflectionPrompt,
                         minimumControlHeight = layout.minimumControlHeight,
                         message = coloringMessage,
                         enabled = !coloringStarting,
@@ -332,7 +337,7 @@ private fun WorkspaceTopBar(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = presentation.stepLabel ?: "Cute Cat",
+                text = presentation.stepLabel ?: "Drawing",
                 style = MaterialTheme.typography.titleLarge,
                 color = StudioColors.Ink900,
             )
@@ -394,6 +399,14 @@ private fun CompanionInstruction(
                     style = MaterialTheme.typography.bodyMedium,
                     color = StudioColors.Ink700,
                 )
+                if (!presentation.secondaryCue.isNullOrBlank()) {
+                    Text(
+                        text = presentation.secondaryCue,
+                        modifier = Modifier.padding(top = 4.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = StudioColors.Ink500,
+                    )
+                }
             }
             if (!isolationPass) {
                 Text("!", color = StudioColors.Coral500, fontWeight = FontWeight.Bold)
@@ -527,6 +540,7 @@ private fun DrawingToolControls(
 
 @Composable
 private fun PostDrawingBoundary(
+    reflectionPrompt: String?,
     minimumControlHeight: Dp,
     message: String?,
     enabled: Boolean,
@@ -549,10 +563,17 @@ private fun PostDrawingBoundary(
                 color = StudioColors.Ink900,
             )
             Text(
-                text = "Keep going with colors, or save your cat for another time.",
+                text = "Choose what happens next: add color now, or save this drawing for later.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = StudioColors.Ink700,
             )
+            if (!reflectionPrompt.isNullOrBlank()) {
+                Text(
+                    text = "Optional thought: $reflectionPrompt",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = StudioColors.Ink500,
+                )
+            }
             if (!message.isNullOrBlank()) {
                 Text(
                     text = message,

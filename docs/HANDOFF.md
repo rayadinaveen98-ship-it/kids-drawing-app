@@ -8,48 +8,68 @@ Git is authoritative when chat and repository state disagree.
 - Phase 0–4 — COMPLETE/frozen.
 - Phase 5 / `0.5.0-curriculum-expansion` — ACTIVE.
 - Parent epic: #73.
-- P5.1–P5.5 — COMPLETE.
-- Current slice: **P5.6 Curriculum Expansion Set E #84**.
-- Branch: `phase5/p5-6-curriculum-set-e`.
-- PR: #85.
-- Catalog: **24 production lessons**.
-- Content Lab: **16/16 PASS**.
-- QA1: `0.5.0-curriculum-expansion-p5.6-qa1`, versionCode **25**.
-- Exact QA1 binary head: `9a8a0424d5f9b0bcb17b28bc4e64c0a8714c6ecb`.
-- QA1 Android CI #538: **GREEN**.
-- Physical acceptance: **36/36 PASS** reported on the exact profile APK.
-- Device model/API: **not provided by tester; not inferred**.
-- Current gate: acceptance-evidence exact-head CI → PR ready → squash merge → merged-main CI → close #84.
+- P5.1–P5.6 — COMPLETE/frozen.
+- P5.7 Local Adaptive Teaching #86 — **implementation + QA1 + physical acceptance complete; merge closure pending**.
+- branch: `phase5/p5-7-local-adaptive-teaching`.
+- PR #87 remains draft until acceptance-head CI is GREEN.
+- production catalog remains **24 release lessons**.
 
-## Accepted P5.6 QA1 profile
+## P5.7 accepted QA
 
-- artifact `10348300909`
-- `Kids_Drawing_0.5.0_Curriculum_Expansion_P5.6_QA1-profile.apk`
-- **16,311,900 bytes**
-- SHA-256 `0abb9da43315d118c67b9adf004753aed622dda992c95bce26eddc3727bf04b5`
+Exact binary candidate:
+- commit `e258632e83e83a39ac649855ea19592c2f5003ae`;
+- `0.5.0-curriculum-expansion-p5.7-qa1`;
+- versionCode **26**;
+- Android CI #563 / run `34866700627`: **GREEN**;
+- content quality **24 / 0 errors / 6 reviewed warnings**;
+- permission allowlist **PASS**;
+- profile artifact `10357367072`;
+- profile APK `16,344,676` bytes;
+- profile SHA256 `126b0c2d742a4c22b82239ded0502baf5119cf35a89883391ac68239c37b14d0`.
 
-## Final verified curriculum
+Physical acceptance:
+- date: 2026-09-14;
+- **45/45 PASS**;
+- device model/API: **not provided by tester**;
+- reported defects: none.
 
-- 24 lessons / 0 errors / 6 reviewed `NO_JOURNEY_MEMBERSHIP` warnings.
-- Little 8 / Creative 18 / Growing 17 / Young 10.
-- D1 5 / D2 9 / D3 6 / D4 3 / D5 1.
-- DWM 23 / WTD 17 / Trace 4.
-- Character Creator: Face & Expressions → Simple Body & Pose → Create Your Character.
-- One-Point Room remains standalone with Sailboat Scene prerequisite and guide-only vanishing point.
+Acceptance evidence lives in:
+- `docs/10-execution/P5_7_QA.md`;
+- `docs/10-execution/P5_7_ACCEPTED_QA.md`.
+
+## P5.7 frozen product behavior
+
+- Home resume precedence stays coloring → drawing → fresh.
+- Fresh adaptive recommendations are deterministic, prerequisite-safe and explainable.
+- Browse/category/journey discovery stays transparent/full-catalog.
+- Adaptive state is local, versioned, bounded, corruption-safe and idempotent.
+- Child Help is still explicitly initiated and can only use existing authored Help/Replay.
+- Trace is never invented.
+- Companion remains read-only relative to artwork/session truth.
+- No raw artwork/strokes, score/grade/rank/ability labels, analytics upload, cloud child profile or network dependency.
 
 ## Immediate continuation
 
-1. verify acceptance-doc head CI GREEN;
-2. mark PR #85 ready;
-3. squash merge exact verified head;
-4. verify merged-main CI GREEN;
-5. close issue #84 completed;
-6. freeze P5.6;
-7. start **P5.7 Local Adaptive Teaching** only from verified post-P5.6 `main`.
+1. require exact-head Android CI GREEN on the acceptance-doc state;
+2. mark PR #87 ready;
+3. squash merge exact acceptance head;
+4. require merged-main Android CI GREEN;
+5. close issue #86 completed;
+6. start P5.8 from that exact verified main with a contract-first commit.
 
-## P5.7 direction already locked by Phase-5 roadmap
+## P5.8 target
 
-Deterministic/offline adaptation may use age, interests, completed skills, resume state and child-requested Help patterns. It must not introduce permanent ability labels, cloud child profiling, behavioral analytics upload, grades/rank/punitive streaks, forced demotion, similarity scoring, or ML talent/quality judgment.
+P5.8 is the final Phase-5 cross-age release gate for `0.5.0-curriculum-expansion` across:
+- all 24 lessons;
+- all four age bands;
+- journeys/prerequisites;
+- Companion + authored Help;
+- local adaptive teaching;
+- offline behavior;
+- lifecycle/recovery;
+- Gallery/Coloring/Free Draw;
+- content-quality + permission boundaries;
+- exact final release APK evidence and physical acceptance.
 
 ## Resume protocol
 
@@ -57,6 +77,6 @@ Read in order:
 1. `PROJECT_STATUS.md`
 2. this file
 3. `ROADMAP.md`
-4. issue #84 / PR #85 until closure
-5. P5.6 QA + acceptance docs
-6. once P5.6 is merged, the new P5.7 issue/execution contract becomes authoritative.
+4. issue #86 / PR #87 until P5.7 merge closure completes
+5. `docs/10-execution/P5_7_QA.md`
+6. after merge, P5.8 issue/contract becomes authoritative.

@@ -7,6 +7,8 @@ import com.navin.kidsdrawing.coloring.session.ColoringSessionPhase
 import com.navin.kidsdrawing.lesson.content.AndroidAssetLessonSource
 import com.navin.kidsdrawing.lesson.content.LessonCatalog
 import com.navin.kidsdrawing.lesson.persistence.AtomicLessonSessionStore
+import com.navin.kidsdrawing.product.adaptive.LocalAdaptiveStateRepository
+import com.navin.kidsdrawing.product.adaptive.adaptiveFreshDecisions
 import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
 import com.navin.kidsdrawing.product.lesson.ProductLessonRuntime
 import com.navin.kidsdrawing.product.profile.ChildProfile
@@ -17,9 +19,9 @@ import kotlinx.coroutines.withContext
 /**
  * Read-only product projection over authored catalog content + persisted Lesson/Coloring state.
  *
- * P4.2 scans every installed release lesson using its deterministic runtime identity. One corrupt or
- * missing lesson state is isolated; active coloring wins, otherwise newest drawing resume wins,
- * otherwise the highest deterministic fresh recommendation becomes primary.
+ * P5.7 preserves the accepted resume precedence while allowing the fresh-primary candidate list to
+ * use the bounded local adaptive projection. Browse/category/journey discovery still uses the full
+ * verified baseline ranking. Missing/corrupt/incompatible adaptive state falls back to P5.6 policy.
  */
 class StudioHomeRepository(context: Context) {
     private val appContext = context.applicationContext
@@ -30,6 +32,9 @@ class StudioHomeRepository(context: Context) {
     )
     private val coloringStore = AtomicColoringSessionStore(
         File(appContext.filesDir, ProductColoringRuntime.COLORING_SESSION_DIRECTORY),
+    )
+    private val adaptiveRepository = LocalAdaptiveStateRepository(
+        File(appContext.filesDir, LocalAdaptiveStateRepository.DIRECTORY_NAME),
     )
 
     suspend fun load(profile: ChildProfile): StudioHomeModel = withContext(Dispatchers.IO) {
@@ -62,6 +67,15 @@ class StudioHomeRepository(context: Context) {
             profile = profile,
             recommendations = projected.map(ProjectedLesson::recommendation),
         )
+        val adaptiveState = adaptiveRepository.loadForPolicy()
+        val adaptiveDecisions = adaptiveState?.let { state ->
+            StudioRecommendationPolicy.adaptiveFreshDecisions(
+                profile = profile,
+                recommendations = ranked,
+                state = state,
+            )
+        }
+        val freshRanked = adaptiveDecisions?.map { it.recommendation } ?: ranked
         val projectedByKey = projected.associateBy {
             it.recommendation.lessonId to it.recommendation.lessonRevision
         }
@@ -114,16 +128,36 @@ class StudioHomeRepository(context: Context) {
         }
 
         val primary = StudioPrimarySelectionPolicy.select(
-            rankedRecommendations = ranked,
+            rankedRecommendations = freshRanked,
             drawingCandidates = drawingCandidates,
             coloringCandidates = coloringCandidates,
         )
         val primaryKey = primary.lessonId?.let { lessonId ->
             primary.lessonRevision?.let { revision -> lessonId to revision }
         }
+        val freshPrimaryDecision = if (primary.drawingResume == null && primary.coloringResume == null) {
+            primaryKey?.let { key ->
+                adaptiveDecisions?.firstOrNull { decision ->
+                    decision.recommendation.lessonId == key.first &&
+                        decision.recommendation.lessonRevision == key.second
+                }
+            }
+        } else {
+            null
+        }
         val primaryRecommendation = primaryKey?.let { key ->
-            projectedByKey[key]?.recommendation
-        } ?: ranked.firstOrNull()
+            projectedByKey[key]?.recommendation?.let { baseline ->
+                freshPrimaryDecision?.let { decision ->
+                    baseline.copy(adaptiveReasonCopy = decision.reasonCopy)
+                } ?: baseline
+            }
+        } ?: if (adaptiveState == null) {
+            ranked.firstOrNull()
+        } else {
+            adaptiveDecisions?.firstOrNull()?.let { decision ->
+                decision.recommendation.copy(adaptiveReasonCopy = decision.reasonCopy)
+            }
+        }
         val activeLessonId = primary.coloringResume?.lessonId ?: primary.drawingResume?.lessonId
 
         StudioHomeModel(

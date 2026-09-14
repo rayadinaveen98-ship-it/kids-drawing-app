@@ -17,7 +17,7 @@ Production onboarding → lesson → coloring → Gallery journey physically pas
 
 **Target:** `0.5.0-curriculum-expansion`  
 **Parent epic:** #73  
-**Locked curriculum target:** **24 production lessons** — reached in P5.6.
+**Frozen curriculum:** **24 production lessons**.
 
 ### P5.1 — Curriculum & Teaching Contract — COMPLETE
 
@@ -27,72 +27,69 @@ Production onboarding → lesson → coloring → Gallery journey physically pas
 Physical 20/20 PASS.
 
 ### P5.4 — Curriculum Expansion Set C — COMPLETE
-Catalog 9 → 14; Content Lab 15/15; physical 30/30.
+Catalog 9→14; Content Lab 15/15; physical 30/30.
 
 ### P5.5 — Curriculum Expansion Set D — COMPLETE
-Catalog 14 → 20; merged-main CI #528 GREEN; Content Lab 18/18; physical 36/36.
+Catalog 14→20; Content Lab 18/18; physical 36/36; merged-main CI #528 GREEN.
 
-### P5.6 — Curriculum Expansion Set E — PHYSICAL ACCEPTANCE PASSED / FINAL MERGE GATE ACTIVE
+### P5.6 — Curriculum Expansion Set E — COMPLETE / FROZEN
+Catalog 20→24; Content Lab 16/16; physical 36/36; merged-main CI #552 GREEN.
 
-Issue #84 / PR #85.
+### P5.7 — Local Adaptive Teaching — PHYSICALLY ACCEPTED / MERGE CLOSURE ACTIVE
+
+Issue #86. PR #87.
 
 Delivered:
-1. Face & Expressions — Growing/Young, D3
-2. Simple Body & Pose — Growing/Young, D4
-3. Create Your Character — Growing/Young, D4
-4. One-Point Room — Young, D5
+- local bounded/versioned adaptive state;
+- deterministic/idempotent reducer and corruption-safe store;
+- prerequisite-safe progression-aware fresh recommendations;
+- explainable primary reason copy;
+- coloring resume → drawing resume → fresh precedence preserved;
+- browse/category/journey discovery preserved;
+- child-controlled adaptive Help over authored Help/Replay only;
+- no invented Trace, automatic Help, ability labels, scores/ranks or network dependency;
+- deterministic cross-age pre-QA gate across all four age bands.
 
-Verified curriculum:
-- **24 lessons / 0 errors / exactly 6 reviewed standalone warnings**
-- Little 8 / Creative 18 / Growing 17 / Young 10
-- D1 5 / D2 9 / D3 6 / D4 3 / D5 1
-- DWM 23 / WTD 17 / Trace 4
+Accepted QA1:
+- `0.5.0-curriculum-expansion-p5.7-qa1`;
+- versionCode **26**;
+- binary commit `e258632e83e83a39ac649855ea19592c2f5003ae`;
+- Android CI #563 / run `34866700627` **GREEN**;
+- profile artifact `10357367072`;
+- profile SHA256 `126b0c2d742a4c22b82239ded0502baf5119cf35a89883391ac68239c37b14d0`;
+- physical acceptance **45/45 PASS** on 2026-09-14;
+- tester device/API not provided;
+- no reported defects.
 
-Verified gates:
-- final 24-lesson CI #534 GREEN
-- pre-freeze docs CI #535 GREEN
-- Content Lab **16/16 PASS**
-- QA1 v25 exact binary head `9a8a0424d5f9b0bcb17b28bc4e64c0a8714c6ecb`
-- QA1 CI #538 GREEN
-- accepted profile artifact `10348300909`, 16,311,900 bytes, SHA-256 `0abb9da43315d118c67b9adf004753aed622dda992c95bce26eddc3727bf04b5`
-- physical acceptance **36/36 PASS** reported on 2026-09-14
-- device/API not provided and not inferred
+Remaining P5.7 gates:
+1. acceptance-doc exact-head CI GREEN;
+2. mark PR #87 ready;
+3. squash merge;
+4. merged-main CI GREEN;
+5. close #86 completed.
 
-Remaining P5.6 closure:
-1. acceptance evidence exact-head CI GREEN;
-2. PR #85 ready → squash merge;
-3. merged-main CI GREEN;
-4. close #84 completed and freeze P5.6.
+### P5.8 — Cross-age Curriculum QA + 0.5 Release — NEXT
 
-### P5.7 — Local Adaptive Teaching — NEXT
+P5.8 is the final Phase-5 release gate. It must validate the complete integrated product, not add a parallel lesson system.
 
-Starts only from verified post-P5.6 `main`.
+Final scope:
+- all **24 lessons**;
+- all four age bands;
+- journeys, prerequisites and discovery;
+- Companion + authored Help Ladder;
+- P5.7 local adaptive recommendations and Help;
+- offline / Airplane Mode;
+- lifecycle, recovery and resume precedence;
+- Gallery, Coloring and Free Draw;
+- content quality **24 / 0 errors / six reviewed warnings** unless a documented content change deliberately changes that contract;
+- permission/network/privacy boundaries;
+- final versionName **`0.5.0-curriculum-expansion`**;
+- new final release versionCode reserved and cut only at the final QA freeze;
+- exact debug/profile/release evidence;
+- focused physical acceptance;
+- merge + merged-main CI before Phase 5 closes.
 
-Goal: add deterministic, offline adaptation that improves what the child sees next and how help is presented without becoming a grading or profiling system.
-
-Allowed local signals:
-- age band;
-- explicit interests/preferences;
-- completed lessons/skills;
-- resume/in-progress state;
-- child-requested Help usage patterns;
-- recent deterministic lesson history needed for recommendations.
-
-Forbidden:
-- permanent ability labels;
-- cloud child profiling or behavioral analytics upload;
-- similarity scoring or ML talent/quality judgment;
-- grades/rank/XP/punitive streaks;
-- forced demotion or hidden punishment;
-- overriding child choice or mutating lesson/session/artwork truth.
-
-P5.7 should produce transparent, testable recommendation/help policies behind owned interfaces, work fully offline, and remain deterministic for the same local state.
-
-### P5.8 — Cross-age Curriculum QA + 0.5 Release
-
-Final gate across all 24 lessons, four age bands, journeys, Companion, local adaptive teaching, offline/lifecycle/Gallery/recovery, production content report and exact release APK evidence.
-
-Completion of P5.8 produces the verified `0.5.0-curriculum-expansion` milestone.
+Completion of P5.8 produces verified **`0.5.0-curriculum-expansion`**.
 
 ## Permanent delivery rule
 

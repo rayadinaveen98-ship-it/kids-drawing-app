@@ -52,6 +52,7 @@ data class LessonRecommendation(
     val categoryIds: List<String> = emptyList(),
     val tags: List<String> = emptyList(),
     val prerequisiteLessonIds: List<String> = emptyList(),
+    val adaptiveReasonCopy: String? = null,
 ) {
     val actionLabel: String
         get() = when (defaultMode) {

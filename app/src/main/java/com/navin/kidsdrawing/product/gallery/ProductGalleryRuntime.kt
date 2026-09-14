@@ -18,6 +18,8 @@ import com.navin.kidsdrawing.lesson.session.FinishForNow
 import com.navin.kidsdrawing.lesson.session.LessonCommandResult
 import com.navin.kidsdrawing.lesson.session.LessonFinishReason
 import com.navin.kidsdrawing.lesson.session.LessonSessionState
+import com.navin.kidsdrawing.product.adaptive.AdaptiveEvent
+import com.navin.kidsdrawing.product.adaptive.LocalAdaptiveStateRepository
 import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
 import com.navin.kidsdrawing.product.lesson.ProductLessonRuntime
 import java.io.File
@@ -66,6 +68,11 @@ class ProductGalleryRuntime private constructor(
         protectedWorkingDocumentId = protectedWorkingDocumentId,
     )
     private val completionCoordinator = ArtworkCompletionCoordinator(repository)
+    private val adaptiveRepository = lessonRuntime?.let {
+        LocalAdaptiveStateRepository(
+            File(appContext.filesDir, LocalAdaptiveStateRepository.DIRECTORY_NAME),
+        )
+    }
 
     init {
         require(protectedWorkingDocumentId.isNotBlank()) {
@@ -74,17 +81,19 @@ class ProductGalleryRuntime private constructor(
     }
 
     suspend fun finishDrawingForNow(title: String): ArtworkCompletionResult {
-        if (lessonRuntime == null) {
-            return ArtworkCompletionResult.Failed("No guided drawing is active to finish.")
-        }
-        return completionCoordinator.complete(DrawingCompletionPort(lessonRuntime), title)
+        val runtime = lessonRuntime
+            ?: return ArtworkCompletionResult.Failed("No guided drawing is active to finish.")
+        val result = completionCoordinator.complete(DrawingCompletionPort(runtime), title)
+        recordAdaptiveCompletion(result)
+        return result
     }
 
     suspend fun finishColoring(title: String): ArtworkCompletionResult {
-        if (coloringRuntime == null) {
-            return ArtworkCompletionResult.Failed("No coloring session is active to finish.")
-        }
-        return completionCoordinator.complete(ColoringCompletionPort(coloringRuntime), title)
+        val runtime = coloringRuntime
+            ?: return ArtworkCompletionResult.Failed("No coloring session is active to finish.")
+        val result = completionCoordinator.complete(ColoringCompletionPort(runtime), title)
+        recordAdaptiveCompletion(result)
+        return result
     }
 
     /** Shared completion boundary for non-lesson product runtimes such as Free Draw. */
@@ -101,6 +110,25 @@ class ProductGalleryRuntime private constructor(
         repository.delete(entryId, confirmed)
 
     fun previewFile(reference: String): File? = previewService.fileFor(reference)
+
+    private suspend fun recordAdaptiveCompletion(result: ArtworkCompletionResult) {
+        val saved = result as? ArtworkCompletionResult.Saved ?: return
+        val lesson = lessonRuntime?.packageData?.lesson ?: return
+        val adaptive = adaptiveRepository ?: return
+        runCatching {
+            adaptive.record(
+                AdaptiveEvent.LessonCompleted(
+                    eventKey = "gallery:${saved.record.entryId}:${lesson.lessonId}:r${lesson.revision}",
+                    lessonId = lesson.lessonId,
+                    lessonRevision = lesson.revision,
+                    skillIds = lesson.metadata.skillIds,
+                    categoryIds = lesson.metadata.categoryIds,
+                    journeyIds = lesson.metadata.journeyIds,
+                    difficulty = lesson.metadata.difficulty,
+                ),
+            )
+        }
+    }
 
     private class DrawingCompletionPort(
         private val runtime: ProductLessonRuntime,

@@ -20,11 +20,11 @@ class ProductionContentQualityGateTest {
         assertEquals("Unexpected content quality warnings: $warnings", 5, warnings.size)
         assertEquals(reviewed, warnings.mapNotNull { it.lessonId }.toSet())
         assertTrue("Only reviewed standalone-lesson warnings are allowed: $warnings", warnings.all { it.code == ContentQualityDiagnosticCode.NO_JOURNEY_MEMBERSHIP })
-        assertEquals(18, report.lessonCount)
+        assertEquals(20, report.lessonCount)
         val text = report.renderText()
         val json = report.renderJson()
         val parsed = Json.parseToJsonElement(json).jsonObject
-        assertEquals(18, parsed.getValue("lessonCount").jsonPrimitive.content.toInt())
+        assertEquals(20, parsed.getValue("lessonCount").jsonPrimitive.content.toInt())
         assertEquals(0, parsed.getValue("errorCount").jsonPrimitive.content.toInt())
         assertEquals(5, parsed.getValue("warningCount").jsonPrimitive.content.toInt())
         val outputDir = File("build/reports/content-quality").apply { mkdirs() }

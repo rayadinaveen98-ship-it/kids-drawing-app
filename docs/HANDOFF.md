@@ -16,56 +16,60 @@ Development model: **Core-engine + vertical-slice** — Specify → build capabi
 - Phase 1 / Drawing Engine 0.1 — COMPLETE and frozen
 - Phase 2 / Lesson Engine 0.2 — COMPLETE and frozen
 - Phase 3 / First Vertical Slice 0.3 — COMPLETE
-- Phase 4 / Content & Studio Expansion 0.4 — ACTIVE
+- Phase 4 / Content & Studio Expansion 0.4 — FINAL RELEASE GATE ACTIVE
 - P4.1 — COMPLETE
 - P4.2 — COMPLETE
-- P4.3 — implementation merged; issue #60 stays open for deferred broader physical/content matrix
-- P4.4 — COMPLETE; issue #61 closed, PR #69 merged
-- P4.5 — COMPLETE; issue #62 closed, PR #70 merged at `10b8f2f7a6a6b4579a8695ab4f602c2e4525aec5`, merged-main CI #420 GREEN
-- Current slice: **P4.6 Representative Content Set B + Cross-content QA (#63 / PR #71) — focused QA1 physical acceptance PASS; merge verification pending**
-- Active branch: `phase4/p4-6-content-set-b`
-- QA1 identity: `0.4.0-content-studio-p4.6-qa1`, versionCode 18
+- P4.3 — implementation merged; issue #60 remains open only for final deferred physical coverage
+- P4.4 — COMPLETE; deferred row-level Free Draw checks moved into P4.7
+- P4.5 — COMPLETE; deferred coloring/lifecycle/offline/small-screen checks moved into P4.7
+- P4.6 — COMPLETE; issue #63 closed; PR #71 squash merge `b811a149e44eadfee815f1f9896f2871e9f7e25d`; merged-main CI #433 GREEN
+- Current slice: **P4.7 End-to-end QA + `0.4.0-content-studio` release (#64 / draft PR #72)**
+- Active branch: `phase4/p4-7-final-release`
+- Final candidate identity: `0.4.0-content-studio`, versionCode 19
 
-## Latest fully verified Android product milestone
+## Final Phase-4 release contract
 
-`0.3.0-vertical-slice` / versionCode 13:
-- executable `e54f8dabfd9a9f1a7dab5b382cedb73438f151cd`;
-- Android CI #307 / run `34706767213` GREEN;
-- profile artifact `10301836886`;
-- SHA-256 `2f622c116813c7a5830109994c104d4bb1623dc41f57cb4f463c4d6e5e385961`;
-- physical 41/41 PASS.
+Read first:
+- `docs/10-execution/P4_7_EXECUTION_CONTRACT.md`
+- `docs/10-execution/P4_7_FINAL_QA.md`
 
-Only repository tag `v0.1.0-art-lab` is known to exist. Do not claim 0.2/0.3 tags exist unless verified later.
+P4.7 is **not** a new feature slice. Only release evidence, automated regression hardening and concrete release-blocking fixes are allowed.
 
-## P4.6 implementation and QA
+Final matrix includes:
+- fresh install/onboarding/profile and nine-lesson Studio;
+- categories, Art Journeys and deterministic recommendations;
+- Smiling Sun Trace, Friendly Owl Help 1–5/cumulative construction, Simple Rocket Watch Then Draw, Easy Flower grouped pace playback;
+- Hot Air Balloon guided multi-region coloring, Fox Portrait, Design Your Spaceship creative step;
+- complete row-level Free Draw tool/history/recovery/Gallery matrix;
+- Little Fish/Hot Air Balloon prepared coloring, exact Undo boundary, lifecycle/process recreation and Gallery reopen;
+- Cute Cat legacy freehand coloring;
+- lesson/coloring/Free Draw process recreation;
+- Gallery delete/source safety;
+- full Airplane Mode core journeys;
+- age 4–5 / 6–7 / 8–9 / 10–12 spot checks;
+- larger font and handedness/voice/reduced motion where the capability is actually exposed;
+- zero teacher/reference contamination, no line-art damage, no operation loss, no crash/ANR/deadlock.
 
-Contract: `docs/10-execution/P4_6_EXECUTION_CONTRACT.md`  
-QA: `docs/10-execution/P4_6_CONTENT_QA.md`
+## Final candidate rules
 
-Nine release lessons are represented. New P4.6 packages:
-- **Hot Air Balloon** — Little/Creative/Growing; richer prepared-region guided coloring; four large regions; center → side pair → basket progression.
-- **Fox Portrait** — Growing/Young; difficulty 4; proportion, placement, contour refinement, facial landmarks, texture and observation; no Trace dependency.
-- **Design Your Spaceship** — Creative/Growing/Young; structured foundation plus a genuine `make_it_yours` step. Teacher examples are inspiration; child `expectedStrokeRefs` is empty so no replica is required.
+Initial candidate:
+- versionName `0.4.0-content-studio`;
+- versionCode 19;
+- final workflow artifact names use `Kids_Drawing_0.4.0_Content_Studio-*`;
+- exact physically tested APK must be the intended final delivered product binary.
 
-Implementation head `7928c712e65e180a1d97042c0ea5d131e61c65fb` passed Android CI #425 / run `34758790360` before QA1 version/evidence renaming.
+If a materially changed APK is distributed after versionCode 19, increment to 20+; never reuse the distributed versionCode.
 
-Exact QA1 evidence:
-- executable `e96e452f41f545529712a35e9cf97553510252d8`;
-- Android CI #428 / run `34759214099` GREEN;
-- profile artifact `10318307419`;
-- profile APK size `16,196,362 bytes`;
-- profile SHA-256 `e207d006893747a91a0c8dd6935d7764417fc77532a992a6d1120ec8bd613a4e`.
+Acceptance documentation may create later docs-only commits, but always distinguish tested executable commit from documentation/merge commits.
 
-The user installed that exact QA1 profile APK and reported the supplied focused P4.6 physical/product checklist PASS on 2026-09-14. The device/model/API were not re-stated in the acceptance and are not invented here.
+## P4.6 evidence baseline
 
-Focused acceptance covered the three new experiences, Hot Air Balloon guided coloring/Undo/Redo, Fox Portrait older-child flow/no Trace UI, Spaceship open creative completion, Young Artist discovery, cross-lesson state isolation, Little Fish, Cute Cat, Free Draw, and Gallery reopen.
+P4.6 final integration:
+- merge `b811a149e44eadfee815f1f9896f2871e9f7e25d`;
+- merged-main CI #433 / run `34800596778` GREEN;
+- nine representative production lessons in catalog.
 
-Still deferred to P4.7:
-- Smiling Sun/Friendly Owl/Simple Rocket/Easy Flower focused physical regression;
-- airplane-mode end-to-end verification;
-- process recreation/recovery on P4.6 content;
-- small-screen/age-adaptive regression;
-- remaining deferred P4.3/P4.4/P4.5 physical rows.
+P4.6 QA1 physical evidence remains preserved in `P4_6_CONTENT_QA.md`; P4.7 retests only what is necessary for the complete release/deferred matrix.
 
 ## Frozen architecture constraints
 
@@ -73,22 +77,27 @@ Still deferred to P4.7:
 - lessons are structured content, never lesson-ID-specific tutorial code;
 - UI cannot set arbitrary engine/session state;
 - AndroidX Ink stays behind drawing infrastructure adapters;
-- teacher/trace/help overlays never become child artwork;
-- coloring is structurally below protected line art;
+- teacher/trace/help/reference overlays never become child artwork;
+- coloring/fill remains structurally below protected line art;
+- Free Draw is lesson-independent and uses explicit Gallery provenance;
 - persistence stores editable operations, not screenshots;
-- core drawing/teaching remains offline-first;
-- no mandatory child account, ads, behavioral analytics, network dependency or sensitive permissions in core milestones;
-- critical-path development stays ₹0 where a professional free option exists;
-- CI green is required before a slice is complete.
+- core product remains offline-first;
+- no mandatory child account, ads, behavioral analytics, network dependency or sensitive permissions;
+- CI green is required before final release acceptance.
 
 ## Immediate continuation
 
-1. Require exact-head CI after the P4.6 acceptance-documentation commits.
-2. Mark PR #71 ready after that green gate.
-3. Squash-merge PR #71.
-4. Verify merged-main Android CI.
-5. Close issue #63 completed.
-6. Create P4.7 branch from verified main and execute end-to-end QA + final `0.4.0-content-studio` release (#64).
+1. Finish P4.7 final candidate freeze and exact-head CI.
+2. Capture final debug/profile artifact IDs, profile APK bytes and SHA-256; independently verify them.
+3. Materialize exact final profile APK for physical QA.
+4. Execute `P4_7_FINAL_QA.md`; record PASS/FAIL only for actual checks.
+5. If any release blocker appears, fix narrowly and increment versionCode for any changed distributed APK.
+6. Commit accepted matrix + `P4_7_RELEASE_REPORT.md`.
+7. Require exact-head acceptance-doc CI green.
+8. Close P4.3 #60 only when its final rows pass.
+9. Mark PR #72 ready, squash-merge, require merged-main CI green.
+10. Close issue #64 and epic #57 only after final evidence supports closure.
+11. Deliver the exact final profile APK; tag only if tooling supports creation and the tag is verified.
 
 ## Resume protocol
 
@@ -96,10 +105,12 @@ Inspect in order:
 1. `PROJECT_STATUS.md`
 2. this file
 3. `ROADMAP.md`
-4. Phase 4 epic #57
-5. issue #63 + PR #71 + `P4_6_EXECUTION_CONTRACT.md` + `P4_6_CONTENT_QA.md`
-6. current P4.6 exact-head acceptance-doc / merged-main CI state
-7. issue #64 and still-open P4.3 issue #60 once P4.7 begins
-8. relevant Drawing/Coloring/Lesson specs.
+4. issue #64 + PR #72
+5. `P4_7_EXECUTION_CONTRACT.md`
+6. `P4_7_FINAL_QA.md`
+7. issue #60 + `P4_3_CONTENT_QA.md`
+8. `P4_4_FREE_DRAW_QA.md`
+9. `P4_5_COLORING_QA.md`
+10. relevant engine/content specifications.
 
-Do not redesign proven Drawing/Lesson engine foundations merely because a chat changes.
+Do not redesign proven foundations merely because a chat changes.

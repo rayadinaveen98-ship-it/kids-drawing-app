@@ -17,23 +17,26 @@ import org.junit.Test
 
 class RepresentativeContentSetATest {
     @Test
-    fun productionCatalogLoadsRepresentativeLessonsAndPreparedColoringProofWithoutDiagnostics() {
+    fun productionCatalogRetainsRepresentativeSetAWithoutDiagnostics() {
         val snapshot = productionCatalog()
 
         assertTrue(snapshot.diagnostics.toString(), snapshot.diagnostics.isEmpty())
-        assertEquals(
-            listOf(
-                "cute-cat",
-                "design-your-spaceship",
-                "easy-flower",
-                "fox-portrait",
-                "friendly-owl",
-                "hot-air-balloon",
-                "little-fish",
-                "simple-rocket",
-                "smiling-sun",
+        val lessonIds = snapshot.entries.map { it.identity.lessonId }.toSet()
+        assertTrue(
+            "Representative Set A lessons disappeared from the expanded production catalog: $lessonIds",
+            lessonIds.containsAll(
+                setOf(
+                    "cute-cat",
+                    "design-your-spaceship",
+                    "easy-flower",
+                    "fox-portrait",
+                    "friendly-owl",
+                    "hot-air-balloon",
+                    "little-fish",
+                    "simple-rocket",
+                    "smiling-sun",
+                ),
             ),
-            snapshot.entries.map { it.identity.lessonId },
         )
     }
 

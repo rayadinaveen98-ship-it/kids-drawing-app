@@ -12,7 +12,7 @@
     "estimatedMinutes": 8,
     "categoryIds": ["animals", "pets"],
     "skillIds": ["curves", "shape_construction", "simple_details"],
-    "journeyIds": ["animal_artist"],
+    "journeyIds": ["journey.first_shapes_to_pictures", "journey.animal_artist"],
     "tags": ["cat", "beginner"]
   },
   "canvas": {

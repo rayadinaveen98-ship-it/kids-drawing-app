@@ -47,4 +47,4 @@ The artifact/APK internal version still carries the inherited P5.5 QA1 label bec
 
 **PRE-FREEZE CONTENT LAB GATE PASSED.**
 
-P5.6 is authorized to freeze `0.5.0-curriculum-expansion-p5.6-qa1`, versionCode **25**. The next required evidence is exact-head QA1 CI, immutable debug/profile APK evidence, and genuine physical-device acceptance on the exact v25 profile APK.
+P5.6 was authorized to freeze `0.5.0-curriculum-expansion-p5.6-qa1`, versionCode **25**. That candidate now exists and passed QA1 CI #538. The next required evidence is genuine 36/36 physical-device acceptance on the exact v25 profile APK recorded in `P5_6_QA.md`.

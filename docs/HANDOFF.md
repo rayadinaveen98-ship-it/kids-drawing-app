@@ -14,59 +14,57 @@ Android-first children's drawing/art-learning app built as a patient personal ar
 - Phase 1 / Drawing Engine 0.1 — COMPLETE and frozen
 - Phase 2 / Lesson Engine 0.2 — COMPLETE and frozen
 - Phase 3 / First Vertical Slice 0.3 — COMPLETE
-- Phase 4 / Content & Studio Expansion 0.4 — final repository closure in progress
-- P4.1 — COMPLETE
-- P4.2 — COMPLETE
-- P4.3 — implementation merged; deferred physical rows now PASS in P4.7 final checklist; issue #60 can close after final docs CI
-- P4.4 — COMPLETE; deferred Free Draw rows PASS in P4.7
-- P4.5 — COMPLETE; deferred coloring/lifecycle/offline rows PASS in P4.7
-- P4.6 — COMPLETE; issue #63 closed; PR #71 merge `b811a149e44eadfee815f1f9896f2871e9f7e25d`; merged-main CI #433 GREEN
-- Current slice: **P4.7 End-to-end QA + `0.4.0-content-studio` release (#64 / draft PR #72)**
-- Active branch: `phase4/p4-7-final-release`
+- Phase 4 / Content & Studio Expansion 0.4 — **COMPLETE**
+- Active branch: `main`
+- Latest verified milestone: **`0.4.0-content-studio`, versionCode 19**
+- Closed parent epic: #57
+- Final release issue: #64 closed
+- Final release PR: #72 squash-merged
 
-## Exact accepted release candidate
+## Exact accepted release binary
 
-- versionName: `0.4.0-content-studio`
-- versionCode: 19
-- physically tested executable: `f3843365d39540de00fe08a008883c15abe75599`
-- Android CI: #440 / run `34801122118` — GREEN
-- profile artifact: `10331363240` / `kids-drawing-0.4.0-content-studio-profile`
-- profile APK: `Kids_Drawing_0.4.0_Content_Studio-profile.apk`
-- size: `16,196,353 bytes`
-- SHA-256: `f7a8f9a177d8edc6244796f7c08ff4fd32ad64eeb26e90b7ba00bb68fc9daa59`
-- independent local size/hash verification: PASS
-- physical acceptance date: 2026-09-14
-- user acceptance: **final checklist PASS**
+- versionName `0.4.0-content-studio`
+- versionCode 19
+- physically tested executable `f3843365d39540de00fe08a008883c15abe75599`
+- candidate Android CI #440 / run `34801122118` GREEN
+- acceptance-documentation head `84771ba4a19692953bc79a1cf185c9a5d5c491b5`, CI #445 GREEN
+- final squash merge `9f9a21b7d77b2471e1c4e1a7035ce7ec258f35a4`
+- merged-main Android CI #446 / run `34802235303` GREEN
+- profile artifact `10331363240` / `kids-drawing-0.4.0-content-studio-profile`
+- APK `Kids_Drawing_0.4.0_Content_Studio-profile.apk`
+- size `16,196,353 bytes`
+- SHA-256 `f7a8f9a177d8edc6244796f7c08ff4fd32ad64eeb26e90b7ba00bb68fc9daa59`
+- independent local size/hash verification PASS
+- user final physical/product checklist PASS on 2026-09-14
 
-The physically accepted product binary remains the executable above even though later commits may update only QA/release documentation. If any product behavior changes and a new APK is distributed, versionCode must increment to 20+.
+Later release-report/status commits are documentation only. They do not replace the exact physically accepted v19 binary above.
 
-## Final QA outcome
+No `v0.4.0-content-studio` tag is claimed because connected repository tooling did not expose tag creation.
+
+## Phase-4 product foundation now proven
+
+- deterministic bundled lesson catalog and strict package validation;
+- Studio discovery, categories and Art Journeys;
+- deterministic age/interest recommendations and resume routing;
+- nine representative production lessons across ages 4–12 and difficulty 1–4;
+- Trace & Learn, Draw With Me and Watch Then Draw;
+- full authored Help Ladder and grouped demonstrations;
+- cumulative teacher construction overlays isolated from child history;
+- production Free Draw with Pencil/Crayon/Marker/Eraser, palette/size, Undo/Redo/Clear, recovery and Gallery provenance;
+- prepared-region Fill, authored Color With Me progression, Color Myself and legacy freehand coloring;
+- reversible schema-3 fill operations with older-document readability;
+- protected line art;
+- lifecycle/process recovery across lesson, coloring and Free Draw;
+- Gallery reopen/delete/source isolation;
+- core product fully usable in Airplane Mode;
+- final age-band, larger-font, integrity and stability sweep.
+
+## Final physical QA truth
 
 Authoritative matrix: `docs/10-execution/P4_7_FINAL_QA.md`.
+Release report: `docs/10-execution/P4_7_RELEASE_REPORT.md`.
 
-PASS coverage includes:
-- fresh install/onboarding/profile and nine-lesson Studio;
-- categories, Art Journeys and deterministic recommendations;
-- Smiling Sun Trace, Friendly Owl Help 1–5/cumulative construction, Simple Rocket Watch Then Draw and Easy Flower grouped pace playback;
-- Hot Air Balloon guided multi-region coloring, Fox Portrait and Design Your Spaceship;
-- full Free Draw tools/history/Clear/save/recovery/Gallery isolation matrix;
-- Little Fish prepared coloring, Color Myself, exact coloring Undo boundary, lifecycle/process recreation and Gallery reopen;
-- Cute Cat legacy freehand coloring;
-- guided-lesson lifecycle/force-stop recovery and cross-lesson isolation;
-- Gallery reopen/delete/source safety;
-- full Airplane Mode core journeys;
-- age 4–5 / 6–7 / 8–9 / 10–12 spot checks;
-- larger system font scale;
-- teacher/reference contamination, line-art protection, operation durability and stability sweep.
-
-Not applicable because not exposed in this milestone:
-- handedness product setting;
-- voice-off product setting;
-- reduced-motion product setting.
-
-Two failure/policy paths remain represented by automated evidence rather than fabricated device injection:
-- deterministic resume-priority policy;
-- missing/incompatible runtime no-stranded-artwork fallback.
+The final supplied checklist passed. Conditional settings rows for handedness, voice-off and reduced motion are N/A because those product controls are not exposed in 0.4. Deterministic resume-priority and missing/incompatible-content fallback remain backed by automated contracts rather than fabricated failure injection.
 
 ## Frozen architecture constraints
 
@@ -75,33 +73,36 @@ Two failure/policy paths remain represented by automated evidence rather than fa
 - UI cannot set arbitrary engine/session state;
 - AndroidX Ink stays behind drawing infrastructure adapters;
 - teacher/trace/help/reference overlays never become child artwork;
-- coloring/fill remains structurally below protected line art;
-- Free Draw is lesson-independent and uses explicit Gallery provenance;
+- coloring/fill stays structurally below protected line art;
+- Free Draw is lesson-independent with explicit Gallery provenance;
 - persistence stores editable operations, not screenshots;
 - core product remains offline-first;
-- no mandatory child account, ads, behavioral analytics, network dependency or sensitive permissions;
-- CI green is required before final repository closure.
+- no mandatory child account, ads, behavioral analytics, network dependency or sensitive permissions.
 
-## Immediate continuation
+## Next-work rule
 
-1. Finish final acceptance/status/release-report documentation commits.
-2. Require exact-head Android CI green on that documentation head.
-3. Close P4.3 issue #60 because its deferred rows passed in the final candidate.
-4. Mark PR #72 ready and squash-merge.
-5. Require merged-main Android CI green.
-6. Close P4.7 issue #64 and epic #57.
-7. Record final merge/closure evidence on `main`; verify any final docs-only CI.
-8. Deliver the exact accepted profile APK above.
+There is no active post-Phase-4 build slice yet. Before implementation resumes:
+1. define the next milestone/epic in Git;
+2. lock scope and acceptance criteria;
+3. preserve the verified 0.4 engine/product foundation unless a concrete defect requires change;
+4. continue installable-APK + exact-commit + CI evidence discipline.
 
-No `v0.4.0-content-studio` tag is claimed because the connected repository tooling does not expose tag creation.
+Likely future directions already identified:
+- companion expression/voice polish;
+- curriculum expansion toward public V1 24–36 lessons;
+- adaptive local recommendations/help;
+- Parent Zone and parent-controlled export/settings;
+- broader accessibility/device hardening and Beta;
+- eventual V1.0 release gates.
 
 ## Resume protocol
 
-Inspect in order:
+Read in order:
 1. `PROJECT_STATUS.md`
 2. this file
 3. `ROADMAP.md`
-4. issue #64 + PR #72
+4. `docs/10-execution/P4_7_RELEASE_REPORT.md`
 5. `docs/10-execution/P4_7_FINAL_QA.md`
-6. `docs/10-execution/P4_7_RELEASE_REPORT.md`
-7. issue #60.
+6. closed Phase-4 epic #57 and release issue #64 when historical detail is needed.
+
+Do not reopen proven foundations merely because a chat changes.

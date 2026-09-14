@@ -16,11 +16,14 @@ Android-first children's drawing/art-learning app built as a patient personal ar
 - Phase 2 / Lesson Engine 0.2 — COMPLETE and frozen
 - Phase 3 / First Vertical Slice 0.3 — COMPLETE
 - Phase 4 / Content & Studio Expansion 0.4 — COMPLETE and frozen
-- Phase 5 / Curriculum & Teaching Experience Expansion 0.5 — **PLANNING ACTIVE**
+- Phase 5 / Curriculum & Teaching Experience Expansion 0.5 — ACTIVE
 - Parent epic: #73
-- Current slice: P5.1 Curriculum & Teaching Contract #74
-- Active branch: `phase5/p5-1-curriculum-contract`
-- Latest verified product release remains `0.4.0-content-studio`, versionCode 19
+- P5.1 #74 — COMPLETE; PR #75 merged; merged-main CI #452 GREEN
+- Current slice: **P5.2 Content Production System V2 #76**
+- Draft PR: #77
+- Active branch: `phase5/p5-2-content-production-v2`
+- Latest fully verified product release remains **`0.4.0-content-studio`, versionCode 19**
+- P5.2 QA1 identity: `0.5.0-curriculum-expansion-p5.2-qa1`, versionCode 20 — candidate evidence/physical acceptance pending
 
 ## Exact accepted 0.4 baseline
 
@@ -37,87 +40,93 @@ Android-first children's drawing/art-learning app built as a patient personal ar
 
 No Phase-5 work may retroactively change or overclaim this release evidence.
 
-## P5.1 source-of-truth files
+## P5.1 — COMPLETE curriculum contract
 
-Read:
+Authoritative files:
 - `docs/10-execution/P5_1_CURRICULUM_RESEARCH.md`
 - `docs/10-execution/P5_1_CURRICULUM_CONTRACT.md`
 
-The research uses the repository baseline plus authoritative guidance from NCERT NCF-SE 2023, National Core Arts Standards, NAEYC process/developmentally appropriate art guidance, UNESCO culture/arts education guidance and NEP principles.
-
-## Locked Phase-5 direction
-
-### Milestone target
-
-`0.5.0-curriculum-expansion`
-
-### Catalog target
-
+Locked target:
 - 24 total production guided lessons for 0.5;
 - 9 existing Phase-4 lessons retained;
 - 15 new lessons;
-- eventual 36-lesson public-V1 target remains later, after the 24-lesson workflow/content quality is proven.
+- 36 remains later public-V1 target;
+- Little/Creative/Growing/Young progression is real rather than cosmetic;
+- creative authorship increases with age/difficulty;
+- no similarity scores, grades, leaderboards, permanent ability labels or cloud profiling;
+- Help remains child-controlled/non-punitive;
+- culturally specific content requires sourcing/context/review.
 
-### New lessons
+## P5.2 — ACTIVE
 
-1. Happy Lines
-2. Shape Friends
-3. Snail Garden
-4. Elephant From Shapes
-5. Rainbow Weather
-6. Tree Through Seasons
-7. Ice Cream Shop
-8. Simple Car
-9. Sailboat Scene
-10. Planet With Rings
-11. Friendly Alien
-12. Face & Expressions
-13. Simple Body & Pose
-14. Create Your Character
-15. One-Point Room
+### Purpose
 
-### Age progression
+Scale content production safely before authoring 15 additional lessons. Tooling must consume the real production content model and never become a second lesson runtime.
 
-- **4–5 / Little Artists:** marks, basic shapes, simple combination, large geometry, optional Trace only where justified, short concrete teacher language.
-- **6–7 / Creative Explorers:** shape fluency, symmetry/spacing, simple overlap, Watch Then Draw, patterns and simple scenes, meaningful variation.
-- **8–9 / Growing Artists:** proportion, contour, overlap/depth, foreground/background, texture/detail, character/scene choices, lightweight reflection.
-- **10–12 / Young Artists:** deliberate proportion, basic perspective, value/shading foundations, face/body/pose, character design, composition, planning/refinement and non-toddler teacher tone.
+### Implemented quality/reporting system
 
-### Teaching philosophy
+- `ContentQualityAnalyzer` consumes `LessonCatalogSnapshot` and validated runtime packages.
+- Production catalog/load diagnostics are release errors.
+- Conservative authoring/usability rules are warnings only.
+- Deterministic text + JSON reports include lessons, ages, difficulty, categories, skills, journeys, modes, coloring/prepared-region coverage and Phase-5 target progress.
+- CI verifies report existence/JSON/errorCount and uploads `kids-drawing-p5.2-content-quality-report` for 30 days.
+- Negative tests cover structural-error projection plus suspicious tiny geometry, step count, duplicate refs, grouped-demo misuse, non-monotonic Help ordering and tiny prepared regions.
+- Production structural truth remains `LessonPackageLoader`, `LessonCatalog`, schema and `ColoringRegionValidator`.
 
-- copying is a learning tool, not the curriculum;
-- process and child ownership are first-class;
-- creative authorship increases with age;
-- no similarity scores, grades, leaderboards or permanent ability labels;
-- Help remains child-controlled and never punitive;
-- older lessons prefer conceptual/anchor help over tracing;
-- optional Responding/Connecting prompts are brief and non-graded;
-- culturally specific lessons require explicit sourcing/context/review and are not generic decorative imitation.
+### Calibrated accepted baseline
 
-### Coverage gates
+CI #465 / run `34806642996`: GREEN.
 
-At 0.5 release:
-- Little Artists: 8+ suitable lessons;
-- Creative Explorers: 14+;
-- Growing Artists: 14+;
-- Young Artists: 10+;
-- at least 3 credible difficulty-4 experiences;
-- at least 1 difficulty-5 lesson (`One-Point Room`);
-- at least 8 meaningful creative-choice lessons;
-- at least 6 Watch Then Draw / observation-memory experiences where pedagogically appropriate.
+Calibrated report artifact `10333610875` proves:
+- 9 release lessons;
+- 0 quality errors;
+- 0 quality warnings;
+- Little 4 / Creative 8 / Growing 7 / Young 2;
+- difficulty 1–4 present, difficulty 5 still future Phase-5 work;
+- Watch Then Draw 6/6 target minimum already present;
+- 3 coloring lessons, 2 prepared-coloring lessons;
+- Phase-5 catalog progress 9/24.
 
-## Phase-5 slice plan
+### Read-only Content Lab
 
-1. **P5.1 — Curriculum & Teaching Contract** — active.
-2. **P5.2 — Content Production System V2** — next after P5.1 acceptance.
-3. **P5.3 — Companion / Teacher Experience V2**.
-4. **P5.4 — Curriculum Expansion Set C**.
-5. **P5.5 — Curriculum Expansion Set D**.
-6. **P5.6 — Curriculum Expansion Set E**.
-7. **P5.7 — Local Adaptive Teaching**.
-8. **P5.8 — Cross-age curriculum QA + final 0.5 release**.
+`ContentInspectionRepository` and `ContentLabActivity` are implemented.
 
-Do not skip P5.2 and manually author all 15 lessons first. The production/validation workflow must scale before the content catalog does.
+The lab:
+- loads the real bundled `LessonCatalog`;
+- selects any release lesson;
+- displays real bundled preview/thumbnail SVGs;
+- displays lesson identity/age/difficulty/modes/skills/journeys;
+- selects authored drawing steps;
+- visualizes teacher strokes, expected/trace geometry, Help guide geometry and prepared-color regions separately;
+- shows step/Help/coloring contract metadata;
+- shows default semantic localization keys/values;
+- shows analyzer diagnostics/Phase-5 progress.
+
+Safety boundary:
+- separate engineering activity;
+- `ProductActivity` remains sole MAIN/LAUNCHER;
+- no child document/session persistence dependency;
+- no mutation API into child artwork/progress/Gallery;
+- local bundled assets only.
+
+Complete implementation baseline including Content Lab passed CI #463. Calibrated analyzer baseline passed CI #465.
+
+## P5.2 QA1 freeze
+
+QA file: `docs/10-execution/P5_2_QA.md`.
+
+Candidate identity:
+- versionName `0.5.0-curriculum-expansion-p5.2-qa1`;
+- versionCode 20;
+- dedicated QA1 debug/profile artifact filenames/names configured;
+- exact candidate commit/CI/artifact IDs/SHA: PENDING final exact-head green run;
+- Content Lab physical/developer matrix: PENDING;
+- normal product smoke: PENDING.
+
+Launch engineering lab after installing QA1:
+`adb shell am start -n com.navin.kidsdrawing/.ContentLabActivity`
+
+Do not add a child-facing navigation entry merely to make the engineering lab easier to open.
 
 ## Frozen architecture constraints
 
@@ -135,12 +144,14 @@ Do not skip P5.2 and manually author all 15 lessons first. The production/valida
 
 ## Immediate continuation
 
-1. Finish P5.1 roadmap/status/docs on branch.
-2. Open draft P5.1 PR.
-3. Require exact-head Android CI green.
-4. Review and accept P5.1; merge to `main` and verify merged-main CI.
-5. Close #74 only after merge-main is green.
-6. Create/execute P5.2 Content Production System V2 from that verified baseline.
+1. Freeze exact P5.2 QA1 head after docs synchronization.
+2. Require exact-head CI green including P5.2 report + QA1 APK packaging.
+3. Fetch content-report/debug/profile artifact IDs.
+4. Download profile APK, independently verify size/SHA against CI evidence.
+5. Hand exact APK to user; run `P5_2_QA.md` focused Content Lab matrix + normal product smoke.
+6. Record only checks actually reported.
+7. After acceptance: docs-only evidence commit + exact-head CI → PR #77 ready/squash merge → merged-main CI → close #76.
+8. Continue to P5.3 only after P5.2 is formally closed. Bulk P5.4–P5.6 lesson authoring remains blocked until then.
 
 ## Resume protocol
 
@@ -148,11 +159,11 @@ Read in order:
 1. `PROJECT_STATUS.md`
 2. this file
 3. `ROADMAP.md`
-4. epic #73
-5. issue #74
-6. `P5_1_CURRICULUM_RESEARCH.md`
-7. `P5_1_CURRICULUM_CONTRACT.md`
+4. issue #76 / PR #77
+5. `docs/10-execution/P5_2_EXECUTION_CONTRACT.md`
+6. `docs/10-execution/P5_2_QA.md`
+7. `docs/10-execution/P5_1_CURRICULUM_CONTRACT.md`
 8. `docs/17_TAXONOMY_AND_STARTER_CURRICULUM.md`
-9. `docs/05_CONTENT_ARCHITECTURE.md`
+9. Phase-4 release report only when baseline evidence is needed.
 
 Do not reopen proven foundations merely because a chat changes.

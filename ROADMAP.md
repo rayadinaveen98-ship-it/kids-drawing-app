@@ -22,7 +22,7 @@ Phase 4 proved the reusable offline product foundation: nine production lessons,
 
 **Target:** `0.5.0-curriculum-expansion`  
 **Parent epic:** #73  
-**Latest fully verified product milestone:** `0.4.0-content-studio`, versionCode 19
+**Latest fully verified product release:** `0.4.0-content-studio`, versionCode 19
 
 ### Milestone strategy
 
@@ -72,15 +72,15 @@ Accepted QA2:
 - executable `2f36834d110cb1076b953f519eee4a8dc6e2e19d`;
 - CI #477 GREEN;
 - profile artifact `10333593024`;
-- profile APK 16,245,548 bytes;
+- APK size 16,245,548 bytes;
 - SHA-256 `725720ae1fbff232cbb56049d77b087d8214f959189269630dbbd9eeb0817cf6`;
 - Content Lab focused matrix 20/20 PASS;
 - final acceptance-doc CI #481 GREEN;
 - merged-main CI #482 GREEN.
 
-### P5.3 — Companion / Teacher Experience V2 — PHYSICALLY ACCEPTED / FINAL MERGE GATES
+### P5.3 — Companion / Teacher Experience V2 — COMPLETE
 
-Issue #78, draft PR #79, branch `phase5/p5-3-companion-teacher-v2`.
+Issue #78 closed completed. PR #79 squash-merged at `e3553414c591ae5def3d9016c1a63e9d1a350f39`; merged-main CI #498 GREEN.
 
 Delivered:
 - deterministic age-aware companion policy for Little / Creative / Growing / Young;
@@ -98,24 +98,47 @@ Delivered:
 Accepted QA1:
 - `0.5.0-curriculum-expansion-p5.3-qa1`, versionCode 22;
 - physically tested executable `eef87b25478c6a30d6fefbd7580f75ded4eca3ab`;
-- corrected pure-policy CI #486 / run `34810895376` GREEN;
-- integrated Guided Lesson CI #487 / run `34811189264` GREEN;
-- exact frozen QA1 CI #493 / run `34811688427` GREEN;
-- debug artifact `10335460247`;
+- exact frozen QA1 CI #493 GREEN;
 - profile artifact `10334873551`;
-- content-quality artifact `10334589314`;
 - profile APK 16,245,553 bytes;
 - SHA-256 `bed4c00bce4629822b50c6523527a1ebad66428fc0977580501a20c77ad3e5de`;
-- independent SHA/size verification matched CI evidence;
-- content-quality report 9 lessons / 0 errors / 0 warnings;
-- focused physical/product matrix **20/20 PASS** by user report on 2026-09-14;
-- device model/API not restated and not inferred.
+- focused physical/product matrix **20/20 PASS**;
+- final merge gates completed and issue #78 closed.
 
-Remaining P5.3 exit: final acceptance-doc exact-head CI → PR #79 ready/squash merge → merged-main CI → #78 close.
+### P5.4 — Curriculum Expansion Set C — ACTIVE / AUTOMATED QA1 PASS
 
-### P5.4 — Curriculum Expansion Set C — NEXT AFTER P5.3
+Issue #80, draft PR #81, branch `phase5/p5-4-curriculum-set-c`.
 
-Foundations + early-child/nature/everyday content. Planned lesson pool includes Happy Lines, Shape Friends, Rainbow Weather, Tree Through Seasons and Ice Cream Shop, balanced against QA scope.
+Delivered Set C:
+- Happy Lines;
+- Shape Friends;
+- Rainbow Weather;
+- Tree Through Seasons;
+- Ice Cream Shop.
+
+Catalog is now **14 production release lessons**.
+
+Automated QA1 candidate:
+- `0.5.0-curriculum-expansion-p5.4-qa1`, versionCode 23;
+- exact QA commit `797d2219c4fe7f643d31f1ada42e08bacf7d105f`;
+- complete Set-C CI #508 GREEN;
+- exact frozen QA1 CI #509 / run `34831113980` GREEN;
+- profile artifact `10342178179`;
+- profile APK 16,267,569 bytes;
+- profile SHA-256 `e220bb0ffc7a2a15e4cfedb9dd907a5850247e55611158cda2a29dc46c6d1200`;
+- debug artifact `10341973952`;
+- content-quality artifact `10342606597`;
+- content report 14 lessons / 0 errors / 3 reviewed `NO_JOURNEY_MEMBERSHIP` warnings;
+- permission allowlist green.
+
+P5.4 is **not complete yet**. Remaining required gates:
+- interactive Content Lab visual inspection of all five Set-C lessons;
+- focused physical-device pass on exact profile artifact `10342178179`;
+- acceptance evidence synchronization;
+- final exact-head acceptance-doc CI;
+- PR #81 ready/squash merge;
+- merged-main CI;
+- issue #80 close completed.
 
 ### P5.5 — Curriculum Expansion Set D
 

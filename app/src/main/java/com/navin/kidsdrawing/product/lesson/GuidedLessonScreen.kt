@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -60,10 +61,10 @@ import com.navin.kidsdrawing.lesson.session.LessonSessionState
 import com.navin.kidsdrawing.lesson.session.MarkChildTurnDone
 import com.navin.kidsdrawing.lesson.session.ReduceHelp
 import com.navin.kidsdrawing.lesson.session.ReplayDemonstration
-import com.navin.kidsdrawing.lesson.session.RequestHelp
 import com.navin.kidsdrawing.lesson.session.RetryRecoverable
 import com.navin.kidsdrawing.lesson.session.SkipOverview
 import com.navin.kidsdrawing.lesson.session.SkipStep
+import com.navin.kidsdrawing.product.adaptive.ProductAdaptiveHelpCoordinator
 import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
 import com.navin.kidsdrawing.product.coloring.ProductColoringStartResult
 import com.navin.kidsdrawing.product.design.StudioColors
@@ -85,6 +86,8 @@ fun GuidedLessonScreen(
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val adaptiveHelpCoordinator = remember(context) { ProductAdaptiveHelpCoordinator(context) }
     val lifecycleOwner = LocalLifecycleOwner.current
     val layout = lessonLayoutPolicyFor(ageBand)
     val surfaceController = remember { DrawingSurfaceController() }
@@ -291,6 +294,11 @@ fun GuidedLessonScreen(
                         currentPace = (sessionState as? LessonSessionState.Contextual)?.context?.pace ?: startPace,
                         minimumControlHeight = layout.minimumControlHeight,
                         maxColumns = layout.maxCompactActionColumns,
+                        onHelpRequested = {
+                            scope.launch {
+                                adaptiveHelpCoordinator.onChildHelpRequested(runtime, ageBand)
+                            }
+                        },
                     )
                     DrawingToolControls(
                         runtime = runtime,
@@ -422,13 +430,14 @@ private fun EssentialLessonControls(
     currentPace: TeachingPace,
     minimumControlHeight: Dp,
     maxColumns: Int,
+    onHelpRequested: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val actions = buildList {
         if (presentation.showPause) add(WorkspaceActionSpec("Pause") { scope.launch { runtime.dispatch(LessonCommand.Pause) } })
         if (presentation.showResume) add(WorkspaceActionSpec("Resume") { scope.launch { runtime.dispatch(LessonCommand.Resume) } })
         if (presentation.showReplay) add(WorkspaceActionSpec("Replay") { scope.launch { runtime.dispatch(ReplayDemonstration) } })
-        if (presentation.showHelp) add(WorkspaceActionSpec("Help") { scope.launch { runtime.dispatch(RequestHelp) } })
+        if (presentation.showHelp) add(WorkspaceActionSpec("Help", action = onHelpRequested))
         if (presentation.showRetry) add(WorkspaceActionSpec("Try again") { scope.launch { runtime.dispatch(RetryRecoverable) } })
         if (presentation.showReduceHelp) add(WorkspaceActionSpec("Less help") { scope.launch { runtime.dispatch(ReduceHelp) } })
         if (presentation.showDismissHelp) add(WorkspaceActionSpec("Hide help") { scope.launch { runtime.dispatch(DismissHelp) } })

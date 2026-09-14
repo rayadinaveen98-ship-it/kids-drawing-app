@@ -63,6 +63,7 @@ object LocalAdaptiveReducer {
                 categoryId.trim().takeIf(String::isNotBlank)?.let { add("category:$it") }
             }
             event.helpKind?.let { add("kind:${it.name}") }
+            add("choice:${event.choice.name}")
         }
         return state.copy(
             helpRequestCounts = incrementBounded(

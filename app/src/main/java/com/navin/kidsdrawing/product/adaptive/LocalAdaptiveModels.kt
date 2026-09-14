@@ -59,6 +59,11 @@ data class LocalAdaptiveState(
     }
 }
 
+enum class AdaptiveHelpChoice {
+    AUTHORED_HELP,
+    REPLAY,
+}
+
 /** Explicit product-meaning events are the only allowed mutation input for adaptive state. */
 sealed interface AdaptiveEvent {
     val eventKey: String
@@ -87,6 +92,7 @@ sealed interface AdaptiveEvent {
         val skillIds: List<String>,
         val categoryIds: List<String>,
         val helpKind: HelpKind?,
+        val choice: AdaptiveHelpChoice = AdaptiveHelpChoice.AUTHORED_HELP,
     ) : AdaptiveEvent {
         init {
             require(eventKey.isNotBlank()) { "eventKey cannot be blank." }

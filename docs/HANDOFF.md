@@ -25,38 +25,16 @@ Android-first children's drawing/art-learning app built as a patient personal ar
 - Current slice: **P5.5 Curriculum Expansion Set D #82**
 - Draft PR: #83
 - Active branch: `phase5/p5-5-curriculum-set-d`
-- Verified starting main: `00c618cb9b16444f77e534431b3ca417e85a3e10`
-- Starting merged-main CI: #514 / run `34834247565` — GREEN
-- Current production catalog: **14 lessons**
-- P5.5 target: **20 lessons**
-- Expected first P5.5 QA: `0.5.0-curriculum-expansion-p5.5-qa1`, versionCode **24**
+- P5.5 implementation: **COMPLETE**
+- Automated QA1: **GREEN**
+- Interactive acceptance: **PENDING**
+- Current production catalog: **20 lessons**
+- QA candidate: `0.5.0-curriculum-expansion-p5.5-qa1`, versionCode **24**
+- Exact QA app/content commit: `3a538b5f7c2db118a0006176b7093b0e22961f9b`
 - Latest fully verified product release remains **`0.4.0-content-studio`, versionCode 19** until the full Phase-5 milestone releases.
 
-## P5.4 frozen baseline
+## P5.5 delivered Set D
 
-Set C delivered Happy Lines, Shape Friends, Rainbow Weather, Tree Through Seasons and Ice Cream Shop.
-
-Accepted QA1:
-- versionCode 23;
-- exact app/content QA commit `797d2219c4fe7f643d31f1ada42e08bacf7d105f`;
-- profile artifact `10342178179`;
-- profile APK 16,267,569 bytes;
-- SHA-256 `e220bb0ffc7a2a15e4cfedb9dd907a5850247e55611158cda2a29dc46c6d1200`;
-- quality report 14 lessons / 0 errors / 3 reviewed standalone warnings;
-- Content Lab 15/15 PASS;
-- physical 30/30 PASS; device/API were not provided and not inferred;
-- final acceptance CI #513 GREEN;
-- merged-main CI #514 GREEN.
-
-ADR-008 remains the generic Trace/open-authorship compatibility rule. Do not add lesson-specific Trace exceptions in later curriculum slices.
-
-## P5.5 locked Set D
-
-Execution contract: `docs/10-execution/P5_5_EXECUTION_CONTRACT.md`  
-First contract commit: `d9be4436a77d7a1b967c44cebf7e59182fb6c56f`  
-The contract was committed before content implementation.
-
-Locked lessons:
 1. **Snail Garden r1** — Little + Creative; difficulty 2; Animal Artist journey; Draw With Me + Watch Then Draw; open shell/garden variation.
 2. **Elephant From Shapes r1** — Creative + Growing + Young; difficulty 3; Animal Artist journey; construction/proportion/overlap; no Trace.
 3. **Simple Car r1** — Creative + Growing; difficulty 2; standalone vehicle construction; open car design.
@@ -64,7 +42,9 @@ Locked lessons:
 5. **Planet With Rings r1** — Creative + Growing; difficulty 2; Space Artist journey entry; overlap/centering/palette-choice authorship.
 6. **Friendly Alien r1** — Creative + Growing + Young; difficulty 3; Space Artist journey; silhouette/symmetry/story/personality variation.
 
-### Journey contract
+Catalog grew **14 → 20 release lessons**.
+
+## Journey contract now implemented
 
 `journey.animal_artist`:
 Little Fish → Snail Garden → Cute Cat → Friendly Owl → Elephant From Shapes → Fox Portrait.
@@ -72,37 +52,55 @@ Little Fish → Snail Garden → Cute Cat → Friendly Owl → Elephant From Sha
 `journey.space_artist`:
 Planet With Rings → Simple Rocket → Friendly Alien → Design Your Spaceship.
 
-Simple Car and Sailboat Scene remain intentionally standalone in P5.5; do not invent a journey to clear analyzer warnings.
+Simple Car and Sailboat Scene remain intentionally standalone; do not invent a journey merely to clear analyzer warnings.
 
-### Prerequisite contract
+During P5.5 validation, retained Little Fish/Cute Cat metadata was corrected to canonical P5.1 Animal Artist membership. This was a metadata/test-fixture compatibility correction only; no lesson identity, drawing geometry or saved-artwork contract changed.
 
-- Snail Garden → `little-fish`
-- Elephant From Shapes → `friendly-owl`
-- Simple Car → `shape-friends`
-- Sailboat Scene → `simple-car`
-- Planet With Rings → none
-- Friendly Alien → `simple-rocket`
+## Verified P5.5 QA1 evidence
 
-### Coverage checkpoint after Set D
+Android CI #525 / run `34837734724` is GREEN on exact QA app/content commit `3a538b5f7c2db118a0006176b7093b0e22961f9b`.
 
-Expected catalog support:
-- Little: 8
-- Creative: 18
-- Growing: 14
-- Young: 6
+Quality:
+- lessons: **20**;
+- errors: **0**;
+- warnings: **5**;
+- accepted warning code: `NO_JOURNEY_MEMBERSHIP` only;
+- accepted warning lessons: Rainbow Weather, Tree Through Seasons, Ice Cream Shop, Simple Car, Sailboat Scene.
 
-P5.6 is responsible for the final Young Artist growth to the Phase-5 floor; do not mark easier Set-D content all-ages merely to inflate coverage.
+Coverage:
+- Little: **8**;
+- Creative: **18**;
+- Growing: **14**;
+- Young: **6**.
 
-### Quality-warning contract
+Release-like profile APK:
+- artifact ID `10344519403`;
+- APK `Kids_Drawing_0.5.0_Curriculum_Expansion_P5.5_QA1-profile.apk`;
+- APK size **16,293,898 bytes**;
+- SHA-256 `9e23562b5bea4f2b406a48a1b64e339887f91926ad8789deaa160bbc93301629`.
 
-The final 20-lesson catalog may contain exactly five reviewed `NO_JOURNEY_MEMBERSHIP` warnings:
-- Rainbow Weather
-- Tree Through Seasons
-- Ice Cream Shop
-- Simple Car
-- Sailboat Scene
+Debug APK:
+- artifact ID `10345315128`;
+- APK size **20,508,319 bytes**;
+- SHA-256 `79fd638cefa5e1e46a337d2a35a720a1586139a7aa3c8b864b893e880095e307`.
 
-No other warning/error is accepted. The analyzer must remain strict; do not invent journeys or suppress diagnostics globally.
+Content-quality artifact: `10344354743`.
+
+Permission allowlist passed for debug/profile APKs. No unexpected sensitive permission was introduced.
+
+## Remaining P5.5 gate
+
+Read `docs/10-execution/P5_5_QA.md` and use the fixed `docs/10-execution/P5_5_FOCUSED_ACCEPTANCE_CHECKLIST.md`.
+
+Required observations:
+- Content Lab **18/18 PASS**;
+- exact-profile physical matrix **36/36 PASS**;
+- no binary/content-changing defect;
+- actual device/API recorded when supplied; never infer it.
+
+Automated CI is not a substitute for physical/interactive acceptance. Keep PR #83 **draft** until those checks genuinely pass and final acceptance-doc CI is green.
+
+If a binary/content defect is found, invalidate QA1 and cut a new candidate with a new versionCode; never silently reuse versionCode 24 for changed binaries.
 
 ## Frozen architecture constraints
 
@@ -121,12 +119,12 @@ No other warning/error is accepted. The analyzer must remain strict; do not inve
 
 ## Immediate continuation
 
-1. Require P5.5 contract + continuation-doc exact-head CI green.
-2. Implement **Animal Batch A only**: Snail Garden + Elephant From Shapes.
-3. Add package/journey/prerequisite/open-authorship/geometry/Companion tests and move the quality checkpoint 14 → 16.
-4. Run exact-head CI before Vehicle/Scene Batch B.
-5. Implement Simple Car + Sailboat Scene, then Planet With Rings + Friendly Alien as separate gated batches.
-6. Reach the 20-lesson quality/coverage gate, inspect all six in Content Lab, freeze QA1 versionCode 24, capture exact APK evidence, physically accept, then merge only after final acceptance CI.
+1. Require CI green for the QA evidence/checklist synchronization commit.
+2. Run Content Lab 18/18 against the frozen 20-lesson catalog.
+3. Install only profile artifact `10344519403` and run the 36-row exact-profile matrix.
+4. Record genuine results; do not infer PASS.
+5. If 18/18 + 36/36 pass with no binary-changing defect: commit acceptance evidence, run final acceptance-doc CI, mark PR #83 ready, squash-merge, verify merged-main CI, close #82.
+6. Start P5.6 only from verified post-P5.5 `main`.
 
 ## Resume protocol
 
@@ -136,9 +134,10 @@ Read in order:
 3. `ROADMAP.md`
 4. epic #73
 5. issue #82 / PR #83
-6. `docs/10-execution/P5_5_EXECUTION_CONTRACT.md`
-7. `docs/10-execution/P5_1_CURRICULUM_CONTRACT.md`
-8. P5.2 content-production/QA records when tooling evidence is needed
-9. P5.4 QA + ADR-008 only when the frozen Trace/open-authorship behavior matters.
+6. `docs/10-execution/P5_5_QA.md`
+7. `docs/10-execution/P5_5_FOCUSED_ACCEPTANCE_CHECKLIST.md`
+8. `docs/10-execution/P5_5_EXECUTION_CONTRACT.md`
+9. `docs/10-execution/P5_1_CURRICULUM_CONTRACT.md`
+10. P5.2 tooling and P5.4/ADR-008 only when those frozen behaviors are relevant.
 
 Do not reopen proven foundations merely because a chat changes.

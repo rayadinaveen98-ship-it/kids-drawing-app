@@ -3,59 +3,65 @@
 **Working project:** Kids Drawing App  
 **Authoritative repository:** `rayadinaveen98-ship-it/kids-drawing-app`  
 **Latest fully verified product release:** `0.4.0-content-studio`, versionCode 19  
-**Current phase:** Phase 5 — Curriculum & Teaching Experience Expansion / `0.5.0-curriculum-expansion` — **ACTIVE**  
+**Current phase:** Phase 5 — Curriculum & Teaching Experience Expansion / `0.5.0-curriculum-expansion` — **ACTIVE / FINAL SLICE**  
 **Parent epic:** #73  
-**Latest completed slice:** P5.6 — Curriculum Expansion Set E #84  
-**Current slice:** P5.7 — Local Adaptive Teaching #86  
-**Active branch:** `phase5/p5-7-local-adaptive-teaching`  
-**Draft PR:** #87  
-**Current P5.7 state:** **QA1 v26 AUTOMATED + PHYSICAL ACCEPTANCE PASS; FINAL ACCEPTANCE CI / MERGE PENDING**  
+**Latest completed slice:** P5.7 — Local Adaptive Teaching #86  
+**Current slice:** P5.8 — Cross-age Curriculum QA + 0.5 Release #88  
+**Active branch:** `phase5/p5-8-final-release`  
+**Draft PR:** #89  
+**Current P5.8 state:** **CONTRACT/DOCS VERIFIED GREEN; INTEGRATED RELEASE GATE STAGED FOR EXACT-HEAD CI**  
 **Current production catalog:** **24 release lessons**  
-**Verified starting main:** `91bc7584994224852d3d44749e78749d39ff954b`  
+**Verified starting main:** `e4fb0ddd2053f6583b7c1457ee65e034d43707a8`  
+**Verified starting merged-main CI:** Android CI #571 / run `34869966116` — **GREEN**  
+**P5.8 contract/docs CI:** Android CI #572 / run `34870784247` — **GREEN**  
+**Reserved final release versionCode:** **27**  
 **Last updated:** 2026-09-14
 
 Git is authoritative when chat memory and repository state disagree.
 
-## P5.7 verified implementation
+## P5.7 frozen baseline
 
-- contract-first commit `5225e82bcae4afae7a0d5dc65bacd1a5054d4b19`;
-- Batch A adaptive state/store/reducer: GREEN;
-- future-format preservation fix: GREEN;
-- Batch B progression-aware adaptive Home recommendations: GREEN;
-- adaptive primary reason presentation: CI #560 GREEN;
-- Batch C child-controlled adaptive Help: CI #561 GREEN;
-- cross-age deterministic pre-QA gate: CI #562 GREEN.
+- PR #87 squash-merged into `main` at `e4fb0ddd2053f6583b7c1457ee65e034d43707a8`.
+- merged-main Android CI #571 / run `34869966116`: **GREEN**.
+- issue #86: **closed completed**.
+- accepted P5.7 QA1: `0.5.0-curriculum-expansion-p5.7-qa1`, versionCode 26.
+- P5.7 physical acceptance: **45/45 PASS**.
+- profile artifact: `10357367072`.
+- profile SHA256: `126b0c2d742a4c22b82239ded0502baf5119cf35a89883391ac68239c37b14d0`.
 
-## QA1 accepted candidate
+## P5.8 contract
 
-- binary commit `e258632e83e83a39ac649855ea19592c2f5003ae`;
-- versionName `0.5.0-curriculum-expansion-p5.7-qa1`;
-- versionCode **26**;
-- Android CI #563 / run `34866700627`: **GREEN**;
-- content quality: **24 lessons / 0 errors / 6 reviewed warnings**;
-- permission allowlist: **PASS**;
-- profile artifact `10357367072`;
-- profile size `16,344,676` bytes;
-- profile SHA256 `126b0c2d742a4c22b82239ded0502baf5119cf35a89883391ac68239c37b14d0`;
-- physical acceptance: **45/45 PASS** on 2026-09-14;
-- tester device model/API: **not provided**;
-- reported defects: **none**.
+- issue #88.
+- branch `phase5/p5-8-final-release`.
+- draft PR #89.
+- contract-first commit `0bb87cb845b9ae713a4cefcf46b55a57fdce6148`.
+- contract/docs head CI #572 / run `34870784247`: **GREEN**.
+- target final milestone: `0.5.0-curriculum-expansion`.
+- versionCode **27** is reserved for the first final-release freeze only.
 
-## Immediate closure gate
+## Integrated release gate
 
-1. final acceptance-doc head CI must be GREEN;
-2. mark PR #87 ready;
-3. squash merge exact acceptance head;
-4. merged-main CI must be GREEN;
-5. close #86 completed;
-6. begin P5.8 from that verified main.
+The staged P5.8 test locks together:
+- catalog 24 / 0 errors / six reviewed standalone warnings;
+- Little 8 / Creative 18 / Growing 17 / Young 10;
+- difficulty 5 / 9 / 6 / 3 / 1;
+- every prerequisite resolves to a real lesson;
+- Draw With Me / Watch Then Draw / authored Trace all remain represented;
+- open-authorship MANUAL_DONE + allowSkip + no expected geometry never carries forced Trace help;
+- journey/prerequisite metadata is canonical, unique and non-self-referential.
+
+## Immediate gate
+
+1. integrated release-gate exact-head CI must be GREEN;
+2. only then cut final `0.5.0-curriculum-expansion`, versionCode **27**;
+3. capture exact APK evidence and perform final physical acceptance;
+4. acceptance CI → squash merge → merged-main CI → close #88 and Phase 5.
 
 ## Frozen architecture invariants
 
-- `StudioPrimarySelectionPolicy`: coloring resume → drawing resume → fresh recommendation;
-- `StudioRecommendationPolicy` remains the Home recommendation surface;
-- `ChildProfile` remains explicit profile truth;
-- `LessonSessionState` remains teaching-state truth;
-- Companion remains read-only;
-- adaptive state is advisory/local/bounded and cannot mutate artwork/session truth;
-- no raw artwork/strokes, ability labels, grades/scores/rank/XP, punitive streaks, cloud profiling, analytics upload or network dependency.
+- UI never owns artwork/history/lesson truth.
+- `LessonSessionState` remains teaching-state truth.
+- Companion remains read-only.
+- overlays never enter child artwork.
+- adaptive state is local/bounded/advisory and never stores raw artwork/strokes or ability labels.
+- no network dependency for core use.

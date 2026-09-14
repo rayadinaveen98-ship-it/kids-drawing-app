@@ -49,7 +49,7 @@ Target milestone: `0.5.0-curriculum-expansion`.
 - content remains structured/generic and offline-first;
 - P5.2 authoring/validation tooling must be accepted before bulk P5.4–P5.6 lesson production.
 
-## P5.2 — Content Production System V2 — ACTIVE / QA1 FREEZE
+## P5.2 — Content Production System V2 — ACTIVE / QA2 FREEZE
 
 Issue #76, draft PR #77, branch `phase5/p5-2-content-production-v2`.
 
@@ -72,13 +72,24 @@ Key automated evidence before QA freeze:
 - calibrated report artifact `10333610875`;
 - report: 9 lessons, 0 errors, 0 warnings, Watch Then Draw 6/6 Phase-5 minimum, catalog progress 9/24.
 
-### P5.2 QA1 identity
+### QA1 — rejected before distribution
 
 - versionName `0.5.0-curriculum-expansion-p5.2-qa1`;
 - versionCode 20;
-- dedicated P5.2 QA1 debug/profile artifact naming configured;
+- frozen head `07025d8cf35569179b1ee1e9443303bd92019093`;
+- CI #471 / run `34807204480` FAILED at `compileDebugAndroidTestKotlin`;
+- cause: QA-freeze edit accidentally removed existing Compose UI test dependencies from `app/build.gradle.kts`;
+- production/debug/profile Kotlin compiled before that instrumentation-test compile failure;
+- no QA1 APK was distributed or accepted.
+
+### P5.2 QA2 identity — CURRENT
+
+- versionName `0.5.0-curriculum-expansion-p5.2-qa2`;
+- versionCode 21;
+- missing test dependencies restored from the last green implementation baseline;
+- dedicated QA2 debug/profile artifact naming configured;
 - authoritative QA matrix: `docs/10-execution/P5_2_QA.md`;
-- exact frozen candidate commit / CI / profile artifact / APK SHA: PENDING final exact-head green build;
+- exact frozen QA2 candidate commit / CI / profile artifact / APK SHA: PENDING final exact-head green build;
 - physical/developer Content Lab matrix: PENDING.
 
 ## Frozen architecture invariants
@@ -97,10 +108,10 @@ Key automated evidence before QA freeze:
 
 ## Immediate next action
 
-1. Freeze the exact P5.2 QA1 head after QA/status/handoff/roadmap synchronization.
-2. Require exact-head Android CI green, including content-quality report and dedicated QA1 APK artifacts.
+1. Synchronize QA2 status/handoff/roadmap and freeze one exact candidate head.
+2. Require exact-head Android CI green, including instrumentation compile, content-quality report and dedicated QA2 APK artifacts.
 3. Download profile artifact and independently verify APK size/SHA against CI evidence.
-4. Hand the exact QA1 APK to the user for the focused Content Lab + normal-product smoke matrix in `P5_2_QA.md`.
+4. Hand the exact QA2 APK to the user for the focused Content Lab + normal-product smoke matrix in `P5_2_QA.md`.
 5. Do not mark physical rows PASS unless explicitly exercised/reported.
 6. After acceptance: final docs CI → PR #77 ready/squash merge → merged-main CI → close #76.
 7. Only then continue to P5.3. Bulk lesson production remains blocked until P5.2 is accepted.

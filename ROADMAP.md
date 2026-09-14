@@ -79,7 +79,7 @@ Phase-5 exact new lesson target:
 14. Create Your Character
 15. One-Point Room
 
-### P5.2 — Content Production System V2 — ACTIVE / QA2
+### P5.2 — Content Production System V2 — ACCEPTED CANDIDATE / FINAL MERGE GATES
 
 Issue #76, draft PR #77, branch `phase5/p5-2-content-production-v2`.
 
@@ -97,19 +97,25 @@ Implemented:
 - engineering-only `ContentLabActivity` showing real bundled preview/thumbnail SVG, lesson metadata, step/help/coloring contract, teacher/expected/help/prepared-region geometry and localization;
 - Content Lab has no child document/session mutation path and is not part of the child-facing launcher flow.
 
-Automated proof before QA freeze:
+Automated implementation proof:
 - full implementation CI #463 GREEN;
 - calibrated baseline CI #465 / run `34806642996` GREEN;
 - calibrated report artifact `10333610875`;
 - report: 9 lessons, 0 errors, 0 warnings, Phase-5 catalog progress 9/24.
 
-QA candidate history:
+Candidate history:
 - **QA1 / versionCode 20:** frozen at `07025d8cf35569179b1ee1e9443303bd92019093`; CI #471 failed because the freeze edit accidentally removed existing Compose UI test dependencies; no QA1 APK was distributed or accepted.
-- **QA2 / versionCode 21:** `0.5.0-curriculum-expansion-p5.2-qa2`; test dependencies restored; dedicated QA2 artifact naming configured; exact frozen head/CI/artifact evidence pending.
+- **QA2 / versionCode 21:** `0.5.0-curriculum-expansion-p5.2-qa2`; executable `2f36834d110cb1076b953f519eee4a8dc6e2e19d`; CI #477 / run `34808016949` GREEN; debug artifact `10333752707`; profile artifact `10333593024`; report artifact `10334126516`; profile APK 16,245,548 bytes; SHA-256 `725720ae1fbff232cbb56049d77b087d8214f959189269630dbbd9eeb0817cf6`; independent size/SHA verification matched CI.
+
+Focused QA2 physical/developer result:
+- Content Lab matrix: **20/20 PASS**;
+- normal-product smoke: PASS;
+- report verified at 9 lessons / 0 errors / 0 warnings;
+- user acceptance applies to the exact QA2 v21 binary above.
 
 QA matrix: `docs/10-execution/P5_2_QA.md`.
 
-P5.2 exit: exact QA2 CI + reproducible APK/report evidence → focused device pass → acceptance-doc CI → PR #77 merge → merged-main CI → #76 close.
+Remaining P5.2 exit: final acceptance-doc exact-head CI → PR #77 ready/squash merge → merged-main CI → #76 close.
 
 Bulk P5.4–P5.6 content production remains blocked until this exit target is complete.
 

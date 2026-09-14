@@ -14,16 +14,16 @@ import org.junit.Test
 
 class RepresentativeContentSetBTest {
     @Test
-    fun productionCatalogContainsNineReleaseLessonsWithoutDiagnostics() {
+    fun productionCatalogRetainsAllNineSetBLessonsWithoutDiagnostics() {
         val snapshot = productionCatalog()
         assertTrue(snapshot.diagnostics.toString(), snapshot.diagnostics.isEmpty())
-        assertEquals(9, snapshot.entries.size)
-        assertEquals(
-            setOf(
-                "cute-cat", "design-your-spaceship", "easy-flower", "fox-portrait", "friendly-owl",
-                "hot-air-balloon", "little-fish", "simple-rocket", "smiling-sun",
-            ),
-            snapshot.entries.map { it.identity.lessonId }.toSet(),
+        val setBLessons = setOf(
+            "cute-cat", "design-your-spaceship", "easy-flower", "fox-portrait", "friendly-owl",
+            "hot-air-balloon", "little-fish", "simple-rocket", "smiling-sun",
+        )
+        assertTrue(
+            "Set-B release lessons missing from expanded catalog: ${setBLessons - snapshot.entries.map { it.identity.lessonId }.toSet()}",
+            snapshot.entries.map { it.identity.lessonId }.toSet().containsAll(setBLessons),
         )
     }
 

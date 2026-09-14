@@ -22,13 +22,15 @@ class ProductionContentQualityGateTest {
 
         assertTrue("Production catalog diagnostics: ${snapshot.diagnostics}", snapshot.diagnostics.isEmpty())
         assertEquals("Content quality errors: ${report.diagnostics}", 0, report.errorCount)
-        assertEquals(9, report.lessonCount)
+        assertEquals("Content quality warnings: ${report.diagnostics}", 0, report.warningCount)
+        assertEquals(11, report.lessonCount)
 
         val text = report.renderText()
         val json = report.renderJson()
         val parsed = Json.parseToJsonElement(json).jsonObject
-        assertEquals(9, parsed.getValue("lessonCount").jsonPrimitive.content.toInt())
+        assertEquals(11, parsed.getValue("lessonCount").jsonPrimitive.content.toInt())
         assertEquals(0, parsed.getValue("errorCount").jsonPrimitive.content.toInt())
+        assertEquals(0, parsed.getValue("warningCount").jsonPrimitive.content.toInt())
 
         val outputDir = File("build/reports/content-quality").apply { mkdirs() }
         val textFile = File(outputDir, "catalog-report.txt")

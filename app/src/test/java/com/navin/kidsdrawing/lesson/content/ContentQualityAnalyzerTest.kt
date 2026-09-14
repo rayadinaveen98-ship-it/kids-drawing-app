@@ -15,7 +15,7 @@ import org.junit.Test
 
 class ContentQualityAnalyzerTest {
     @Test
-    fun productionNineLessonCatalogHasZeroQualityErrorsAndDeterministicCoverage() {
+    fun productionCatalogHasZeroQualityErrorsAndDeterministicCoverage() {
         val snapshot = productionCatalog()
         val analyzer = ContentQualityAnalyzer()
 
@@ -23,7 +23,8 @@ class ContentQualityAnalyzerTest {
         val second = analyzer.analyze(snapshot)
 
         assertTrue(snapshot.diagnostics.toString(), snapshot.diagnostics.isEmpty())
-        assertEquals(9, first.lessonCount)
+        assertEquals(snapshot.entries.size, first.lessonCount)
+        assertTrue("Production catalog unexpectedly lost baseline lessons", first.lessonCount >= 9)
         assertEquals(0, first.errorCount)
         AgeBand.entries.forEach { ageBand ->
             assertTrue("No production lessons reported for $ageBand", (first.ageBandCounts[ageBand] ?: 0) > 0)
@@ -36,7 +37,7 @@ class ContentQualityAnalyzerTest {
         }
         assertTrue(first.coloringLessonCount > 0)
         assertTrue(first.preparedColoringLessonCount > 0)
-        assertEquals(9, first.phase5Progress.lessonCount)
+        assertEquals(first.lessonCount, first.phase5Progress.lessonCount)
         assertEquals(24, first.phase5Progress.lessonTarget)
         assertFalse(first.phase5Progress.lessonTargetMet)
         assertEquals(first, second)

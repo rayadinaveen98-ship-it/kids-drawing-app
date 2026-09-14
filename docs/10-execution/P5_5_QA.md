@@ -6,12 +6,12 @@
 **QA candidate:** `0.5.0-curriculum-expansion-p5.5-qa1`  
 **versionCode:** 24  
 **Exact app/content QA commit:** `3a538b5f7c2db118a0006176b7093b0e22961f9b`  
-**Status:** **AUTOMATED QA GREEN — INTERACTIVE ACCEPTANCE PENDING**  
+**Status:** **ACCEPTED — AUTOMATED + CONTENT LAB + PHYSICAL QA PASS**  
 **Last updated:** 2026-09-14
 
 ## 1. Scope delivered
 
-P5.5 adds six production lessons through the existing structured `LessonPackageLoader` / `LessonCatalog` path:
+P5.5 adds six production lessons through the generic `LessonPackageLoader` / `LessonCatalog` path:
 
 1. `snail-garden@1`
 2. `elephant-from-shapes@1`
@@ -20,110 +20,107 @@ P5.5 adds six production lessons through the existing structured `LessonPackageL
 5. `planet-with-rings@1`
 6. `friendly-alien@1`
 
-The production catalog grows from 14 to **20 release lessons**.
+The catalog grows from 14 to **20 release lessons**. Frozen architecture and safety boundaries remain intact: no lesson-ID-specific runtime path, no scoring/rank/stars/XP/permanent ability labels/cloud profiling, and no mandatory account/network dependency.
 
-No lesson-ID-specific runtime path was added. Existing drawing/session/persistence/Companion boundaries remain intact. Set-D lessons use the generic open-authorship behavior established by ADR-008 and do not introduce similarity scoring, grades, stars/XP, ranking, permanent ability labels, cloud profiling, mandatory accounts, ads or network dependency.
-
-## 2. Curriculum/journey result
-
-Accepted journey state:
+## 2. Curriculum result
 
 - `journey.animal_artist`: Little Fish → Snail Garden → Cute Cat → Friendly Owl → Elephant From Shapes → Fox Portrait.
 - `journey.space_artist`: Planet With Rings → Simple Rocket → Friendly Alien → Design Your Spaceship.
 - Simple Car and Sailboat Scene remain intentionally standalone.
 
-During Set-D validation, retained metadata was corrected so Little Fish and Cute Cat use the canonical P5.1 Animal Artist membership expected by the frozen curriculum contract. No drawing geometry, lesson identity or saved-artwork contract changed.
+Set-D validation also corrected retained Little Fish/Cute Cat journey metadata to canonical P5.1 IDs. This was metadata/test-fixture compatibility only; lesson identity, drawing geometry and saved-artwork contracts were unchanged.
 
-## 3. Exact content-quality acceptance
+## 3. Automated quality acceptance
 
-Android CI #525 / run `34837734724` produced:
+Exact QA1 Android CI #525 / run `34837734724`:
 
 - release lessons: **20**;
 - errors: **0**;
 - warnings: **5**;
-- accepted warning code: `NO_JOURNEY_MEMBERSHIP` only;
-- accepted warning lessons only: `rainbow-weather`, `tree-through-seasons`, `ice-cream-shop`, `simple-car`, `sailboat-scene`.
+- warning code: `NO_JOURNEY_MEMBERSHIP` only;
+- reviewed warning lessons only: Rainbow Weather, Tree Through Seasons, Ice Cream Shop, Simple Car, Sailboat Scene.
 
-Coverage at QA1:
+Coverage:
+- Little Artists **8**;
+- Creative Explorers **18**;
+- Growing Artists **14**;
+- Young Artists **6**;
+- Draw With Me **19**;
+- Watch Then Draw **13**;
+- Trace & Learn **4**;
+- coloring **4**;
+- prepared coloring **3**.
 
-- Little Artists: **8**;
-- Creative Explorers: **18**;
-- Growing Artists: **14**;
-- Young Artists: **6**;
-- Draw With Me: **19**;
-- Watch Then Draw: **13**;
-- Trace & Learn: **4**;
-- coloring lessons: **4**;
-- prepared-coloring lessons: **3**.
+The QA evidence/checklist synchronization commit `8f67896c08f413d4dc81c611234e5897da055d7c` also passed Android CI #526.
 
-Journeys reported by the analyzer:
+## 4. Immutable QA1 binary evidence
 
-- `journey.animal_artist`: 6 members;
-- `journey.first_shapes_to_pictures`: 7 members;
-- `journey.space_artist`: 4 members.
+### Release-like profile APK
 
-## 4. CI progression
-
-- CI #519 — exposed a retained Animal Artist metadata mismatch in the new Set-D journey gate.
-- commit `c217346f...` corrected Little Fish/Cute Cat to canonical Animal Artist membership.
-- CI #521 — exposed two retained LessonCatalog fixture assumptions tied to the old Cute Cat metadata shape.
-- commit `d5b10aa1...` repaired only those fixture assumptions.
-- CI #522 — GREEN for verified Animal Batch A + canonical journey metadata.
-- CI #523 — GREEN for Simple Car + Sailboat Scene / 18-lesson checkpoint.
-- CI #524 — GREEN for complete Set D / 20-lesson content and quality gate.
-- CI #525 / run `34837734724` — GREEN on exact frozen QA1 app/content commit `3a538b5f7c2db118a0006176b7093b0e22961f9b`.
-
-## 5. Immutable QA1 APK evidence
-
-### Release-like profile APK — physical acceptance candidate
-
-- artifact: `kids-drawing-0.5.0-curriculum-expansion-p5.5-qa1-profile`
 - artifact ID: `10344519403`
-- artifact archive size: `12,416,287 bytes`
 - APK: `Kids_Drawing_0.5.0_Curriculum_Expansion_P5.5_QA1-profile.apk`
 - APK size: **16,293,898 bytes**
-- APK SHA-256: `9e23562b5bea4f2b406a48a1b64e339887f91926ad8789deaa160bbc93301629`
+- SHA-256: `9e23562b5bea4f2b406a48a1b64e339887f91926ad8789deaa160bbc93301629`
 
 ### Debug APK
 
-- artifact: `kids-drawing-0.5.0-curriculum-expansion-p5.5-qa1-debug`
 - artifact ID: `10345315128`
-- artifact archive size: `16,618,025 bytes`
 - APK size: **20,508,319 bytes**
-- APK SHA-256: `79fd638cefa5e1e46a337d2a35a720a1586139a7aa3c8b864b893e880095e307`
+- SHA-256: `79fd638cefa5e1e46a337d2a35a720a1586139a7aa3c8b864b893e880095e307`
 
 ### Content-quality artifact
 
-- artifact: `kids-drawing-p5.2-content-quality-report`
 - artifact ID: `10344354743`
 - artifact archive SHA-256: `73defb78fe44c483ddc0f68dbae8af613f9974de4bd876df222995a71abb3a4f`
 
-The milestone permission allowlist passed for both debug and profile APKs. The only requested permission is the app-local `com.navin.kidsdrawing.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`; no unexpected sensitive permission was introduced.
+Permission allowlist passed for debug/profile APKs. The only requested permission is the app-local `com.navin.kidsdrawing.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`.
 
-## 6. Interactive acceptance gate — pending
+## 5. Interactive Content Lab acceptance — PASS
 
-The fixed matrix is `docs/10-execution/P5_5_FOCUSED_ACCEPTANCE_CHECKLIST.md`.
+On 2026-09-14, after receiving the exact QA1 binary and fixed 18-row checklist, the tester reported **“all good”** for the requested Content Lab pass.
 
-Required before P5.5 closure:
+Recorded result:
+- **18/18 PASS**;
+- all six Set-D packages accepted;
+- previews/thumbnails/geometry/help/localization accepted;
+- Animal Artist and Space Artist progressions accepted;
+- open-authorship behavior accepted;
+- diagnostics accepted at 20 lessons / 0 errors / exactly five reviewed warnings;
+- no content/binary-changing defect reported.
 
-- Content Lab: **18/18 PASS**;
-- exact-profile physical acceptance: **36/36 PASS**;
-- no binary/content-changing defect;
-- actual device/API recorded when supplied by the tester; never infer it.
+## 6. Focused physical-device acceptance — PASS
 
-Automated CI does **not** substitute for these observations.
+The tester reported the fixed exact-profile 36-row physical matrix **all good** against QA1.
 
-## 7. Current P5.5 decision
+Recorded result:
+- **36/36 PASS**;
+- all six Set-D lesson flows accepted;
+- Draw With Me / Watch Then Draw distinctions accepted;
+- no unintended Trace on older Set-D content;
+- open creative turns accepted;
+- age-band Companion presentation accepted;
+- Animal/Space journey discovery accepted;
+- resume/recovery, cross-lesson isolation and Gallery accepted;
+- prior-content/Free Draw regression smoke accepted;
+- Airplane Mode/lifecycle accepted;
+- no crash, ANR, deadlock, lost artwork, unexpected account/network requirement, permission prompt or binary-changing defect reported.
 
-The QA1 binary is valid and frozen for interactive acceptance. Do not rebuild or increment versionCode unless a binary/content-changing defect is found.
+Tester metadata:
+- tester: `User / product tester`;
+- date: `2026-09-14`;
+- device model: `not provided`;
+- Android version/API: `not provided`.
 
-P5.5 is **not yet merge-ready**. Remaining gates:
+Device/API are explicitly left unknown rather than inferred.
 
-1. Content Lab 18/18 observed PASS;
-2. exact-profile physical 36/36 observed PASS;
-3. commit acceptance results;
-4. exact-head acceptance-document CI GREEN;
-5. mark PR #83 ready for review;
-6. squash-merge the verified PR head;
-7. verify merged-main Android CI GREEN;
-8. close issue #82 completed and freeze P5.5 before starting P5.6.
+## 7. Acceptance decision
+
+P5.5 QA1 is the accepted physical candidate. No new versionCode is required because no binary/content-changing defect was reported.
+
+Remaining closure gates only:
+1. final exact-head acceptance-document CI;
+2. mark PR #83 ready for review;
+3. squash-merge the verified PR head;
+4. verify merged-main Android CI;
+5. close #82 completed;
+6. freeze P5.5 and start P5.6 only from verified `main`.

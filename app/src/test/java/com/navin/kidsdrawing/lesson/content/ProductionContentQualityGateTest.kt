@@ -16,16 +16,17 @@ class ProductionContentQualityGateTest {
         assertTrue("Production catalog diagnostics: ${snapshot.diagnostics}", snapshot.diagnostics.isEmpty())
         assertEquals("Content quality errors: ${report.diagnostics}", 0, report.errorCount)
         val warnings = report.diagnostics.filter { it.severity == ContentQualitySeverity.WARNING }
-        assertEquals("Unexpected content quality warnings: $warnings", 3, warnings.size)
-        assertEquals(setOf("rainbow-weather", "tree-through-seasons", "ice-cream-shop"), warnings.mapNotNull { it.lessonId }.toSet())
-        assertTrue("Only reviewed P5.4 standalone-lesson warnings are allowed: $warnings", warnings.all { it.code == ContentQualityDiagnosticCode.NO_JOURNEY_MEMBERSHIP })
-        assertEquals(14, report.lessonCount)
+        val reviewed = setOf("rainbow-weather", "tree-through-seasons", "ice-cream-shop", "simple-car", "sailboat-scene")
+        assertEquals("Unexpected content quality warnings: $warnings", 5, warnings.size)
+        assertEquals(reviewed, warnings.mapNotNull { it.lessonId }.toSet())
+        assertTrue("Only reviewed standalone-lesson warnings are allowed: $warnings", warnings.all { it.code == ContentQualityDiagnosticCode.NO_JOURNEY_MEMBERSHIP })
+        assertEquals(20, report.lessonCount)
         val text = report.renderText()
         val json = report.renderJson()
         val parsed = Json.parseToJsonElement(json).jsonObject
-        assertEquals(14, parsed.getValue("lessonCount").jsonPrimitive.content.toInt())
+        assertEquals(20, parsed.getValue("lessonCount").jsonPrimitive.content.toInt())
         assertEquals(0, parsed.getValue("errorCount").jsonPrimitive.content.toInt())
-        assertEquals(3, parsed.getValue("warningCount").jsonPrimitive.content.toInt())
+        assertEquals(5, parsed.getValue("warningCount").jsonPrimitive.content.toInt())
         val outputDir = File("build/reports/content-quality").apply { mkdirs() }
         val textFile = File(outputDir, "catalog-report.txt")
         val jsonFile = File(outputDir, "catalog-report.json")

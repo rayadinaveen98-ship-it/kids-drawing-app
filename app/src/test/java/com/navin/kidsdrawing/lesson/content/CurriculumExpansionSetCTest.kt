@@ -11,18 +11,22 @@ import org.junit.Test
 
 class CurriculumExpansionSetCTest {
     @Test
-    fun fullSetCGrowsReleaseCatalogToFourteenWithOnlyReviewedStandaloneWarnings() {
+    fun setCRemainsIntactAsTheCatalogExpandsBeyondFourteen() {
         val snapshot = productionCatalog()
         assertTrue(snapshot.diagnostics.toString(), snapshot.diagnostics.isEmpty())
-        assertEquals(14, snapshot.entries.size)
+        assertTrue("Set C requires a catalog of at least 14 lessons", snapshot.entries.size >= 14)
         val ids = snapshot.entries.map { it.identity.lessonId }.toSet()
-        assertTrue(setOf("happy-lines", "shape-friends", "rainbow-weather", "tree-through-seasons", "ice-cream-shop").all { it in ids })
+        val setCIds = setOf("happy-lines", "shape-friends", "rainbow-weather", "tree-through-seasons", "ice-cream-shop")
+        assertTrue(setCIds.all { it in ids })
         val report = ContentQualityAnalyzer().analyze(snapshot)
         assertEquals("Content quality errors: ${report.diagnostics}", 0, report.errorCount)
-        val warnings = report.diagnostics.filter { it.severity == ContentQualitySeverity.WARNING }
-        assertEquals("Unexpected content quality warnings: $warnings", 3, warnings.size)
-        assertEquals(setOf("rainbow-weather", "tree-through-seasons", "ice-cream-shop"), warnings.mapNotNull { it.lessonId }.toSet())
-        assertTrue(warnings.all { it.code == ContentQualityDiagnosticCode.NO_JOURNEY_MEMBERSHIP })
+        val reviewedStandaloneIds = setOf("rainbow-weather", "tree-through-seasons", "ice-cream-shop")
+        val setCWarnings = report.diagnostics.filter {
+            it.severity == ContentQualitySeverity.WARNING && it.lessonId in reviewedStandaloneIds
+        }
+        assertEquals("Set-C reviewed warnings drifted: $setCWarnings", 3, setCWarnings.size)
+        assertEquals(reviewedStandaloneIds, setCWarnings.mapNotNull { it.lessonId }.toSet())
+        assertTrue(setCWarnings.all { it.code == ContentQualityDiagnosticCode.NO_JOURNEY_MEMBERSHIP })
     }
 
     @Test

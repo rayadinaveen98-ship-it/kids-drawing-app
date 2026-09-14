@@ -210,7 +210,7 @@ class LessonCatalogTest {
         .replace("\"difficulty\": 1", "\"difficulty\": ${spec.difficulty}")
         .replace("\"categoryIds\": [\"animals\", \"pets\"]", "\"categoryIds\": ${spec.categoriesJson}")
         .replace("\"skillIds\": [\"curves\", \"shape_construction\", \"simple_details\"]", "\"skillIds\": ${spec.skillsJson}")
-        .replace("\"journeyIds\": [\"animal_artist\"]", "\"journeyIds\": ${spec.journeysJson},\n    \"prerequisiteLessonIds\": ${spec.prerequisitesJson}")
+        .replace("\"journeyIds\": [\"journey.first_shapes_to_pictures\", \"journey.animal_artist\"]", "\"journeyIds\": ${spec.journeysJson},\n    \"prerequisiteLessonIds\": ${spec.prerequisitesJson}")
         .replace("\"supportedModes\": [\"draw_with_me\", \"watch_then_draw\", \"trace_and_learn\"]", "\"supportedModes\": ${spec.modesJson}")
 
     private fun lessonTemplate(): String = File("src/main/assets/lessons/cute-cat/lesson.json").readText()

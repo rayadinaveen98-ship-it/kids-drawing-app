@@ -2,7 +2,10 @@ package com.navin.kidsdrawing.lesson.content
 
 import com.navin.kidsdrawing.lesson.model.AgeBand
 import com.navin.kidsdrawing.lesson.model.AuthoredPoint
+import com.navin.kidsdrawing.lesson.model.AuthoredRegionPoint
 import com.navin.kidsdrawing.lesson.model.AuthoredStroke
+import com.navin.kidsdrawing.lesson.model.HelpEntry
+import com.navin.kidsdrawing.lesson.model.HelpKind
 import com.navin.kidsdrawing.lesson.model.TeachingMode
 import java.io.File
 import org.junit.Assert.assertEquals
@@ -142,6 +145,120 @@ class ContentQualityAnalyzerTest {
     }
 
     @Test
+    fun tinyTeacherDemoIsReportedAsAuthoringWarning() {
+        val production = productionCatalog()
+        val baseEntry = production.entries.first { AgeBand.LITTLE_ARTISTS in it.ageBands }
+        val baseRuntime = checkNotNull(production.runtimePackage(baseEntry.identity))
+        val template = baseRuntime.lesson.drawing.steps.first()
+        val tinyStroke = AuthoredStroke(
+            id = "tiny-teacher-fixture",
+            points = listOf(
+                AuthoredPoint(x = 200f, y = 200f, timeMs = 0L),
+                AuthoredPoint(x = 203f, y = 204f, timeMs = 100L),
+            ),
+        )
+        val step = template.copy(
+            id = "tiny-teacher-step",
+            teacher = template.teacher.copy(strokeRefs = listOf(tinyStroke.id)),
+        )
+        val lesson = baseRuntime.lesson.copy(
+            metadata = baseRuntime.lesson.metadata.copy(ageBands = listOf(AgeBand.LITTLE_ARTISTS)),
+            drawing = baseRuntime.lesson.drawing.copy(steps = listOf(step)),
+        )
+        val runtime = baseRuntime.copy(
+            lesson = lesson,
+            strokeCatalog = baseRuntime.strokeCatalog.copy(
+                strokes = baseRuntime.strokeCatalog.strokes + tinyStroke,
+            ),
+        )
+        val entry = baseEntry.copy(ageBands = setOf(AgeBand.LITTLE_ARTISTS))
+        val report = ContentQualityAnalyzer().analyze(singleLessonSnapshot(entry, runtime))
+
+        assertEquals(0, report.errorCount)
+        assertTrue(report.diagnostics.any { it.code == ContentQualityDiagnosticCode.TINY_TEACHER_DEMO })
+    }
+
+    @Test
+    fun duplicateRefsAndSingleStrokeGroupAreReportedAsWarnings() {
+        val production = productionCatalog()
+        val baseEntry = production.entries.first()
+        val baseRuntime = checkNotNull(production.runtimePackage(baseEntry.identity))
+        val template = baseRuntime.lesson.drawing.steps.first()
+        val ref = template.teacher.strokeRefs.first()
+        val step = template.copy(
+            id = "duplicate-ref-step",
+            teacher = template.teacher.copy(
+                strokeRefs = listOf(ref, ref),
+                playAsGroup = true,
+            ),
+            childTurn = template.childTurn.copy(expectedStrokeRefs = listOf(ref, ref)),
+        )
+        val runtime = baseRuntime.copy(
+            lesson = baseRuntime.lesson.copy(
+                drawing = baseRuntime.lesson.drawing.copy(steps = listOf(step)),
+            ),
+        )
+
+        val report = ContentQualityAnalyzer().analyze(singleLessonSnapshot(baseEntry, runtime))
+
+        assertEquals(0, report.errorCount)
+        assertTrue(report.diagnostics.any { it.code == ContentQualityDiagnosticCode.DUPLICATE_TEACHER_STROKE_REFERENCE })
+        assertTrue(report.diagnostics.any { it.code == ContentQualityDiagnosticCode.DUPLICATE_EXPECTED_STROKE_REFERENCE })
+        assertTrue(report.diagnostics.any { it.code == ContentQualityDiagnosticCode.GROUPED_DEMO_SINGLE_STROKE })
+    }
+
+    @Test
+    fun nonContiguousHelpLadderIsReportedAsWarning() {
+        val production = productionCatalog()
+        val baseEntry = production.entries.first()
+        val baseRuntime = checkNotNull(production.runtimePackage(baseEntry.identity))
+        val template = baseRuntime.lesson.drawing.steps.first()
+        val step = template.copy(
+            id = "help-gap-step",
+            help = listOf(
+                HelpEntry(level = 1, kind = HelpKind.GENTLE_HINT),
+                HelpEntry(level = 3, kind = HelpKind.DIRECTION_ANCHORS),
+            ),
+        )
+        val runtime = baseRuntime.copy(
+            lesson = baseRuntime.lesson.copy(
+                drawing = baseRuntime.lesson.drawing.copy(steps = listOf(step)),
+            ),
+        )
+
+        val report = ContentQualityAnalyzer().analyze(singleLessonSnapshot(baseEntry, runtime))
+
+        assertEquals(0, report.errorCount)
+        assertTrue(report.diagnostics.any { it.code == ContentQualityDiagnosticCode.NON_CONTIGUOUS_HELP_LADDER })
+    }
+
+    @Test
+    fun tinyPreparedColorRegionIsReportedAsWarning() {
+        val production = productionCatalog()
+        val baseEntry = production.entries.single { it.identity.lessonId == "little-fish" }
+        val baseRuntime = checkNotNull(production.runtimePackage(baseEntry.identity))
+        val catalog = checkNotNull(baseRuntime.coloringRegionCatalog)
+        val firstRegion = catalog.regions.first()
+        val tinyRegion = firstRegion.copy(
+            points = listOf(
+                AuthoredRegionPoint(100f, 100f),
+                AuthoredRegionPoint(102f, 100f),
+                AuthoredRegionPoint(100f, 102f),
+            ),
+        )
+        val runtime = baseRuntime.copy(
+            coloringRegionCatalog = catalog.copy(
+                regions = listOf(tinyRegion) + catalog.regions.drop(1),
+            ),
+        )
+
+        val report = ContentQualityAnalyzer().analyze(singleLessonSnapshot(baseEntry, runtime))
+
+        assertEquals(0, report.errorCount)
+        assertTrue(report.diagnostics.any { it.code == ContentQualityDiagnosticCode.TINY_PREPARED_REGION })
+    }
+
+    @Test
     fun preparedRegionCoverageIsReportedFromValidatedRuntimePackages() {
         val snapshot = productionCatalog()
         val report = ContentQualityAnalyzer().analyze(snapshot)
@@ -180,6 +297,15 @@ class ContentQualityAnalyzerTest {
         assertTrue(withWarning.diagnostics.any { it.code == ContentQualityDiagnosticCode.NO_JOURNEY_MEMBERSHIP })
         assertFalse(withoutWarning.diagnostics.any { it.code == ContentQualityDiagnosticCode.NO_JOURNEY_MEMBERSHIP })
     }
+
+    private fun singleLessonSnapshot(
+        entry: LessonCatalogEntry,
+        runtime: com.navin.kidsdrawing.lesson.model.LessonRuntimePackage,
+    ): LessonCatalogSnapshot = LessonCatalogSnapshot(
+        entries = listOf(entry),
+        diagnostics = emptyList(),
+        runtimePackages = mapOf(entry.identity to runtime),
+    )
 
     private fun productionCatalog(): LessonCatalogSnapshot =
         LessonCatalog(FileAssetCatalogSource(File("src/main/assets"))).load()

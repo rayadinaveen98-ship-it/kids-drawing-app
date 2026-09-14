@@ -3,6 +3,7 @@ package com.navin.kidsdrawing.lesson.content
 import com.navin.kidsdrawing.lesson.model.AgeBand
 import com.navin.kidsdrawing.lesson.model.TeachingMode
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
@@ -14,8 +15,8 @@ fun CatalogCoverageReport.renderJson(): String = JsonObject(
         "warningCount" to JsonPrimitive(warningCount),
         "ageBandCounts" to ageBandCounts.enumCountObject(AgeBand.entries),
         "difficultyCounts" to JsonObject(
-            difficultyCounts.entries.associateTo(linkedMapOf()) { (key, value) ->
-                key.toString() to JsonPrimitive(value)
+            linkedMapOf<String, JsonElement>().apply {
+                difficultyCounts.forEach { (key, value) -> put(key.toString(), JsonPrimitive(value)) }
             },
         ),
         "categoryCounts" to categoryCounts.stringCountObject(),
@@ -56,9 +57,9 @@ private fun LessonContentSummary.toJson(): JsonObject = JsonObject(
         "title" to JsonPrimitive(title),
         "ageBands" to JsonArray(ageBands.map { JsonPrimitive(it.name) }),
         "difficulty" to JsonPrimitive(difficulty),
-        "categoryIds" to JsonArray(categoryIds.map(::JsonPrimitive)),
-        "skillIds" to JsonArray(skillIds.map(::JsonPrimitive)),
-        "journeyIds" to JsonArray(journeyIds.map(::JsonPrimitive)),
+        "categoryIds" to JsonArray(categoryIds.map { JsonPrimitive(it) }),
+        "skillIds" to JsonArray(skillIds.map { JsonPrimitive(it) }),
+        "journeyIds" to JsonArray(journeyIds.map { JsonPrimitive(it) }),
         "supportedModes" to JsonArray(supportedModes.map { JsonPrimitive(it.name) }),
         "drawingStepCount" to JsonPrimitive(drawingStepCount),
         "coloringEnabled" to JsonPrimitive(coloringEnabled),
@@ -70,7 +71,7 @@ private fun LessonContentSummary.toJson(): JsonObject = JsonObject(
 )
 
 private fun ContentQualityDiagnostic.toJson(): JsonObject = JsonObject(
-    linkedMapOf<String, kotlinx.serialization.json.JsonElement>().apply {
+    linkedMapOf<String, JsonElement>().apply {
         put("severity", JsonPrimitive(severity.name))
         put("code", JsonPrimitive(code.name))
         lessonId?.let { put("lessonId", JsonPrimitive(it)) }
@@ -80,11 +81,13 @@ private fun ContentQualityDiagnostic.toJson(): JsonObject = JsonObject(
 )
 
 private fun Map<String, Int>.stringCountObject(): JsonObject = JsonObject(
-    entries.associateTo(linkedMapOf()) { (key, value) -> key to JsonPrimitive(value) },
+    linkedMapOf<String, JsonElement>().apply {
+        this@stringCountObject.forEach { (key, value) -> put(key, JsonPrimitive(value)) }
+    },
 )
 
 private fun <T : Enum<T>> Map<T, Int>.enumCountObject(order: List<T>): JsonObject = JsonObject(
-    linkedMapOf<String, kotlinx.serialization.json.JsonElement>().apply {
+    linkedMapOf<String, JsonElement>().apply {
         order.forEach { key -> put(key.name, JsonPrimitive(this@enumCountObject[key] ?: 0)) }
     },
 )

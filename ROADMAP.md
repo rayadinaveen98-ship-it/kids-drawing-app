@@ -17,7 +17,7 @@ Production onboarding → lesson → coloring → Gallery journey physically pas
 
 **Target:** `0.5.0-curriculum-expansion`  
 **Parent epic:** #73  
-**Locked curriculum target:** **24 production lessons** — reached in P5.6.
+**Frozen curriculum:** **24 production lessons**.
 
 ### P5.1 — Curriculum & Teaching Contract — COMPLETE
 
@@ -27,72 +27,70 @@ Production onboarding → lesson → coloring → Gallery journey physically pas
 Physical 20/20 PASS.
 
 ### P5.4 — Curriculum Expansion Set C — COMPLETE
-Catalog 9 → 14; Content Lab 15/15; physical 30/30.
+Catalog 9→14; Content Lab 15/15; physical 30/30.
 
 ### P5.5 — Curriculum Expansion Set D — COMPLETE
-Catalog 14 → 20; merged-main CI #528 GREEN; Content Lab 18/18; physical 36/36.
+Catalog 14→20; Content Lab 18/18; physical 36/36; merged-main CI #528 GREEN.
 
-### P5.6 — Curriculum Expansion Set E — PHYSICAL ACCEPTANCE PASSED / FINAL MERGE GATE ACTIVE
+### P5.6 — Curriculum Expansion Set E — COMPLETE / FROZEN
 
-Issue #84 / PR #85.
+Catalog 20→24.
 
-Delivered:
-1. Face & Expressions — Growing/Young, D3
-2. Simple Body & Pose — Growing/Young, D4
-3. Create Your Character — Growing/Young, D4
-4. One-Point Room — Young, D5
+Accepted gates:
+- final curriculum 24 lessons / 0 errors / six reviewed standalone warnings;
+- Content Lab **16/16 PASS**;
+- QA1 `0.5.0-curriculum-expansion-p5.6-qa1`, versionCode 25;
+- exact-profile physical **36/36 PASS**;
+- PR #85 squash-merged at `91bc7584994224852d3d44749e78749d39ff954b`;
+- merged-main Android CI #552 / run `34849748403` **GREEN**;
+- issue #84 closed completed.
 
-Verified curriculum:
-- **24 lessons / 0 errors / exactly 6 reviewed standalone warnings**
-- Little 8 / Creative 18 / Growing 17 / Young 10
-- D1 5 / D2 9 / D3 6 / D4 3 / D5 1
-- DWM 23 / WTD 17 / Trace 4
+### P5.7 — Local Adaptive Teaching — ACTIVE
 
-Verified gates:
-- final 24-lesson CI #534 GREEN
-- pre-freeze docs CI #535 GREEN
-- Content Lab **16/16 PASS**
-- QA1 v25 exact binary head `9a8a0424d5f9b0bcb17b28bc4e64c0a8714c6ecb`
-- QA1 CI #538 GREEN
-- accepted profile artifact `10348300909`, 16,311,900 bytes, SHA-256 `0abb9da43315d118c67b9adf004753aed622dda992c95bce26eddc3727bf04b5`
-- physical acceptance **36/36 PASS** reported on 2026-09-14
-- device/API not provided and not inferred
+Issue #86. Branch `phase5/p5-7-local-adaptive-teaching`.
 
-Remaining P5.6 closure:
-1. acceptance evidence exact-head CI GREEN;
-2. PR #85 ready → squash merge;
-3. merged-main CI GREEN;
-4. close #84 completed and freeze P5.6.
+Contract-first commit: `5225e82bcae4afae7a0d5dc65bacd1a5054d4b19`.
 
-### P5.7 — Local Adaptive Teaching — NEXT
+Goal: extend the existing local Home recommendation + authored Help presentation with deterministic, bounded, explainable adaptation while preserving child control and all existing ownership boundaries.
 
-Starts only from verified post-P5.6 `main`.
-
-Goal: add deterministic, offline adaptation that improves what the child sees next and how help is presented without becoming a grading or profiling system.
-
-Allowed local signals:
-- age band;
-- explicit interests/preferences;
-- completed lessons/skills;
-- resume/in-progress state;
-- child-requested Help usage patterns;
-- recent deterministic lesson history needed for recommendations.
+Architecture direction:
+- owned advisory layer under `product/adaptive`;
+- local/versioned/corruption-tolerant state only;
+- deterministic idempotent reducer from genuine completion and child-requested Help events;
+- `StudioPrimarySelectionPolicy` resume precedence remains coloring → drawing → fresh suggestion;
+- `StudioRecommendationPolicy` remains the Home recommendation surface;
+- fresh adaptive primary suggestions respect prerequisites and exact age fit;
+- journey continuation, underexposed/new skills, explicit interests, mode preference, sensible difficulty context and bounded recent-repeat avoidance may influence deterministic ordering;
+- recommendation reasons remain human-readable policy facts, not ability scores;
+- Help adaptation may only suggest existing authored Help/replay **after the child asks**.
 
 Forbidden:
+- raw stroke/artwork quality analysis;
 - permanent ability labels;
-- cloud child profiling or behavioral analytics upload;
-- similarity scoring or ML talent/quality judgment;
-- grades/rank/XP/punitive streaks;
-- forced demotion or hidden punishment;
-- overriding child choice or mutating lesson/session/artwork truth.
+- score/grade/rank/XP/punitive streaks;
+- cloud child profiling/analytics upload;
+- network dependence;
+- forced demotion;
+- automatic Help escalation;
+- lesson-ID-specific adaptive branches.
 
-P5.7 should produce transparent, testable recommendation/help policies behind owned interfaces, work fully offline, and remain deterministic for the same local state.
+Delivery gates:
+1. contract/docs CI GREEN;
+2. Batch A adaptive state/store/reducer → CI GREEN;
+3. Batch B progression-aware fresh recommendations → CI GREEN;
+4. Batch C child-controlled adaptive Help → CI GREEN;
+5. deterministic/offline/corruption/privacy QA;
+6. QA1 freeze `0.5.0-curriculum-expansion-p5.7-qa1`, versionCode **26**;
+7. exact APK evidence + physical acceptance;
+8. acceptance CI → merge → merged-main CI → close #86.
+
+VersionCode 26 is not used before QA freeze.
 
 ### P5.8 — Cross-age Curriculum QA + 0.5 Release
 
-Final gate across all 24 lessons, four age bands, journeys, Companion, local adaptive teaching, offline/lifecycle/Gallery/recovery, production content report and exact release APK evidence.
+Final gate across all 24 lessons, all four age bands, journeys, Companion, local adaptive teaching, offline/lifecycle/Gallery/recovery, content-quality report and exact final release APK evidence.
 
-Completion of P5.8 produces the verified `0.5.0-curriculum-expansion` milestone.
+Completion of P5.8 produces verified `0.5.0-curriculum-expansion`.
 
 ## Permanent delivery rule
 

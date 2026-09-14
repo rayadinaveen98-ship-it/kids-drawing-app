@@ -3,10 +3,10 @@
 **Working project:** Kids Drawing App  
 **Authoritative repository:** `rayadinaveen98-ship-it/kids-drawing-app`  
 **Current phase:** Phase 4 — Content & Studio Expansion / `0.4.0-content-studio`  
-**Current implementation slice:** P4.6 — Representative Content Set B + Cross-content QA (#63 / PR #71) — QA1 freeze active  
+**Current implementation slice:** P4.6 — Representative Content Set B + Cross-content QA (#63 / PR #71) — focused QA1 physical acceptance PASS; merge verification pending  
 **Active branch:** `phase4/p4-6-content-set-b`  
 **Latest fully verified product milestone:** `0.3.0-vertical-slice` / versionCode 13  
-**Last updated:** 2026-09-13
+**Last updated:** 2026-09-14
 
 Git is authoritative when chat memory and repository state disagree.
 
@@ -47,30 +47,36 @@ QA1 evidence:
 - SHA-256 `cf45fedc129523c8c9d3784e3d6ea70d0319dc1b8f9236430b85c099075394d6`;
 - focused physical/product checklist user-reported PASS on 2026-09-13.
 
-Deferred rows (process-death-specific sequence, exact coloring-undo boundary sequence, airplane mode, small-screen-specific coverage) remain in P4.7 and are not falsely marked physical PASS.
+Deferred P4.5 rows remain in P4.7 and are not falsely marked physical PASS.
 
-### P4.6 — ACTIVE
+### P4.6 — ACCEPTED; MERGE VERIFICATION PENDING
 Issue #63 / draft PR #71 / branch `phase4/p4-6-content-set-b`. Contract: `docs/10-execution/P4_6_EXECUTION_CONTRACT.md`. QA: `docs/10-execution/P4_6_CONTENT_QA.md`.
 
-Implementation currently adds three release packages, taking the representative catalog from six to nine lessons:
-- `hot-air-balloon` r1 — Little/Creative/Growing, difficulty 2, Draw With Me + Watch Then Draw, richer prepared-region guided coloring with four regions and a multi-region step;
-- `fox-portrait` r1 — Growing/Young, difficulty 4, older-child proportion/detail/observation, no Trace dependency;
+P4.6 adds three release packages and takes the representative catalog to nine lessons:
+- `hot-air-balloon` r1 — Little/Creative/Growing, difficulty 2, Draw With Me + Watch Then Draw, four prepared coloring regions and a multi-region guided step;
+- `fox-portrait` r1 — Growing/Young, difficulty 4, proportion/detail/observation, no Trace dependency;
 - `design-your-spaceship` r1 — Creative/Growing/Young, difficulty 3, open-ended creative variation whose final child turn has no replica requirement.
 
-Automated implementation evidence before QA1 freeze:
-- implementation head `7928c712e65e180a1d97042c0ea5d131e61c65fb`;
-- Android CI #425 / run `34758790360` GREEN;
-- all unit/lint/debug/instrumentation/profile/permission gates GREEN.
+Automated QA1 evidence:
+- executable `e96e452f41f545529712a35e9cf97553510252d8`;
+- versionName `0.4.0-content-studio-p4.6-qa1`, versionCode 18;
+- Android CI #428 / run `34759214099` GREEN;
+- profile artifact `10318307419`;
+- profile APK size `16,196,362 bytes`;
+- profile SHA-256 `e207d006893747a91a0c8dd6935d7764417fc77532a992a6d1120ec8bd613a4e`.
 
-QA1 freeze:
-- versionName `0.4.0-content-studio-p4.6-qa1`;
-- versionCode 18;
-- exact QA1 head CI + artifact evidence PENDING;
-- physical/product acceptance PENDING;
-- PR #71 must remain unmerged until evidence is accepted.
+Focused physical/product checklist user-reported PASS on 2026-09-14 for the three new experiences, cross-lesson isolation, Little Fish, Cute Cat, Free Draw and Gallery. Device/API were not re-stated in that acceptance and are not invented in the QA record.
+
+Deferred to P4.7 rather than overclaimed here:
+- focused Smiling Sun/Friendly Owl/Simple Rocket/Easy Flower physical regression;
+- airplane-mode end-to-end check;
+- process recreation/recovery on a P4.6 lesson;
+- small-screen/age-adaptive regression.
+
+Remaining P4.6 repository gate: exact-head CI after acceptance documentation → mark PR #71 ready → squash-merge → merged-main CI green → close #63.
 
 ### P4.7 — NEXT AFTER P4.6
-End-to-end QA + final `0.4.0-content-studio` release (#64), including deferred P4.3/P4.4/P4.5 physical coverage.
+End-to-end QA + final `0.4.0-content-studio` release (#64), including all deferred P4.3/P4.4/P4.5/P4.6 physical coverage.
 
 ## Frozen architecture invariants
 
@@ -86,12 +92,12 @@ End-to-end QA + final `0.4.0-content-studio` release (#64), including deferred P
 
 ## Immediate next action
 
-1. Require exact-head Android CI green for the P4.6 QA1 freeze head.
-2. Capture profile artifact ID/name, size and SHA-256.
-3. Distribute exact P4.6 QA1 profile APK for focused physical/product testing.
-4. Record results without overclaiming deferred P4.7 rows.
-5. Only after acceptance: mark PR #71 ready, squash-merge, verify merged-main CI, close #63.
-6. Then begin P4.7.
+1. Require exact-head Android CI green after P4.6 acceptance-documentation commits.
+2. Mark PR #71 ready only after that green gate.
+3. Squash-merge PR #71.
+4. Verify merged-main Android CI.
+5. Close issue #63 completed.
+6. Branch P4.7 from the verified P4.6 main merge and execute final end-to-end QA/release (#64).
 
 ## Continuation rule
 
@@ -101,8 +107,8 @@ Inspect in order:
 3. `ROADMAP.md`
 4. Phase 4 epic #57
 5. issue #63 + PR #71 + `P4_6_EXECUTION_CONTRACT.md` + `P4_6_CONTENT_QA.md`
-6. current exact-head P4.6 QA1 CI/artifact state
-7. still-open P4.3 issue #60 / P4.7 deferred physical matrices
+6. current exact-head P4.6 acceptance-doc CI / merged-main CI state
+7. still-open P4.3 issue #60 and all P4.7 deferred physical matrices
 8. relevant Drawing/Coloring/Lesson specifications.
 
 Do not reopen frozen Drawing/Lesson Engine architecture without a concrete defect and explicit contract/ADR change.

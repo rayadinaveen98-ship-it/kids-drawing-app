@@ -23,7 +23,7 @@ Android-first children's drawing/art-learning app built as a patient personal ar
 - Draft PR: #77
 - Active branch: `phase5/p5-2-content-production-v2`
 - Latest fully verified product release remains **`0.4.0-content-studio`, versionCode 19**
-- P5.2 QA1 identity: `0.5.0-curriculum-expansion-p5.2-qa1`, versionCode 20 — candidate evidence/physical acceptance pending
+- Current P5.2 candidate: **QA2 `0.5.0-curriculum-expansion-p5.2-qa2`, versionCode 21** — exact candidate evidence/physical acceptance pending
 
 ## Exact accepted 0.4 baseline
 
@@ -111,19 +111,28 @@ Safety boundary:
 
 Complete implementation baseline including Content Lab passed CI #463. Calibrated analyzer baseline passed CI #465.
 
-## P5.2 QA1 freeze
+## P5.2 candidate history
 
-QA file: `docs/10-execution/P5_2_QA.md`.
+### QA1 — REJECTED BEFORE DISTRIBUTION
 
-Candidate identity:
-- versionName `0.5.0-curriculum-expansion-p5.2-qa1`;
-- versionCode 20;
-- dedicated QA1 debug/profile artifact filenames/names configured;
-- exact candidate commit/CI/artifact IDs/SHA: PENDING final exact-head green run;
+- identity `0.5.0-curriculum-expansion-p5.2-qa1`, versionCode 20;
+- frozen head `07025d8cf35569179b1ee1e9443303bd92019093`;
+- CI #471 / run `34807204480` FAILED in `compileDebugAndroidTestKotlin`;
+- QA-freeze edit had accidentally removed Compose UI test dependencies from `app/build.gradle.kts`;
+- no QA1 APK was distributed or accepted.
+
+### QA2 — CURRENT
+
+- versionName `0.5.0-curriculum-expansion-p5.2-qa2`;
+- versionCode 21;
+- missing Compose test dependencies restored from last green implementation baseline;
+- dedicated QA2 debug/profile artifact filenames/names configured;
+- QA file: `docs/10-execution/P5_2_QA.md`;
+- exact QA2 candidate commit/CI/artifact IDs/SHA: PENDING final exact-head green run;
 - Content Lab physical/developer matrix: PENDING;
 - normal product smoke: PENDING.
 
-Launch engineering lab after installing QA1:
+Launch engineering lab after installing QA2:
 `adb shell am start -n com.navin.kidsdrawing/.ContentLabActivity`
 
 Do not add a child-facing navigation entry merely to make the engineering lab easier to open.
@@ -144,11 +153,11 @@ Do not add a child-facing navigation entry merely to make the engineering lab ea
 
 ## Immediate continuation
 
-1. Freeze exact P5.2 QA1 head after docs synchronization.
-2. Require exact-head CI green including P5.2 report + QA1 APK packaging.
+1. Complete QA2 status/handoff/roadmap synchronization and freeze one exact head.
+2. Require exact-head CI green including instrumentation compile, P5.2 report + QA2 APK packaging.
 3. Fetch content-report/debug/profile artifact IDs.
 4. Download profile APK, independently verify size/SHA against CI evidence.
-5. Hand exact APK to user; run `P5_2_QA.md` focused Content Lab matrix + normal product smoke.
+5. Hand exact QA2 APK to user; run `P5_2_QA.md` focused Content Lab matrix + normal product smoke.
 6. Record only checks actually reported.
 7. After acceptance: docs-only evidence commit + exact-head CI → PR #77 ready/squash merge → merged-main CI → close #76.
 8. Continue to P5.3 only after P5.2 is formally closed. Bulk P5.4–P5.6 lesson authoring remains blocked until then.

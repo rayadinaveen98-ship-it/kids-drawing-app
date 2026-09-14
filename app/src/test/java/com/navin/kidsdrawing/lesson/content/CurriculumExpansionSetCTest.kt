@@ -11,28 +11,24 @@ import org.junit.Test
 
 class CurriculumExpansionSetCTest {
     @Test
-    fun firstFourSetCLessonsGrowReleaseCatalogToThirteenWithOnlyReviewedStandaloneWarnings() {
+    fun fullSetCGrowsReleaseCatalogToFourteenWithOnlyReviewedStandaloneWarnings() {
         val snapshot = productionCatalog()
         assertTrue(snapshot.diagnostics.toString(), snapshot.diagnostics.isEmpty())
-        assertEquals(13, snapshot.entries.size)
+        assertEquals(14, snapshot.entries.size)
         val ids = snapshot.entries.map { it.identity.lessonId }.toSet()
-        assertTrue(setOf("happy-lines", "shape-friends", "rainbow-weather", "tree-through-seasons").all { it in ids })
-
+        assertTrue(setOf("happy-lines", "shape-friends", "rainbow-weather", "tree-through-seasons", "ice-cream-shop").all { it in ids })
         val report = ContentQualityAnalyzer().analyze(snapshot)
         assertEquals("Content quality errors: ${report.diagnostics}", 0, report.errorCount)
         val warnings = report.diagnostics.filter { it.severity == ContentQualitySeverity.WARNING }
-        assertEquals("Unexpected content quality warnings: $warnings", 2, warnings.size)
-        assertEquals(
-            setOf("rainbow-weather", "tree-through-seasons"),
-            warnings.mapNotNull { it.lessonId }.toSet(),
-        )
+        assertEquals("Unexpected content quality warnings: $warnings", 3, warnings.size)
+        assertEquals(setOf("rainbow-weather", "tree-through-seasons", "ice-cream-shop"), warnings.mapNotNull { it.lessonId }.toSet())
         assertTrue(warnings.all { it.code == ContentQualityDiagnosticCode.NO_JOURNEY_MEMBERSHIP })
     }
 
     @Test
-    fun firstFourSetCPackagesDirectLoadThroughStrictProductionLoader() {
+    fun allSetCPackagesDirectLoadThroughStrictProductionLoader() {
         val loader = LessonPackageLoader(FileAssetCatalogSource(File("src/main/assets")))
-        listOf("happy-lines", "shape-friends", "rainbow-weather", "tree-through-seasons").forEach { id ->
+        listOf("happy-lines", "shape-friends", "rainbow-weather", "tree-through-seasons", "ice-cream-shop").forEach { id ->
             val result = loader.load("lessons/$id")
             assertTrue("$id failed to load: $result", result is LessonLoadResult.Success)
         }
@@ -140,6 +136,36 @@ class CurriculumExpansionSetCTest {
         assertEquals(listOf(1, 3), branches.help.map { it.level })
         assertEquals(HelpKind.DIRECTION_ANCHORS, branches.help.last().kind)
         val open = lesson.drawing.steps.single { it.id == "season_story" }
+        assertTrue(open.teacher.strokeRefs.isNotEmpty())
+        assertTrue(open.childTurn.expectedStrokeRefs.isEmpty())
+        assertTrue(open.childTurn.allowSkip)
+    }
+
+    @Test
+    fun iceCreamShopUsesShapeConstructionAndEndsWithOpenDesignChoice() {
+        val lesson = productionCatalog().runtime("ice-cream-shop").lesson
+        assertEquals(1, lesson.revision)
+        assertEquals(setOf(AgeBand.CREATIVE_EXPLORERS, AgeBand.GROWING_ARTISTS), lesson.metadata.ageBands.toSet())
+        assertEquals(2, lesson.metadata.difficulty)
+        assertEquals(setOf("everyday", "food", "design"), lesson.metadata.categoryIds.toSet())
+        assertEquals(setOf("shape.combine", "placement.relative", "pattern", "creativity.variation"), lesson.metadata.skillIds.toSet())
+        assertEquals(listOf("shape-friends"), lesson.metadata.prerequisiteLessonIds)
+        assertTrue(lesson.metadata.journeyIds.isEmpty())
+        assertEquals(listOf(TeachingMode.DRAW_WITH_ME), lesson.supportedModes)
+        assertFalse(lesson.coloring?.enabled == true)
+        assertEquals(listOf("cone_or_cup", "scoops", "shop_sign", "make_it_yours"), lesson.drawing.steps.map { it.id })
+        val cone = lesson.drawing.steps.single { it.id == "cone_or_cup" }
+        assertTrue(cone.teacher.playAsGroup)
+        assertEquals(listOf(1, 2), cone.help.map { it.level })
+        assertTrue(cone.childTurn.expectedStrokeRefs.isNotEmpty())
+        val scoops = lesson.drawing.steps.single { it.id == "scoops" }
+        assertTrue(scoops.teacher.playAsGroup)
+        assertEquals(listOf(1, 2), scoops.help.map { it.level })
+        assertTrue(scoops.childTurn.expectedStrokeRefs.isNotEmpty())
+        val sign = lesson.drawing.steps.single { it.id == "shop_sign" }
+        assertEquals(listOf(1), sign.help.map { it.level })
+        assertTrue(sign.childTurn.expectedStrokeRefs.isNotEmpty())
+        val open = lesson.drawing.steps.single { it.id == "make_it_yours" }
         assertTrue(open.teacher.strokeRefs.isNotEmpty())
         assertTrue(open.childTurn.expectedStrokeRefs.isEmpty())
         assertTrue(open.childTurn.allowSkip)

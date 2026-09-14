@@ -35,7 +35,7 @@ Git is authoritative when chat memory and repository state disagree.
 
 ## P5.7 Batch A
 
-Batch A adaptive-state foundation commit: `63bbf4b5c478a2a1984b9b25788b8ca4f00f2a9e`.
+Batch A adaptive-state foundation commit: `2b14ad149ce054284b81a1a6d95327054f9f629f`.
 
 Implemented under `product/adaptive`:
 - bounded/versioned local adaptive-state model;

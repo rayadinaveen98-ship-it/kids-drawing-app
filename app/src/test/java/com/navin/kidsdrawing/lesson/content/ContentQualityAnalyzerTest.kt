@@ -208,16 +208,16 @@ class ContentQualityAnalyzerTest {
     }
 
     @Test
-    fun nonContiguousHelpLadderIsReportedAsWarning() {
+    fun nonMonotonicHelpLadderIsReportedAsWarning() {
         val production = productionCatalog()
         val baseEntry = production.entries.first()
         val baseRuntime = checkNotNull(production.runtimePackage(baseEntry.identity))
         val template = baseRuntime.lesson.drawing.steps.first()
         val step = template.copy(
-            id = "help-gap-step",
+            id = "help-order-step",
             help = listOf(
-                HelpEntry(level = 1, kind = HelpKind.GENTLE_HINT),
                 HelpEntry(level = 3, kind = HelpKind.DIRECTION_ANCHORS),
+                HelpEntry(level = 1, kind = HelpKind.GENTLE_HINT),
             ),
         )
         val runtime = baseRuntime.copy(
@@ -229,7 +229,7 @@ class ContentQualityAnalyzerTest {
         val report = ContentQualityAnalyzer().analyze(singleLessonSnapshot(baseEntry, runtime))
 
         assertEquals(0, report.errorCount)
-        assertTrue(report.diagnostics.any { it.code == ContentQualityDiagnosticCode.NON_CONTIGUOUS_HELP_LADDER })
+        assertTrue(report.diagnostics.any { it.code == ContentQualityDiagnosticCode.NON_MONOTONIC_HELP_LADDER })
     }
 
     @Test

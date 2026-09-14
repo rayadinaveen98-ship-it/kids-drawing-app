@@ -108,11 +108,7 @@ object ProductLessonPresentationPolicy {
             is LessonSessionState.AwaitingChild -> base(
                 companionState = CompanionSemanticState.WATCHING_CHILD,
                 eyebrow = childTurnEyebrow(ageBand),
-                instruction = childTurnInstruction(
-                    ageBand = ageBand,
-                    mode = mode,
-                    openChoice = openChoice,
-                ),
+                instruction = childTurnInstruction(ageBand, mode, openChoice),
                 secondaryCue = childTurnSecondaryCue(
                     ageBand = ageBand,
                     mode = mode,
@@ -148,7 +144,6 @@ object ProductLessonPresentationPolicy {
                 companionState = CompanionSemanticState.IDLE_PRESENT,
                 eyebrow = completionTransitionEyebrow(ageBand),
                 instruction = completionTransitionInstruction(ageBand),
-                secondaryCue = null,
                 stepLabel = stepLabel,
                 progress = progress,
             )
@@ -180,7 +175,6 @@ object ProductLessonPresentationPolicy {
                 companionState = CompanionSemanticState.IDLE_PRESENT,
                 eyebrow = handoffEyebrow(ageBand),
                 instruction = handoffInstruction(ageBand),
-                secondaryCue = null,
                 stepLabel = "Drawing complete",
                 progress = 1f,
             )
@@ -189,7 +183,6 @@ object ProductLessonPresentationPolicy {
                 companionState = CompanionSemanticState.GENTLE_ERROR,
                 eyebrow = errorEyebrow(ageBand),
                 instruction = recoverableErrorInstruction(ageBand),
-                secondaryCue = null,
                 stepLabel = stepLabel,
                 progress = progress,
                 showRetry = true,
@@ -199,7 +192,6 @@ object ProductLessonPresentationPolicy {
                 companionState = CompanionSemanticState.GENTLE_ERROR,
                 eyebrow = "DRAWING SAVED",
                 instruction = fatalErrorInstruction(ageBand),
-                secondaryCue = null,
                 stepLabel = "Drawing",
                 progress = 0f,
                 isTerminal = true,
@@ -209,7 +201,6 @@ object ProductLessonPresentationPolicy {
                 companionState = CompanionSemanticState.IDLE_PRESENT,
                 eyebrow = finishedEyebrow(ageBand),
                 instruction = finishedInstruction(ageBand),
-                secondaryCue = null,
                 stepLabel = "Finished for now",
                 progress = 1f,
                 isTerminal = true,
@@ -221,10 +212,10 @@ object ProductLessonPresentationPolicy {
         companionState: CompanionSemanticState,
         eyebrow: String,
         instruction: String,
-        secondaryCue: String?,
+        secondaryCue: String? = null,
+        reflectionPrompt: String? = null,
         stepLabel: String?,
         progress: Float,
-        reflectionPrompt: String? = null,
         showPause: Boolean = false,
         showResume: Boolean = false,
         showReplay: Boolean = false,
@@ -297,7 +288,7 @@ object ProductLessonPresentationPolicy {
         AgeBand.YOUNG_ARTIST -> "Observe the full construction once—overall structure first, details later. Then you’ll work through it in stages."
     }
 
-    private fun overviewSecondaryCue(ageBand: AgeBand): String? = when (ageBand) {
+    private fun overviewSecondaryCue(ageBand: AgeBand): String = when (ageBand) {
         AgeBand.LITTLE_ARTIST -> "Tap I’m ready if you want to start sooner."
         else -> "You can choose I’m ready when you have seen enough."
     }
@@ -382,7 +373,7 @@ object ProductLessonPresentationPolicy {
         mode == TeachingMode.WATCH_THEN_DRAW && replayAvailable ->
             "Try from observation or memory first; Replay is available whenever you want another reference."
         mode == TeachingMode.TRACE_AND_LEARN && ageBand != AgeBand.LITTLE_ARTIST ->
-            "The guide is practice support, not a score."
+            "The guide is practice support. It is there to help you learn the motion."
         else -> null
     }
 

@@ -49,7 +49,7 @@ Target milestone: `0.5.0-curriculum-expansion`.
 - content remains structured/generic and offline-first;
 - P5.2 authoring/validation tooling must be accepted before bulk P5.4–P5.6 lesson production.
 
-## P5.2 — Content Production System V2 — ACTIVE / QA2 FREEZE
+## P5.2 — Content Production System V2 — ACCEPTED CANDIDATE / MERGE GATES PENDING
 
 Issue #76, draft PR #77, branch `phase5/p5-2-content-production-v2`.
 
@@ -66,12 +66,6 @@ Implemented:
 - separate engineering-only `ContentLabActivity` with release lesson selector, bundled SVG preview/thumbnail, authored teacher/expected/help/prepared-region geometry overlay, step/help/coloring contract, localization inspector and quality diagnostics;
 - ProductActivity remains the sole MAIN/LAUNCHER; Content Lab has no child document/session persistence API.
 
-Key automated evidence before QA freeze:
-- implementation baseline CI #463 GREEN;
-- calibrated baseline CI #465 / run `34806642996` GREEN;
-- calibrated report artifact `10333610875`;
-- report: 9 lessons, 0 errors, 0 warnings, Watch Then Draw 6/6 Phase-5 minimum, catalog progress 9/24.
-
 ### QA1 — rejected before distribution
 
 - versionName `0.5.0-curriculum-expansion-p5.2-qa1`;
@@ -79,18 +73,26 @@ Key automated evidence before QA freeze:
 - frozen head `07025d8cf35569179b1ee1e9443303bd92019093`;
 - CI #471 / run `34807204480` FAILED at `compileDebugAndroidTestKotlin`;
 - cause: QA-freeze edit accidentally removed existing Compose UI test dependencies from `app/build.gradle.kts`;
-- production/debug/profile Kotlin compiled before that instrumentation-test compile failure;
 - no QA1 APK was distributed or accepted.
 
-### P5.2 QA2 identity — CURRENT
+### P5.2 QA2 — ACCEPTED FOCUSED PHYSICAL/DEVELOPER CANDIDATE
 
 - versionName `0.5.0-curriculum-expansion-p5.2-qa2`;
 - versionCode 21;
-- missing test dependencies restored from the last green implementation baseline;
-- dedicated QA2 debug/profile artifact naming configured;
-- authoritative QA matrix: `docs/10-execution/P5_2_QA.md`;
-- exact frozen QA2 candidate commit / CI / profile artifact / APK SHA: PENDING final exact-head green build;
-- physical/developer Content Lab matrix: PENDING.
+- executable `2f36834d110cb1076b953f519eee4a8dc6e2e19d`;
+- exact-head CI #477 / run `34808016949` GREEN;
+- debug artifact `10333752707`;
+- profile artifact `10333593024`;
+- content-quality report artifact `10334126516`;
+- profile APK size `16,245,548 bytes`;
+- profile APK SHA-256 `725720ae1fbff232cbb56049d77b087d8214f959189269630dbbd9eeb0817cf6`;
+- independent local size/SHA verification MATCHED CI evidence;
+- exact report: 9 lessons / 0 errors / 0 warnings;
+- focused Content Lab matrix 20/20 PASS by user report on the exact QA2 APK;
+- normal-product smoke PASS;
+- no Content Lab/analyzer/runtime source drift after green implementation baseline `1b63530dd3e466311921cebc5fa7c0497c57cb93`.
+
+Authoritative QA record: `docs/10-execution/P5_2_QA.md`.
 
 ## Frozen architecture invariants
 
@@ -108,13 +110,12 @@ Key automated evidence before QA freeze:
 
 ## Immediate next action
 
-1. Synchronize QA2 status/handoff/roadmap and freeze one exact candidate head.
-2. Require exact-head Android CI green, including instrumentation compile, content-quality report and dedicated QA2 APK artifacts.
-3. Download profile artifact and independently verify APK size/SHA against CI evidence.
-4. Hand the exact QA2 APK to the user for the focused Content Lab + normal-product smoke matrix in `P5_2_QA.md`.
-5. Do not mark physical rows PASS unless explicitly exercised/reported.
-6. After acceptance: final docs CI → PR #77 ready/squash merge → merged-main CI → close #76.
-7. Only then continue to P5.3. Bulk lesson production remains blocked until P5.2 is accepted.
+1. Run final exact-head acceptance-doc CI after QA/status/handoff/roadmap evidence synchronization.
+2. If green, mark PR #77 ready and squash-merge it.
+3. Verify merged-main Android CI on the exact squash merge.
+4. Close issue #76 completed only after merged-main green.
+5. Then create P5.3 Companion / Teacher Experience V2 from verified `main` and lock its execution contract before implementation.
+6. Bulk lesson production remains blocked until P5.2 is formally closed.
 
 ## Continuation rule
 

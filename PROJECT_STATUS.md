@@ -2,11 +2,11 @@
 
 **Working project:** Kids Drawing App  
 **Authoritative repository:** `rayadinaveen98-ship-it/kids-drawing-app`  
-**Current phase:** Phase 4 — Content & Studio Expansion / `0.4.0-content-studio` — **COMPLETE**  
-**Active branch:** `main`  
 **Latest fully verified product milestone:** `0.4.0-content-studio`, versionCode 19  
-**Physically accepted executable:** `f3843365d39540de00fe08a008883c15abe75599`  
-**Final Phase-4 merge:** `9f9a21b7d77b2471e1c4e1a7035ce7ec258f35a4`  
+**Current phase:** Phase 5 — Curriculum & Teaching Experience Expansion / `0.5.0-curriculum-expansion` — **PLANNING / P5.1 ACTIVE**  
+**Active branch:** `phase5/p5-1-curriculum-contract`  
+**Parent epic:** #73  
+**Current slice:** P5.1 — Curriculum & Teaching Contract #74  
 **Last updated:** 2026-09-14
 
 Git is authoritative when chat memory and repository state disagree.
@@ -15,56 +15,73 @@ Git is authoritative when chat memory and repository state disagree.
 
 - Phase 0 — Product Foundation — COMPLETE.
 - Phase 1 — Drawing Engine `0.1.0-art-lab`, versionCode 11 — COMPLETE/frozen. Verified tag `v0.1.0-art-lab` exists.
-- Phase 2 — Lesson Engine `0.2.0-lesson-engine`, versionCode 12 — COMPLETE/frozen; Samsung SM-A546E/API36 physical matrix 32/32 PASS.
+- Phase 2 — Lesson Engine `0.2.0-lesson-engine`, versionCode 12 — COMPLETE/frozen; physical matrix 32/32 PASS.
 - Phase 3 — First Vertical Slice `0.3.0-vertical-slice`, versionCode 13 — COMPLETE; physical 41/41 PASS.
-- Phase 4 — Content & Studio Expansion `0.4.0-content-studio`, versionCode 19 — **COMPLETE**.
+- Phase 4 — Content & Studio Expansion `0.4.0-content-studio`, versionCode 19 — COMPLETE.
 
-Do not claim 0.2/0.3/0.4 tags exist unless verified later. No 0.4 tag was created because connected repository tooling did not expose tag creation.
+No 0.2/0.3/0.4 tag is claimed unless separately verified. Phase 4 is frozen and must not be silently extended.
 
-## Phase 4 closure
+## Exact accepted 0.4 baseline
 
-All Phase-4 slices are closed:
-- P4.1 #58 — COMPLETE
-- P4.2 #59 — COMPLETE
-- P4.3 #60 — COMPLETE; deferred Set-A physical matrix closed by final P4.7 evidence
-- P4.4 #61 — COMPLETE
-- P4.5 #62 — COMPLETE
-- P4.6 #63 — COMPLETE
-- P4.7 #64 — COMPLETE
-- Parent epic #57 — COMPLETE / CLOSED
+- physically tested executable: `f3843365d39540de00fe08a008883c15abe75599`;
+- final Phase-4 squash merge: `9f9a21b7d77b2471e1c4e1a7035ce7ec258f35a4`;
+- final closure `main` head: `e8215bedea6f8d55c0ca08ca4015a46062d45769`;
+- accepted candidate CI #440 GREEN;
+- merged-main CI #446 GREEN;
+- closure-doc CI #450 GREEN;
+- profile artifact `10331363240`;
+- profile APK size `16,196,353 bytes`;
+- SHA-256 `f7a8f9a177d8edc6244796f7c08ff4fd32ad64eeb26e90b7ba00bb68fc9daa59`;
+- final physical/product checklist PASS.
 
-Final PR #72 squash-merged to `main` at `9f9a21b7d77b2471e1c4e1a7035ce7ec258f35a4`.
-Merged-main Android CI #446 / run `34802235303`: **GREEN**.
+## Phase 5 — ACTIVE PLANNING
 
-## Final accepted `0.4.0-content-studio` binary
+Epic #73 targets `0.5.0-curriculum-expansion`.
 
-- versionName `0.4.0-content-studio`
-- versionCode 19
-- exact physically tested executable `f3843365d39540de00fe08a008883c15abe75599`
-- exact candidate Android CI #440 / run `34801122118` GREEN
-- acceptance-documentation head `84771ba4a19692953bc79a1cf185c9a5d5c491b5`, CI #445 GREEN
-- profile artifact `10331363240` / `kids-drawing-0.4.0-content-studio-profile`
-- profile APK `Kids_Drawing_0.4.0_Content_Studio-profile.apk`
-- size `16,196,353 bytes`
-- SHA-256 `f7a8f9a177d8edc6244796f7c08ff4fd32ad64eeb26e90b7ba00bb68fc9daa59`
-- independent local size/hash verification PASS
-- final physical/product checklist user-reported PASS on 2026-09-14
-- no release-blocking defect; no replacement binary required
+Phase 5 does not begin by reopening engine internals. It begins by locking the age 4–12 curriculum, teacher/companion principles and content-production requirements.
 
-## Product now proven in 0.4
+### P5.1 — Curriculum & Teaching Contract — ACTIVE
 
-- generic offline nine-lesson catalog;
-- multi-lesson Studio, categories, Art Journeys and deterministic recommendations;
-- all four age bands represented;
-- Trace & Learn, Draw With Me, Watch Then Draw, Help Ladder and grouped playback;
-- cumulative teacher construction without child-art contamination;
-- production Free Draw with Pencil/Crayon/Marker/Eraser, palette/size, editable history, recovery and Gallery provenance;
-- prepared-region Fill, authored Color With Me, Color Myself and legacy freehand coloring;
-- protected line-art isolation and reversible schema-3 fill history;
-- lesson/coloring/Free Draw lifecycle and process recovery;
-- Gallery reopen/delete/source isolation;
-- complete core journeys in Airplane Mode;
-- final integrity/stability sweep with no reported crash, ANR, deadlock or unrecoverable blank state.
+Authoritative files:
+- `docs/10-execution/P5_1_CURRICULUM_RESEARCH.md`
+- `docs/10-execution/P5_1_CURRICULUM_CONTRACT.md`
+
+Locked direction:
+- 24 total production guided lessons for 0.5;
+- 9 verified Phase-4 lessons retained;
+- 15 purposeful new lessons;
+- eventual 36-lesson public-V1 target remains later;
+- all four age bands receive real progression, not cosmetic difficulty changes;
+- guidance decreases and creative authorship increases with age;
+- no similarity scoring, permanent ability labels, punitive streaks or cloud profiling;
+- content remains structured/generic and offline-first.
+
+Exact new lesson target:
+- Happy Lines;
+- Shape Friends;
+- Snail Garden;
+- Elephant From Shapes;
+- Rainbow Weather;
+- Tree Through Seasons;
+- Ice Cream Shop;
+- Simple Car;
+- Sailboat Scene;
+- Planet With Rings;
+- Friendly Alien;
+- Face & Expressions;
+- Simple Body & Pose;
+- Create Your Character;
+- One-Point Room.
+
+Phase-5 planned slices:
+1. P5.1 — Curriculum & Teaching Contract.
+2. P5.2 — Content Production System V2.
+3. P5.3 — Companion / Teacher Experience V2.
+4. P5.4 — Curriculum Expansion Set C.
+5. P5.5 — Curriculum Expansion Set D.
+6. P5.6 — Curriculum Expansion Set E.
+7. P5.7 — Local Adaptive Teaching.
+8. P5.8 — Cross-age curriculum QA + `0.5.0-curriculum-expansion` release.
 
 ## Frozen architecture invariants
 
@@ -78,18 +95,16 @@ Merged-main Android CI #446 / run `34802235303`: **GREEN**.
 - Free Draw remains lesson-independent with explicit provenance.
 - Core product remains offline-first.
 - No mandatory child account, ads, behavioral analytics, network dependency or sensitive permissions in core milestones.
+- No engine redesign without a concrete Phase-5 defect and explicit contract/ADR change.
 
-## Next direction
+## Immediate next action
 
-No post-Phase-4 implementation slice is active yet. Product direction already identified for future planning:
-- companion expression/voice polish;
-- expand curriculum toward public V1 24–36 lessons;
-- adaptive local recommendations/help without punitive scoring;
-- Parent Zone / parent-controlled export/settings;
-- broader accessibility/device hardening and Beta;
-- V1.0 only after product, privacy/safety, content and store-release gates pass.
-
-Before new implementation begins, define and lock the next milestone/epic in Git rather than silently extending Phase 4.
+1. Keep P5.1 research + curriculum contract on the dedicated planning branch.
+2. Update ROADMAP/HANDOFF to the same state.
+3. Open a draft P5.1 PR.
+4. Require exact-head CI green.
+5. Review/accept the contract and close #74 only after CI and repository evidence are clean.
+6. Only then begin P5.2 Content Production System V2; do **not** start authoring all 15 lessons manually first.
 
 ## Continuation rule
 
@@ -97,6 +112,8 @@ Inspect in order:
 1. `PROJECT_STATUS.md`
 2. `docs/HANDOFF.md`
 3. `ROADMAP.md`
-4. `docs/10-execution/P4_7_RELEASE_REPORT.md`
-5. `docs/10-execution/P4_7_FINAL_QA.md`
-6. closed epic #57 and issue #64 when Phase-4 history is needed.
+4. epic #73
+5. issue #74
+6. `P5_1_CURRICULUM_RESEARCH.md`
+7. `P5_1_CURRICULUM_CONTRACT.md`
+8. Phase-4 release report only when baseline evidence is needed.

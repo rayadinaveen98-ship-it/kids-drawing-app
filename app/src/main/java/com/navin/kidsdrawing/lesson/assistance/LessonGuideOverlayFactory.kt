@@ -48,7 +48,6 @@ object LessonGuideOverlayFactory {
     ): GuideOverlayRequest {
         require(guideRefs.isNotEmpty()) { "Guide overlay requires at least one guide reference." }
         val guideCatalog = lessonPackage.strokeCatalog.guides.associateBy(AuthoredGuide::id)
-        val strokeCatalog = lessonPackage.strokeCatalog.strokes.associateBy(AuthoredStroke::id)
 
         val strokeIds = linkedSetOf<String>()
         guideRefs.forEach { guideRef ->
@@ -57,6 +56,59 @@ object LessonGuideOverlayFactory {
             }
             guide.strokeRefs.forEach(strokeIds::add)
         }
+        require(strokeIds.isNotEmpty()) { "Guide overlay for step ${step.id} resolved no strokes." }
+
+        return createFromStrokeRefs(
+            lessonPackage = lessonPackage,
+            step = step,
+            strokeRefs = strokeIds.toList(),
+            purpose = purpose,
+            helpLevel = helpLevel,
+            helpKind = helpKind,
+        )
+    }
+
+    fun traceForStep(
+        lessonPackage: LessonRuntimePackage,
+        step: DrawingStep,
+    ): GuideOverlayRequest {
+        val trace = step.help
+            .filter { it.kind == HelpKind.TRACE_PATH && it.guideRefs.isNotEmpty() }
+            .minByOrNull { it.level }
+        if (trace != null) {
+            return create(
+                lessonPackage = lessonPackage,
+                step = step,
+                guideRefs = trace.guideRefs,
+                purpose = GuideOverlayPurpose.TRACE_MODE,
+                helpLevel = 0,
+                helpKind = HelpKind.TRACE_PATH,
+            )
+        }
+
+        require(step.childTurn.expectedStrokeRefs.isNotEmpty()) {
+            "Validated Trace & Learn step ${step.id} has neither a trace guide nor expected geometry."
+        }
+        return createFromStrokeRefs(
+            lessonPackage = lessonPackage,
+            step = step,
+            strokeRefs = step.childTurn.expectedStrokeRefs,
+            purpose = GuideOverlayPurpose.TRACE_MODE,
+            helpLevel = 0,
+            helpKind = HelpKind.TRACE_PATH,
+        )
+    }
+
+    private fun createFromStrokeRefs(
+        lessonPackage: LessonRuntimePackage,
+        step: DrawingStep,
+        strokeRefs: List<String>,
+        purpose: GuideOverlayPurpose,
+        helpLevel: Int,
+        helpKind: HelpKind,
+    ): GuideOverlayRequest {
+        val strokeCatalog = lessonPackage.strokeCatalog.strokes.associateBy(AuthoredStroke::id)
+        val strokeIds = strokeRefs.distinct()
         require(strokeIds.isNotEmpty()) { "Guide overlay for step ${step.id} resolved no strokes." }
 
         val sources = strokeIds.mapIndexed { index, strokeId ->
@@ -108,24 +160,6 @@ object LessonGuideOverlayFactory {
                 sequenceId = overlayId,
                 strokes = sources,
             ),
-        )
-    }
-
-    fun traceForStep(
-        lessonPackage: LessonRuntimePackage,
-        step: DrawingStep,
-    ): GuideOverlayRequest {
-        val trace = step.help
-            .filter { it.kind == HelpKind.TRACE_PATH && it.guideRefs.isNotEmpty() }
-            .minByOrNull { it.level }
-            ?: error("Validated Trace & Learn step ${step.id} has no trace guide.")
-        return create(
-            lessonPackage = lessonPackage,
-            step = step,
-            guideRefs = trace.guideRefs,
-            purpose = GuideOverlayPurpose.TRACE_MODE,
-            helpLevel = 0,
-            helpKind = HelpKind.TRACE_PATH,
         )
     }
 

@@ -1,6 +1,6 @@
 # P6.3 Release Report — Parent Progress & Curriculum Visibility
 
-Status: **QA1 BUILT / PHYSICAL QA PENDING**  
+Status: **PHYSICAL ACCEPTED — REPOSITORY CLOSURE ACTIVE**  
 Issue: #96  
 Parent epic: #91  
 PR: #97  
@@ -50,7 +50,7 @@ Explicitly excluded:
 - fully wired Parent Learning head: `21a0a67a39273b4de4f5d392816ba4a722e66116`, CI #608 GREEN;
 - route-hardening head: `f0f9f17cb11516a5660437289df37ef45aaae542`, CI #609 GREEN.
 
-## Immutable QA1 executable
+## Immutable physically accepted QA1 executable
 
 - source head: `f155abc894d21b8cc09112a018fdf53ae25e4447`;
 - versionName: `0.6.0-family-readiness-p6.3-qa1`;
@@ -83,29 +83,30 @@ Explicitly excluded:
 
 Both profile and debug artifact ZIP digests were recomputed from downloaded CI archives and matched GitHub metadata. Both APK hashes and sizes were independently recomputed and matched `SHA256SUMS.txt` / `APK_SIZES.txt` packaged by CI.
 
-## QA status
+## Physical QA status
 
 Authoritative physical matrix: `docs/10-execution/P6_3_FINAL_QA.md`.
 
-Current result:
-- physical PASS: **0/24**;
+Accepted result on the exact profile APK above:
+- physical PASS: **24/24**;
 - physical FAIL: **0/24**;
-- physical NOT RUN: **24/24**;
-- tester device/API: **not provided**;
-- release blockers: **physical QA pending**.
+- physical NOT RUN: **0/24**;
+- acceptance date: **2026-09-15**;
+- tester device/API: **not provided and not inferred**;
+- release blockers: **none reported**.
 
-## Merge decision
+The user confirmed all 24 focused checks passed, including upgrade preservation, protected Parent Learning access, truthful completion/artwork/in-progress separation, no fabricated completion dates, descriptive/non-judgmental language, Airplane Mode, large-text/small-screen handling and child-art regression smoke.
 
-**PR #97 must remain DRAFT / unmerged.**
+## Repository closure decision
 
-After exact-binary physical acceptance:
-1. record P01–P24 results against the immutable v29 artifact;
-2. update this report to physical ACCEPTED;
-3. require acceptance-documentation CI GREEN;
-4. mark PR #97 ready;
-5. squash-merge;
-6. require merged-main Android CI GREEN;
-7. close #96 completed;
-8. activate P6.4 from the verified merged-main baseline.
+**P6.3 is physically accepted and eligible for repository closure.**
 
-Documentation and merge commits do not replace the exact physical-test executable built from `f155abc...`. Any executable modification requires a new versionCode and new QA binary.
+Required remaining closure sequence:
+1. require acceptance-documentation CI GREEN on the final documentation head;
+2. mark PR #97 ready;
+3. squash-merge using the exact accepted PR head;
+4. require merged-main Android CI GREEN;
+5. close #96 completed;
+6. activate P6.4 only from that verified merged-main baseline.
+
+Documentation and merge commits do not replace the exact physically accepted executable built from `f155abc...`. Any later executable modification requires a new monotonic versionCode and fresh QA binary.

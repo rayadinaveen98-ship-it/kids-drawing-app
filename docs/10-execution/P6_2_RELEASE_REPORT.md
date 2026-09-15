@@ -1,6 +1,6 @@
 # P6.2 Release Report — Parent Zone Foundation
 
-Status: **QA1 BUILT / AUTOMATED GREEN / PHYSICAL ACCEPTANCE PENDING**  
+Status: **PHYSICAL ACCEPTED — 30/30 PASS / REPOSITORY CLOSURE ACTIVE**  
 Issue: #94  
 Parent epic: #91  
 PR: #95
@@ -38,7 +38,7 @@ P6.2 implementation/hardening baseline:
 - head `8b836757fc6de9451848ea2fb937813c62c18ffe`;
 - Android CI #595 / run `34938060413`: GREEN.
 
-## Immutable QA1 executable
+## Immutable physically accepted QA1 executable
 
 - source head: `528467acdcfde9c4d6ea01959d57157376cb081d`
 - commit message: `P6.2 cut v28 QA1 candidate`
@@ -47,22 +47,11 @@ P6.2 implementation/hardening baseline:
 - Android CI #596 / run `34940587740`: **GREEN**
 - PR workflow SHA: `e523999099fd1ab190a65921d122f26eb5c81672`
 
-CI #596 passed:
-- committed JSON parsing;
-- Drawing Engine Ink boundary;
-- unit tests;
-- lint;
-- debug APK compile;
-- instrumentation APK compile;
-- profile APK compile;
-- frozen curriculum quality: **24 lessons / 0 errors / exactly 6 reviewed warnings**;
-- Android permission allowlist;
-- exact package/version identity verification;
-- immutable APK evidence packaging and upload.
+CI #596 passed committed JSON parsing, Drawing Engine Ink boundary, unit tests, lint, debug/instrumentation/profile APK compile, frozen curriculum quality (**24 / 0 / 6**), permission allowlist, exact package/version identity and immutable APK evidence packaging/upload.
 
 ## Artifacts
 
-### Release-like profile — authoritative physical-test binary
+### Release-like profile — physically accepted binary
 
 - artifact ID: **10385266255**
 - artifact name: `kids-drawing-0.6.0-family-readiness-p6.2-qa1-profile`
@@ -89,21 +78,29 @@ The profile/debug APK SHA256 values were independently recomputed after download
 
 ## Testing truth
 
-JVM unit suites run in CI and pass. Android instrumentation sources for the Parent Gate Compose flow and existing `ChildProfileStore` compatibility are present and compile into the instrumentation APK. CI #596 does **not** run an Android emulator, so those runtime behaviors are not mislabeled as automated runtime PASS; focused physical rows cover them on the exact profile candidate.
+JVM unit suites run in CI and pass. Android instrumentation sources for Parent Gate Compose and existing `ChildProfileStore` compatibility compile into the instrumentation APK. Runtime behavior was then tested physically on the exact profile candidate.
 
 Physical matrix: `docs/10-execution/P6_2_FINAL_QA.md`.
 
-Current physical status:
-- **0 / 30 PASS**
+Physical result confirmed by the user on 2026-09-15:
+- **30 / 30 PASS**
 - **0 / 30 FAIL**
-- **30 / 30 NOT RUN**
-- device/API: not yet provided
-- automated release blockers: none
+- **0 / 30 NOT RUN**
+- device/model/API: **not provided and not inferred**
+- release-blocking defect reported: **none**
 
 ## Release decision
 
-**PENDING PHYSICAL ACCEPTANCE.**
+**ACCEPTED FOR P6.2 REPOSITORY CLOSURE.**
 
-Do not merge PR #95 and do not close #94 until the exact profile APK above passes focused physical acceptance, acceptance documentation is updated truthfully, documentation-head CI is green, the PR is squash-merged and merged-main Android CI is green.
+The exact physically accepted executable remains artifact **10385266255** built from source head `528467ac...`. Documentation and merge commits after that executable head do not replace the tested binary.
 
-If executable behavior changes after this candidate, versionCode 28 must not be reused. A new monotonic versionCode and a new exact-binary QA cycle are required.
+Closure sequence:
+1. acceptance-documentation CI GREEN;
+2. mark PR #95 ready;
+3. squash-merge PR #95;
+4. merged-main Android CI GREEN;
+5. close #94 completed;
+6. begin P6.3 from the verified merged-main baseline.
+
+If executable behavior changes later, versionCode 28 must not be reused; a new monotonic versionCode and exact-binary QA cycle are required.

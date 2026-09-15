@@ -6,12 +6,11 @@
 **Phase 5:** **COMPLETE**  
 **Current phase:** Phase 6 — Parent Zone + Accessibility + Device Hardening / `0.6.0-family-readiness` — **ACTIVE**  
 **Phase-6 epic:** #91  
-**Current slice:** P6.1 — Parent Zone & Family Controls Contract #92  
-**Active branch:** `phase6/p6-1-parent-zone-contract`  
-**Current P6.1 state:** **CONTRACT FROZEN — 84/84 SPEC CHECKS PASS / CI + MERGE ACTIVE**  
-**Phase-5 squash merge:** `fbc118343dde860a9784d7a47356eb6a7fff73e1`  
-**Phase-5 merged-main CI:** Android CI #585 / run `34934427237` — **GREEN**  
-**Phase-6 clean baseline:** `f0d853712fb0888552059d39e82bfa3e12e1bb6c`  
+**P6.1:** **COMPLETE** — #92 closed, PR #93 squash-merged, merged-main Android CI #591 GREEN  
+**Current slice:** P6.2 — Parent Zone Foundation #94  
+**Active branch:** `phase6/p6-2-parent-zone-foundation`  
+**PR:** #95 — draft pending physical acceptance  
+**Current P6.2 state:** **QA1 AUTOMATED GREEN / EXACT PROFILE APK READY / PHYSICAL 0/30 NOT RUN**  
 **Last updated:** 2026-09-15
 
 Git is authoritative when chat memory and repository state disagree.
@@ -36,14 +35,14 @@ Git is authoritative when chat memory and repository state disagree.
 - release blockers: **none reported**;
 - tester device/API: **not provided and not inferred**.
 
-The exact physically accepted product binary remains the executable at `7ca10ac...`; later documentation and merge commits do not replace that tested binary.
+The exact physically accepted 0.5 binary remains the executable at `7ca10ac...`; later documentation and merge commits do not replace that tested binary.
 
 ## Frozen product foundations entering Phase 6
 
 - Drawing Engine, Lesson Engine, Coloring, Gallery, Free Draw and local adaptive teaching are accepted foundations;
 - `StudioPrimarySelectionPolicy`: coloring resume → drawing resume → fresh recommendation;
 - `StudioRecommendationPolicy` remains the Home recommendation surface;
-- `ChildProfile` remains explicit profile truth;
+- `ChildProfile` remains explicit single-profile truth in 0.6 until a dedicated profile-ID/data-ownership migration is designed;
 - lesson/session state remains teaching-state truth;
 - Companion remains read-only relative to artwork/session truth;
 - Help remains child-invoked and authored;
@@ -52,35 +51,90 @@ The exact physically accepted product binary remains the executable at `7ca10ac.
 - no grades/scores/ranks/XP, punitive streaks, permanent ability labels, cloud child profiling or behavioral analytics upload;
 - core app remains offline-first, account-free and ad-free.
 
-## Phase 6 objective
+## P6.1 closure
 
-Turn the accepted 0.5 learning product into a family-manageable, accessibility-strong and device-resilient product without weakening the child-first/offline-first architecture.
+P6.1 froze the Parent Zone/family-controls contract before implementation.
 
-Target release: **`0.6.0-family-readiness`**.
-
-Phase 6 is not a lesson-volume phase. The primary work is Parent Zone/family controls, non-judgmental parent progress visibility, accessibility, device/performance hardening, local family-data safety and integrated family-readiness QA.
-
-## Current slice — P6.1
-
-Authoritative artifacts:
-- `docs/10-execution/P6_1_PARENT_ZONE_FAMILY_CONTROLS_CONTRACT.md`;
-- `docs/10-execution/P6_1_SINGLE_PROFILE_SCOPE_DECISION.md`;
-- `docs/10-execution/P6_1_ACCEPTANCE_CHECKLIST.md`.
-
-Frozen decisions include:
-- Adult Intent Gate: one large **2.5-second hold** control with an accessible two-confirmation fallback;
-- gate is an intentionality boundary, **not identity authentication**;
-- Parent Zone session is in-memory only, valid up to 5 minutes of adult-area use, invalidated by child-mode return, process death, background >30 seconds or external navigation;
+- issue #92: **CLOSED / COMPLETED**;
+- PR #93: squash-merged;
+- merge commit: `9e1323b3643106aee3e50134f1b971e8086998ed`;
+- merged-main Android CI #591: **GREEN**;
+- contract audit: **84/84 PASS**;
+- Parent Gate contract: 2.5-second hold + accessible two-confirmation fallback;
+- adult session: memory-only, up to 5 minutes, invalidated by child return, process death, >30s background or external navigation;
 - Parent Zone IA: Family, Learning, Accessibility & Audio, Storage & Data, Safety & Privacy, About;
-- **0.6 manages the accepted single local child profile only**; additional child profiles/profile switching are deferred until a dedicated profile-ID/data-ownership migration contract exists;
-- parent/child ownership matrix is explicit;
-- parent progress is descriptive/non-judgmental and cannot use grades, rankings, mastery percentages, XP/streak pressure, permanent ability labels or sibling comparison;
-- destructive operations require explicit scope and just-in-time confirmation;
-- export/share stays parent-gated, read-only-copy, and original artwork-safe;
-- Parent Zone remains offline/account-free with no behavioral analytics upload;
-- accessibility baseline includes large touch targets, semantic controls, text reflow/scroll and no precision/rapid gesture gate;
-- Phase-5 product engines remain frozen.
+- 0.6 manages one local child profile only.
 
-P6.1 contract audit: **84/84 PASS** (`9+7+10+9+9+7+8+8+6+6+5`).
+## Current slice — P6.2 Parent Zone Foundation
 
-No production Parent Zone implementation occurs in P6.1. P6.2 begins only after P6.1 CI is green, the contract PR is merged, and #92 closes completed.
+P6.2 implements the first production adult-management slice without reopening accepted art/teaching engines.
+
+Delivered:
+- deterministic Adult Intent Gate/session policy with injectable clock;
+- 2.5-second primary hold gate and accessible two-confirmation fallback;
+- 5-minute memory-only adult session and background/child-return/external invalidation;
+- protected child Home → gate → Parent Zone routing;
+- production Parent Zone shell for all six contracted sections;
+- transaction-style editing of the existing local profile;
+- nickname, age band, teaching mode, teaching pace, interests, handedness and narration-default editing;
+- atomic save/cancel semantics through existing `ChildProfileStore`;
+- truthful local/offline Safety & Privacy and About surfaces;
+- baseline accessibility/reflow/scroll behavior;
+- no multi-profile migration and no new Android permission.
+
+### Automated implementation baseline
+
+- hardening head: `8b836757fc6de9451848ea2fb937813c62c18ffe`;
+- Android CI #595 / run `34938060413`: **GREEN**.
+
+### Immutable P6.2 QA1 candidate
+
+- executable source head: `528467acdcfde9c4d6ea01959d57157376cb081d`;
+- versionName: `0.6.0-family-readiness-p6.2-qa1`;
+- versionCode: **28**;
+- Android CI #596 / run `34940587740`: **GREEN**;
+- PR workflow SHA: `e523999099fd1ab190a65921d122f26eb5c81672`;
+- frozen curriculum quality: **24 lessons / 0 errors / exactly 6 reviewed warnings**;
+- permission allowlist: **PASS**;
+- APK identity: **PASS**.
+
+Authoritative physical-test profile APK:
+- artifact ID: **10385266255**;
+- artifact archive digest: `sha256:11f77fb9f8225f0c01671abd2b112cf819d6aee49c2c3b89f5c2f7c5f82ee3fa`;
+- size: **16,377,441 bytes**;
+- SHA256: `b438d69ef7cabd7e023c963602e08c887b73074e219df2d03355a308d4849402`.
+
+Debug evidence:
+- artifact ID: **10384299888**;
+- size: **20,642,199 bytes**;
+- SHA256: `7c9a53ef5b3510a81965d3ec0443600e10c1f83ee5c41316797f3fcb9ac26e2d`.
+
+Content-quality artifact: **10384499464**.
+
+Downloaded QA1 artifacts were independently hashed and matched their packaged SHA256 values.
+
+### Physical gate
+
+Authoritative matrix: `docs/10-execution/P6_2_FINAL_QA.md`.
+
+- PASS: **0/30**
+- FAIL: **0/30**
+- NOT RUN: **30/30**
+- tester device/API: **not yet provided**
+- automated release blockers: **none**
+- release decision: **PENDING PHYSICAL ACCEPTANCE**
+
+The exact physical candidate remains artifact `10385266255` built from executable head `528467ac...`. Documentation-only commits after that head do not replace the accepted-candidate binary.
+
+## Next closure sequence
+
+1. physically test the exact P6.2 QA1 profile APK against P01–P30;
+2. record actual physical results/device information without inference;
+3. finalize `P6_2_FINAL_QA.md`, `P6_2_RELEASE_REPORT.md` and this status file;
+4. require acceptance-documentation CI GREEN;
+5. mark PR #95 ready and squash-merge;
+6. require merged-main Android CI GREEN;
+7. close issue #94 completed;
+8. begin P6.3 only from the verified merged-main baseline.
+
+If physical QA discovers an executable release blocker, versionCode **28 must not be reused**. Fix the defect, increment versionCode, cut a new QA candidate and repeat exact-binary evidence + physical acceptance.

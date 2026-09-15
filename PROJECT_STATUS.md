@@ -3,15 +3,14 @@
 **Working project:** Kids Drawing App  
 **Authoritative repository:** `rayadinaveen98-ship-it/kids-drawing-app`  
 **Latest full product release:** `0.5.0-curriculum-expansion`, versionCode **27**  
-**Latest physically verified Phase-6 milestone:** `0.6.0-family-readiness-p6.2-qa1`, versionCode **28**  
-**Current QA candidate:** `0.6.0-family-readiness-p6.3-qa1`, versionCode **29** — physical QA pending  
+**Latest physically verified Phase-6 milestone:** `0.6.0-family-readiness-p6.3-qa1`, versionCode **29**  
 **Phase 5:** **COMPLETE**  
 **Current phase:** Phase 6 — Parent Zone + Accessibility + Device Hardening / `0.6.0-family-readiness` — **ACTIVE**  
 **Phase-6 epic:** #91  
 **P6.1:** **COMPLETE**  
 **P6.2:** **COMPLETE**  
 **Current slice:** **P6.3 — Parent Progress & Curriculum Visibility #96**  
-**Current P6.3 state:** **QA1 BUILT / PHYSICAL QA READY**  
+**Current P6.3 state:** **PHYSICALLY ACCEPTED — 24/24 PASS / REPOSITORY CLOSURE ACTIVE**  
 **Last updated:** 2026-09-15
 
 Git is authoritative when chat memory and repository state disagree.
@@ -128,7 +127,7 @@ Clean baseline: `d518bd8fca3d45af6b33604e9f87f13798826142` / Android CI #605 GRE
 - no grades, scores, ranks, mastery percentages, XP/streak pressure, permanent ability labels, comparison or parent-facing raw Help-request counts;
 - no account, cloud sync, network dependency, behavioral analytics upload, multi-profile migration or new Android permission.
 
-### Immutable P6.3 QA1 candidate — PHYSICAL QA PENDING
+### Immutable physically accepted P6.3 QA1 executable
 
 - executable source head: `f155abc894d21b8cc09112a018fdf53ae25e4447`;
 - versionName: `0.6.0-family-readiness-p6.3-qa1`;
@@ -142,18 +141,18 @@ Clean baseline: `d518bd8fca3d45af6b33604e9f87f13798826142` / Android CI #605 GRE
 - debug APK size: **20,674,972 bytes**;
 - debug APK SHA256: `a5fc5ce589b101b47e3e5885e7dd35be777595282a1cbb6d03def64e9d098c2e`;
 - content-quality artifact: **10388931000**;
-- physical matrix: `docs/10-execution/P6_3_FINAL_QA.md` — **0/24 run**;
-- release report: `docs/10-execution/P6_3_RELEASE_REPORT.md`;
-- PR #97 remains **DRAFT / DO NOT MERGE** until physical acceptance.
+- physical matrix: `docs/10-execution/P6_3_FINAL_QA.md` — **24/24 PASS**;
+- physical acceptance date: **2026-09-15**;
+- tester device/API: **not provided and not inferred**;
+- reported blockers: **none**;
+- release report: `docs/10-execution/P6_3_RELEASE_REPORT.md`.
 
-The exact physical target is the profile APK built from `f155abc...`. Later documentation commits do not replace it. Any executable change requires a new monotonic versionCode and fresh exact-binary QA.
+The exact physically accepted P6.3 executable remains artifact `10387978868` built from `f155abc...`. Later documentation/merge commits do not replace it. Any executable change requires a new monotonic versionCode and fresh exact-binary QA.
 
-### Next gate
+### Current closure gate
 
-1. physically test P01–P24 on the exact v29 profile APK;
-2. record the result without inventing device/API details;
-3. run acceptance-documentation CI;
-4. mark PR #97 ready and squash-merge only if accepted;
-5. require merged-main Android CI GREEN;
-6. close #96 completed;
-7. activate P6.4 from the verified main baseline.
+1. acceptance-documentation CI must be GREEN on the final docs head;
+2. mark PR #97 ready and squash-merge;
+3. require merged-main Android CI GREEN;
+4. close #96 completed;
+5. activate P6.4 from the verified merged-main baseline.

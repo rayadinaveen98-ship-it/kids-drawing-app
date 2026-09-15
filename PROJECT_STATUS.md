@@ -8,8 +8,10 @@
 **Phase-6 epic:** #91  
 **Current slice:** P6.1 — Parent Zone & Family Controls Contract #92  
 **Active branch:** `phase6/p6-1-parent-zone-contract`  
+**Current P6.1 state:** **CONTRACT FROZEN — 66/66 SPEC CHECKS PASS / CI + MERGE ACTIVE**  
 **Phase-5 squash merge:** `fbc118343dde860a9784d7a47356eb6a7fff73e1`  
 **Phase-5 merged-main CI:** Android CI #585 / run `34934427237` — **GREEN**  
+**Phase-6 clean baseline:** `f0d853712fb0888552059d39e82bfa3e12e1bb6c`  
 **Last updated:** 2026-09-15
 
 Git is authoritative when chat memory and repository state disagree.
@@ -60,6 +62,23 @@ Phase 6 is not a lesson-volume phase. The primary work is Parent Zone/family con
 
 ## Current slice — P6.1
 
-P6.1 is **contract-first**. No Parent Zone implementation should begin until the parent gate, parent/child ownership boundaries, progress visibility, destructive-action scope, privacy/network/permission rules, accessibility constraints and acceptance criteria are frozen in Git.
+Authoritative artifacts:
+- `docs/10-execution/P6_1_PARENT_ZONE_FAMILY_CONTROLS_CONTRACT.md`;
+- `docs/10-execution/P6_1_ACCEPTANCE_CHECKLIST.md`.
 
-Implementation begins in P6.2 only after P6.1 is accepted and merged.
+Frozen decisions include:
+- Adult Intent Gate: one large **2.5-second hold** control with an accessible two-confirmation fallback;
+- gate is an intentionality boundary, **not identity authentication**;
+- Parent Zone session is in-memory only, valid up to 5 minutes of adult-area use, invalidated by child-mode return, process death, background >30 seconds or external navigation;
+- Parent Zone IA: Family, Learning, Accessibility & Audio, Storage & Data, Safety & Privacy, About;
+- parent/child ownership matrix is explicit;
+- parent progress is descriptive/non-judgmental and cannot use grades, rankings, mastery percentages, XP/streak pressure, permanent ability labels or sibling comparison;
+- destructive operations require explicit scope and just-in-time confirmation with cross-profile isolation;
+- export/share stays parent-gated, read-only-copy, and original artwork-safe;
+- Parent Zone remains offline/account-free with no behavioral analytics upload;
+- accessibility baseline includes large touch targets, semantic controls, text reflow/scroll and no precision/rapid gesture gate;
+- Phase-5 product engines remain frozen.
+
+P6.1 contract audit: **66/66 PASS**.
+
+No production Parent Zone implementation occurs in P6.1. P6.2 begins only after P6.1 CI is green, the contract PR is merged, and #92 closes completed.

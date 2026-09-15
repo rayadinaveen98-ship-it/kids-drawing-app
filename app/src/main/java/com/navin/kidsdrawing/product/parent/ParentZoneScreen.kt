@@ -7,22 +7,16 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -473,7 +467,11 @@ private fun ParentProfileEditor(
                 scope.launch {
                     val saved = onSaveProfile(nextProfile)
                     saving = false
-                    if (saved) onBack() else saveError = "We couldn't save that change. The previous profile is still safe."
+                    if (saved) {
+                        onBack()
+                    } else {
+                        saveError = "We couldn't save that change. The previous profile is still safe."
+                    }
                 }
             },
         )
@@ -503,7 +501,7 @@ private fun ParentSectionDetail(
 @Composable
 private fun ParentScrollableSurface(
     modifier: Modifier = Modifier,
-    content: @Composable Column.() -> Unit,
+    content: @Composable () -> Unit,
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -516,8 +514,9 @@ private fun ParentScrollableSurface(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 22.dp, vertical = 18.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            content = content,
-        )
+        ) {
+            content()
+        }
     }
 }
 
@@ -548,7 +547,7 @@ private fun ParentHeader(
 @Composable
 private fun ParentChoiceGroup(
     title: String,
-    content: @Composable Column.() -> Unit,
+    content: @Composable () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
@@ -564,7 +563,7 @@ private fun ParentChoiceGroup(
 private fun ParentInfoCard(
     title: String,
     body: String,
-    content: (@Composable Column.() -> Unit)? = null,
+    content: (@Composable () -> Unit)? = null,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -587,7 +586,7 @@ private fun ParentInfoCard(
                 style = MaterialTheme.typography.bodyLarge,
                 color = StudioColors.Ink700,
             )
-            content?.invoke(this)
+            content?.invoke()
         }
     }
 }

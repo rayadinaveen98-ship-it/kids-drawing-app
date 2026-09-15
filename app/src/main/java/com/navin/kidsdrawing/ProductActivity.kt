@@ -1,6 +1,7 @@
 package com.navin.kidsdrawing
 
 import android.os.Bundle
+import android.os.SystemClock
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +27,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import com.navin.kidsdrawing.lesson.content.LessonCatalogIdentity
 import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
 import com.navin.kidsdrawing.product.design.StudioColors
@@ -47,10 +52,16 @@ import com.navin.kidsdrawing.product.home.StudioPlaceholderRoute
 import com.navin.kidsdrawing.product.lesson.ProductLessonFlow
 import com.navin.kidsdrawing.product.lesson.ProductLessonRuntime
 import com.navin.kidsdrawing.product.onboarding.OnboardingFlow
+import com.navin.kidsdrawing.product.parent.ParentAccessSession
+import com.navin.kidsdrawing.product.parent.ParentElapsedClock
+import com.navin.kidsdrawing.product.parent.ParentGateScreen
+import com.navin.kidsdrawing.product.parent.ParentZoneScreen
+import com.navin.kidsdrawing.product.parent.currentAppVersionName
 import com.navin.kidsdrawing.product.profile.ChildProfile
 import com.navin.kidsdrawing.product.profile.ChildProfileDraft
 import com.navin.kidsdrawing.product.profile.ChildProfileStore
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class ProductActivity : ComponentActivity() {
@@ -106,12 +117,20 @@ private fun ProductRoot(store: ChildProfileStore) {
                 }
             },
         )
-        is StartupState.Home -> ProductStudio(profile = current.profile)
+        is StartupState.Home -> ProductStudio(
+            profile = current.profile,
+            store = store,
+            onProfileChanged = { updated -> state = StartupState.Home(updated) },
+        )
     }
 }
 
 @Composable
-private fun ProductStudio(profile: ChildProfile) {
+private fun ProductStudio(
+    profile: ChildProfile,
+    store: ChildProfileStore,
+    onProfileChanged: (ChildProfile) -> Unit,
+) {
     val context = LocalContext.current
     val repository = remember(context) { StudioHomeRepository(context) }
     val freeDrawRuntime = remember(context) { ProductFreeDrawRuntime(context) }
@@ -121,6 +140,12 @@ private fun ProductStudio(profile: ChildProfile) {
             protectedWorkingDocumentId = ProductFreeDrawRuntime.WORKING_DOCUMENT_ID,
         )
     }
+    val parentSession = remember {
+        ParentAccessSession(ParentElapsedClock { SystemClock.elapsedRealtime() })
+    }
+    val lifecycleOwner = context as? LifecycleOwner
+    val scope = rememberCoroutineScope()
+    var parentSessionRevision by remember { mutableStateOf(0) }
     var routeName by rememberSaveable { mutableStateOf(StudioDestination.HOME.name) }
     val route = runCatching { StudioDestination.valueOf(routeName) }
         .getOrDefault(StudioDestination.HOME)
@@ -131,6 +156,31 @@ private fun ProductStudio(profile: ChildProfile) {
     var selectedJourneyId by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedGalleryEntryId by rememberSaveable { mutableStateOf<String?>(null) }
     var completionEntryId by rememberSaveable { mutableStateOf<String?>(null) }
+
+    DisposableEffect(lifecycleOwner, parentSession) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_STOP -> parentSession.onBackgrounded()
+                Lifecycle.Event.ON_START -> {
+                    parentSession.onForegrounded()
+                    parentSessionRevision += 1
+                }
+                else -> Unit
+            }
+        }
+        lifecycleOwner?.lifecycle?.addObserver(observer)
+        onDispose { lifecycleOwner?.lifecycle?.removeObserver(observer) }
+    }
+
+    LaunchedEffect(route, parentSessionRevision) {
+        if (route == StudioDestination.PARENT_ZONE && parentSession.isSessionActive()) {
+            val remaining = parentSession.remainingSessionMillis()
+            if (remaining > 0L) {
+                delay(remaining)
+                parentSessionRevision += 1
+            }
+        }
+    }
 
     LaunchedEffect(profile, route) {
         if (homeModel == null || route == StudioDestination.HOME) {
@@ -347,6 +397,35 @@ private fun ProductStudio(profile: ChildProfile) {
                     entryId = selected,
                     onBack = { selectedGalleryEntryId = null },
                     onDeleted = { selectedGalleryEntryId = null },
+                )
+            }
+        }
+
+        StudioDestination.PARENT_ZONE -> {
+            parentSessionRevision
+            if (parentSession.isSessionActive()) {
+                ParentZoneScreen(
+                    profile = profile,
+                    appVersion = currentAppVersionName(context),
+                    onSaveProfile = { updated ->
+                        val saved = runCatching { store.saveCompletedProfile(updated) }.isSuccess
+                        if (saved) onProfileChanged(updated)
+                        saved
+                    },
+                    onReturnToChild = {
+                        parentSession.invalidateForChildReturn()
+                        parentSessionRevision += 1
+                        routeName = StudioDestination.HOME.name
+                    },
+                )
+            } else {
+                ParentGateScreen(
+                    session = parentSession,
+                    onUnlocked = { parentSessionRevision += 1 },
+                    onCancel = {
+                        parentSession.invalidateForChildReturn()
+                        routeName = StudioDestination.HOME.name
+                    },
                 )
             }
         }

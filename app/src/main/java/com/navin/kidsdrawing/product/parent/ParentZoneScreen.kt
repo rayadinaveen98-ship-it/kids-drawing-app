@@ -247,9 +247,8 @@ fun ParentZoneScreen(
             onBack = { section = null },
             modifier = modifier,
         )
-        ParentZoneSection.LEARNING -> ParentSectionDetail(
-            title = "Learning",
-            body = "A deeper parent progress view arrives in the next Phase 6 slice. It will describe completed lessons, journeys and skills practiced without grades, ranks, mastery percentages or comparisons.",
+        ParentZoneSection.LEARNING -> ParentProgressRoute(
+            profile = profile,
             onBack = { section = null },
             modifier = modifier,
         )

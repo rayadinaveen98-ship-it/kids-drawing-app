@@ -3,14 +3,14 @@
 **Working project:** Kids Drawing App  
 **Authoritative repository:** `rayadinaveen98-ship-it/kids-drawing-app`  
 **Latest full product release:** `0.5.0-curriculum-expansion`, versionCode **27**  
-**Latest physically verified Phase-6 milestone:** `0.6.0-family-readiness-p6.2-qa1`, versionCode **28**  
+**Latest physically verified Phase-6 milestone:** `0.6.0-family-readiness-p6.3-qa1`, versionCode **29**  
 **Phase 5:** **COMPLETE**  
 **Current phase:** Phase 6 — Parent Zone + Accessibility + Device Hardening / `0.6.0-family-readiness` — **ACTIVE**  
 **Phase-6 epic:** #91  
 **P6.1:** **COMPLETE**  
 **P6.2:** **COMPLETE**  
 **Current slice:** **P6.3 — Parent Progress & Curriculum Visibility #96**  
-**Current P6.3 state:** **TRUTH-SOURCE AUDIT / CONTRACT GATE ACTIVE**  
+**Current P6.3 state:** **PHYSICALLY ACCEPTED — 24/24 PASS / REPOSITORY CLOSURE ACTIVE**  
 **Last updated:** 2026-09-15
 
 Git is authoritative when chat memory and repository state disagree.
@@ -99,55 +99,60 @@ The exact physically accepted P6.2 executable remains artifact `10385266255` bui
 
 ## Current slice — P6.3 Parent Progress & Curriculum Visibility
 
-Authoritative issue: **#96**.
+Authoritative issue: **#96**.  
+Draft PR: **#97**.  
+Clean baseline: `d518bd8fca3d45af6b33604e9f87f13798826142` / Android CI #605 GREEN.
 
-### Objective
-Replace the P6.2 Learning placeholder with a useful parent-facing, local-only, read-only view of real learning/curriculum activity without introducing scoring, surveillance or inferred ability labels.
+### Contract and implementation status
 
-### Truth-source audit findings already established
+- truth-source audit / contract head: `cc2d9fde0678b86f6b808523b507912e6276340c`;
+- contract audit: **64/64 PASS**;
+- contract Android CI #606: **GREEN**;
+- read-model implementation head `0da51e9016dbf57a421e2f0df472896d000d4982`, CI #607 GREEN;
+- fully wired Parent Learning head `21a0a67a39273b4de4f5d392816ba4a722e66116`, CI #608 GREEN;
+- route-hardening head `f0f9f17cb11516a5660437289df37ef45aaae542`, CI #609 GREEN.
 
-1. **Local adaptive state** is a valid completion/curriculum source:
-   - bounded `completedLessons`;
-   - ordered `recentCompletions`;
-   - authored `skillExposureCounts`;
-   - help-request advisory counts;
-   - no artwork, strokes, free-form child text, cloud/device IDs, scores, grades or ability labels;
-   - missing/corrupt/incompatible state already degrades safely.
+### Delivered P6.3 behavior
 
-2. **Completion meaning is concrete:** `AdaptiveEvent.LessonCompleted` is recorded only after a lesson artwork successfully crosses the Gallery completion/save boundary. The adaptive completion list therefore reflects genuine completed-and-saved lesson events, not arbitrary session position.
+- Parent Zone → Learning is now a real protected read-only progress surface;
+- adaptive completion state supplies genuine completed/recent lesson truth;
+- authored catalog metadata supplies category, skill, journey and prerequisite meaning;
+- Gallery supplies genuine timestamped saved-artwork activity;
+- lesson/coloring snapshots supply clearly separate in-progress context only;
+- recent completion order is shown without inventing wall-clock dates;
+- journey cards show descriptive completed-of-total counts and next prerequisite-eligible lesson where available;
+- lesson artwork and Free Draw artwork remain distinct;
+- partial/missing/corrupt local sources degrade honestly without rewriting underlying state;
+- no new persistent analytics/history database;
+- no grades, scores, ranks, mastery percentages, XP/streak pressure, permanent ability labels, comparison or parent-facing raw Help-request counts;
+- no account, cloud sync, network dependency, behavioral analytics upload, multi-profile migration or new Android permission.
 
-3. **Gallery is the timestamped activity source:** lesson/free-draw Gallery records persist `completedAtEpochMillis`; lesson entries retain lesson ID/revision provenance and completion kind. Gallery timestamps must not be silently treated as universal lesson-completion timestamps when no Gallery record exists.
+### Immutable physically accepted P6.3 QA1 executable
 
-4. **Authored lesson metadata** supplies age bands, categories, skill IDs, journey IDs, prerequisites, tags, difficulty and estimated time. Parent curriculum language must come from this authored metadata, not inferred child ability.
+- executable source head: `f155abc894d21b8cc09112a018fdf53ae25e4447`;
+- versionName: `0.6.0-family-readiness-p6.3-qa1`;
+- versionCode: **29**;
+- Android CI #610 / run `34948654974`: **GREEN**;
+- profile artifact: **10387978868**;
+- profile artifact archive digest: `sha256:c45a5a3e032a1748dd8b764c98696d3edf58fb1c6edccbe14652bf4fb79aa5d1`;
+- profile APK size: **16,393,832 bytes**;
+- profile APK SHA256: `93ccc4cbbf3be6b1d89e9d0094810dcf02a0654a410650752a3b8e47bf7d5b54`;
+- debug artifact: **10388636830**;
+- debug APK size: **20,674,972 bytes**;
+- debug APK SHA256: `a5fc5ce589b101b47e3e5885e7dd35be777595282a1cbb6d03def64e9d098c2e`;
+- content-quality artifact: **10388931000**;
+- physical matrix: `docs/10-execution/P6_3_FINAL_QA.md` — **24/24 PASS**;
+- physical acceptance date: **2026-09-15**;
+- tester device/API: **not provided and not inferred**;
+- reported blockers: **none**;
+- release report: `docs/10-execution/P6_3_RELEASE_REPORT.md`.
 
-5. **Lesson/coloring snapshots are resume truth, not history truth.** Their saved timestamps can describe active work only; they must not inflate historical completion counts.
+The exact physically accepted P6.3 executable remains artifact `10387978868` built from `f155abc...`. Later documentation/merge commits do not replace it. Any executable change requires a new monotonic versionCode and fresh exact-binary QA.
 
-6. **Existing progression logic already uses completed lesson IDs for prerequisite eligibility.** P6.3 should reuse that semantic rather than create a second progression engine.
+### Current closure gate
 
-### Locked P6.3 architecture direction
-
-Build a dedicated **read-only Parent Progress projection/repository** over existing accepted stores/catalog semantics. Do **not** add a general analytics database or behavioral telemetry stream.
-
-The projection may combine:
-- adaptive completion state for completed/recent lesson truth and authored skill exposure;
-- catalog metadata for titles/categories/skills/journeys/prerequisites;
-- Gallery catalog for timestamped saved-artwork activity;
-- current lesson/coloring session snapshots only for clearly labelled “in progress” context.
-
-It must:
-- remain deterministic and corruption/missing-data tolerant;
-- never mutate artwork/session/adaptive truth;
-- never copy raw strokes/artwork into progress state;
-- distinguish completion, saved artwork, active work and recommendations;
-- avoid fabricated timestamps when adaptive data has none;
-- avoid grades, scores, ranks, mastery %, XP/streaks, ability labels and child comparison;
-- remain offline, account-free, single-profile and permission-neutral.
-
-### Next execution gate
-
-Author and freeze:
-- `docs/10-execution/P6_3_PROGRESS_TRUTH_SOURCE_AUDIT.md`;
-- `docs/10-execution/P6_3_PARENT_PROGRESS_CONTRACT.md`;
-- `docs/10-execution/P6_3_ACCEPTANCE_CHECKLIST.md`.
-
-Only after the contract/CI gate is green should production P6.3 UI/data code begin.
+1. acceptance-documentation CI must be GREEN on the final docs head;
+2. mark PR #97 ready and squash-merge;
+3. require merged-main Android CI GREEN;
+4. close #96 completed;
+5. activate P6.4 from the verified merged-main baseline.

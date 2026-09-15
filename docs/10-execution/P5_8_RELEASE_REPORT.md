@@ -1,9 +1,9 @@
 # P5.8 / `0.5.0-curriculum-expansion` Release Report
 
-**Issue:** #88  
-**PR:** #90  
-**Parent epic:** #73  
-**Status:** **PHYSICALLY ACCEPTED — REPOSITORY CLOSURE PENDING**
+**Issue:** #88 — CLOSED / COMPLETED  
+**PR:** #90 — SQUASH-MERGED  
+**Parent epic:** #73 — CLOSED / COMPLETED  
+**Status:** **RELEASE COMPLETE**
 
 ## Release identity
 
@@ -11,9 +11,13 @@
 - versionCode: **27**
 - physically tested executable commit: `7ca10ac918def4e5d9e22346dc98ab2d7bdda957`
 - final-candidate Android CI: **#580 / run `34927419291` — GREEN**
-- final tag: not created / not claimed unless repository tooling creates one later.
+- acceptance-documentation head: `f299a77573fcd47ffd72b6ecee223b4d0610234b`
+- acceptance-documentation Android CI: **#584 / run `34934075313` — GREEN**
+- final squash merge commit: `fbc118343dde860a9784d7a47356eb6a7fff73e1`
+- merged-main Android CI: **#585 / run `34934427237` — GREEN**
+- final tag: not created / not claimed.
 
-The exact executable above is the accepted product binary. Acceptance/closure documentation commits do not replace the physically tested APK.
+The exact physically accepted product binary remains the executable at `7ca10ac918def4e5d9e22346dc98ab2d7bdda957`. Acceptance documentation and the squash merge are repository evidence and do not replace that tested binary.
 
 ## Phase-5 product delivered
 
@@ -57,6 +61,20 @@ Passed:
 - exact APK identity check for `0.5.0-curriculum-expansion` / versionCode 27;
 - final artifact packaging/upload.
 
+### Acceptance documentation
+
+Commit `f299a77573fcd47ffd72b6ecee223b4d0610234b`  
+Android CI #584 / run `34934075313`: **GREEN**.
+
+This revalidated the accepted product while recording final physical evidence and the Phase-6 roadmap. It introduced no replacement product binary.
+
+### Final merge to `main`
+
+Squash merge `fbc118343dde860a9784d7a47356eb6a7fff73e1`  
+Android CI #585 / run `34934427237`: **GREEN**.
+
+The merged-main gate again passed JSON/content parsing, Ink boundary, all JVM tests, lint, debug/instrumentation/profile APK builds, exact 24/0/6 content quality, permission allowlist, final APK identity and artifact packaging.
+
 ## APK evidence
 
 - debug artifact: `10380690693` / `kids-drawing-0.5.0-curriculum-expansion-debug`;
@@ -82,19 +100,16 @@ Authoritative matrix: `docs/10-execution/P5_8_FINAL_QA.md`.
 
 Coverage includes all four age bands, discovery/journeys, all accepted teaching modes, authored Trace/Help behavior, adaptive Home/help, prerequisite authority, resume precedence, lifecycle/recovery, Gallery/Coloring/Free Draw, Airplane Mode, larger-font/small-screen reachability and stability.
 
-## Repository closure gates
+## Repository closure evidence
 
-Still required before Phase 5 is declared complete:
-1. acceptance-documentation exact-head Android CI GREEN;
-2. mark PR #90 ready;
-3. squash merge PR #90;
-4. merged-main Android CI GREEN;
-5. close issue #88 completed;
-6. close Phase-5 epic #73 completed;
-7. update authoritative status/roadmap to Phase 6.
+- P5.8 issue #88: **CLOSED / COMPLETED**;
+- Phase-5 epic #73: **CLOSED / COMPLETED**;
+- PR #90: **SQUASH-MERGED** at `fbc118343dde860a9784d7a47356eb6a7fff73e1`;
+- merged-main Android CI #585 / run `34934427237`: **GREEN**;
+- Phase 6 continues under epic #91 with P6.1 #92.
 
 ## Release decision
 
-# **PASS — PRODUCT ACCEPTED; REPOSITORY CLOSURE IN PROGRESS**
+# **PASS — `0.5.0-curriculum-expansion` RELEASE COMPLETE**
 
-No additional product-code change is required for the accepted v27 candidate unless a new defect is discovered during closure.
+Phase 5 has met its exit target: the exact v27 candidate passed the final automated and physical matrices, immutable APK evidence was verified, acceptance documentation passed CI, PR #90 squash-merged cleanly, merged-main CI passed, and both P5.8 and the Phase-5 epic are closed completed.

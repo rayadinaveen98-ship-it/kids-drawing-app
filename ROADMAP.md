@@ -29,7 +29,6 @@ Delivered:
 - 24 production lessons across all four age bands;
 - professional content-production validation and Content Lab workflow;
 - Companion / Teacher Experience V2;
-- foundations, nature/everyday, animals, vehicles/space, people/characters and older-child technique curriculum;
 - deterministic local adaptive recommendations and child-requested adaptive Help;
 - prerequisite-safe journey progression and explainable non-judgmental reasons;
 - coloring resume → drawing resume → fresh precedence;
@@ -49,31 +48,57 @@ Delivered:
 
 **Target:** `0.6.0-family-readiness`  
 **Epic:** #91  
-**Current slice:** P6.1 #92.
+**Current slice:** **P6.3 #96 — Parent Progress & Curriculum Visibility**.
 
 ### Objective
 Turn the accepted 0.5 learning product into a family-manageable, accessibility-strong and device-resilient product without weakening the child-first/offline-first architecture.
 
-Phase 6 is intentionally **not** a curriculum-volume phase. The next product-quality jump is family trust, adult-only management, accessibility, device resilience and local-data safety while preserving the accepted 24-lesson teaching system.
+Phase 6 is intentionally **not** a curriculum-volume phase. The product-quality jump is family trust, adult-only management, accessibility, device resilience and local-data safety while preserving the accepted 24-lesson teaching system.
 
-### P6.1 — Parent Zone & Family Controls Contract — ACTIVE
-Freeze before implementation:
-- parent-gate purpose, threat model, state/timeout behavior and accessibility requirements;
-- Parent Zone information architecture;
-- parent-owned vs child-owned preferences/actions;
-- non-judgmental local progress visibility;
-- destructive-action scope/confirmation/isolation;
-- privacy/network/permission contract;
-- parent-gated export/external-navigation boundary;
-- P6.1 acceptance matrix.
+### P6.1 — Parent Zone & Family Controls Contract — COMPLETE
+- issue #92 CLOSED / COMPLETED;
+- PR #93 squash-merged;
+- merge `9e1323b3643106aee3e50134f1b971e8086998ed`;
+- merged-main CI #591 GREEN;
+- 84/84 contract audit PASS.
 
-No Parent Zone implementation begins until this contract is accepted and merged.
+### P6.2 — Parent Zone Foundation — COMPLETE
+- issue #94 CLOSED / COMPLETED;
+- PR #95 squash-merged;
+- physically accepted executable source `528467acdcfde9c4d6ea01959d57157376cb081d`;
+- versionName `0.6.0-family-readiness-p6.2-qa1`, versionCode **28**;
+- authoritative profile artifact **10385266255**;
+- profile SHA256 `b438d69ef7cabd7e023c963602e08c887b73074e219df2d03355a308d4849402`;
+- candidate CI #596 GREEN;
+- physical QA **30/30 PASS**;
+- acceptance-doc CI #602 GREEN;
+- squash merge `38177435662f0b111b54138892ab65587b2d8abe`;
+- merged-main CI #603 / run `34944176393` **GREEN**.
 
-### P6.2 — Parent Zone Foundation — PLANNED
-Implement the parent gate, Parent Zone shell/navigation, local profile management and safe settings foundation.
+Delivered by P6.2:
+- 2.5-second Adult Intent Gate + accessible two-confirmation fallback;
+- memory-only adult session with 5-minute expiry and safe invalidation;
+- protected Parent Zone routing;
+- Family, Learning, Accessibility & Audio, Storage & Data, Safety & Privacy and About shell;
+- atomic editing of the existing single local child profile;
+- truthful offline/privacy/version surfaces;
+- no new permission, account, cloud dependency or multi-profile migration.
 
-### P6.3 — Parent Progress & Curriculum Visibility — PLANNED
-Add local non-judgmental progress/history/curriculum context without grades, ranks, permanent ability labels, child comparison or cloud profiling.
+### P6.3 — Parent Progress & Curriculum Visibility — ACTIVE
+Issue: #96.
+
+Build a local, read-only, non-judgmental parent Learning surface grounded only in real persisted product truth.
+
+Required direction:
+- audit and reuse existing local truth rather than create surveillance analytics;
+- completion/history must reflect genuine stored product events;
+- show useful recent learning, completed/explored lessons, curriculum areas, journeys and authored skills where supported;
+- clearly separate completion truth, saved-artwork activity, active/resume state and recommendations;
+- derive curriculum context from authored categories, skills, journeys and prerequisites;
+- handle missing/corrupt local state safely;
+- no grades, scores, ranks, mastery percentages, XP/streak pressure, permanent ability labels or sibling/peer comparison;
+- no cloud profiling, new account, network dependency or new Android permission;
+- remain single-profile in 0.6.
 
 ### P6.4 — Accessibility System V2 — PLANNED
 Reduced motion, larger/dynamic text resilience, touch-target/reachability audit, contrast/semantics, critical screen-reader flows where practical, handedness/layout considerations and age-appropriate control density.
@@ -82,7 +107,7 @@ Reduced motion, larger/dynamic text resilience, touch-target/reachability audit,
 Small-screen/tablet adaptation, low-memory/process-recreation resilience, startup/runtime performance, large-canvas stress, storage-pressure behavior and Android device/API matrix validation.
 
 ### P6.6 — Family Data & Recovery Controls — PLANNED
-Parent-confirmed destructive actions, per-profile cleanup/reset boundaries, artwork protection, local recovery and corruption-safe UX.
+Parent-confirmed destructive actions, single-profile cleanup/reset boundaries, artwork protection, local recovery and corruption-safe UX.
 
 ### P6.7 — Cross-device Family Readiness QA + 0.6 Release — PLANNED
 Full family/child flow regression, accessibility/device matrix, offline/privacy checks, exact APK evidence and physical acceptance.
@@ -93,6 +118,7 @@ Full family/child flow regression, accessibility/device matrix, offline/privacy 
 - monetization/paywalls;
 - unrestricted child-facing generative AI;
 - punitive gamification, grades, ranks, XP or permanent ability labels;
+- multi-child/profile-ID migration during 0.6 without a dedicated ownership migration contract;
 - large curriculum expansion merely to increase lesson count;
 - reopening accepted Drawing/Lesson/Coloring/adaptive internals without a concrete defect + explicit contract/ADR.
 

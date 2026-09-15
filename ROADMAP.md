@@ -19,20 +19,18 @@ Production onboarding → lesson → coloring → Gallery journey physically pas
 **versionCode:** **27**  
 **Epic:** #73 — CLOSED / COMPLETED  
 **Final slice:** P5.8 #88 — CLOSED / COMPLETED  
-**Physically tested executable:** `7ca10ac918def4e5d9e22346dc98ab2d7bdda957`  
-**Final-candidate CI:** Android CI #580 / run `34927419291` — **GREEN**  
-**Physical QA:** **52/52 PASS** on 2026-09-15  
+**Physical QA:** **52/52 PASS**  
 **Squash merge:** `fbc118343dde860a9784d7a47356eb6a7fff73e1`  
-**Merged-main CI:** Android CI #585 / run `34934427237` — **GREEN**.
+**Merged-main CI:** #585 GREEN.
 
 Delivered:
 - 24 production lessons across all four age bands;
-- professional content-production validation and Content Lab workflow;
+- content-production validation and Content Lab workflow;
 - Companion / Teacher Experience V2;
 - deterministic local adaptive recommendations and child-requested adaptive Help;
 - prerequisite-safe journey progression and explainable non-judgmental reasons;
 - coloring resume → drawing resume → fresh precedence;
-- preserved offline/lifecycle/recovery/Gallery/Coloring/Free Draw behavior;
+- offline/lifecycle/recovery/Gallery/Coloring/Free Draw acceptance;
 - no invented Trace, automatic Help, punitive scoring, cloud profiling or core network dependency.
 
 ### P5.1 — Curriculum & Teaching Contract — COMPLETE
@@ -48,60 +46,95 @@ Delivered:
 
 **Target:** `0.6.0-family-readiness`  
 **Epic:** #91  
-**Current slice:** **P6.3 #96 — Parent Progress & Curriculum Visibility**.
+**Current slice:** **P6.4 #98 — Accessibility System V2**.
 
 ### Objective
 Turn the accepted 0.5 learning product into a family-manageable, accessibility-strong and device-resilient product without weakening the child-first/offline-first architecture.
 
-Phase 6 is intentionally **not** a curriculum-volume phase. The product-quality jump is family trust, adult-only management, accessibility, device resilience and local-data safety while preserving the accepted 24-lesson teaching system.
+Phase 6 is intentionally not a curriculum-volume phase. The product-quality jump is family trust, adult-only management, accessibility, device resilience and local-data safety while preserving the accepted teaching system.
 
 ### P6.1 — Parent Zone & Family Controls Contract — COMPLETE
-- issue #92 CLOSED / COMPLETED;
-- PR #93 squash-merged;
-- merge `9e1323b3643106aee3e50134f1b971e8086998ed`;
+- issue #92 CLOSED;
+- PR #93 squash merge `9e1323b3643106aee3e50134f1b971e8086998ed`;
 - merged-main CI #591 GREEN;
 - 84/84 contract audit PASS.
 
 ### P6.2 — Parent Zone Foundation — COMPLETE
-- issue #94 CLOSED / COMPLETED;
-- PR #95 squash-merged;
-- physically accepted executable source `528467acdcfde9c4d6ea01959d57157376cb081d`;
-- versionName `0.6.0-family-readiness-p6.2-qa1`, versionCode **28**;
-- authoritative profile artifact **10385266255**;
-- profile SHA256 `b438d69ef7cabd7e023c963602e08c887b73074e219df2d03355a308d4849402`;
-- candidate CI #596 GREEN;
+- issue #94 CLOSED;
+- accepted executable `528467acdcfde9c4d6ea01959d57157376cb081d`;
+- version `0.6.0-family-readiness-p6.2-qa1`, versionCode **28**;
+- profile artifact **10385266255**;
 - physical QA **30/30 PASS**;
 - acceptance-doc CI #602 GREEN;
 - squash merge `38177435662f0b111b54138892ab65587b2d8abe`;
-- merged-main CI #603 / run `34944176393` **GREEN**.
+- merged-main CI #603 GREEN.
 
 Delivered by P6.2:
 - 2.5-second Adult Intent Gate + accessible two-confirmation fallback;
 - memory-only adult session with 5-minute expiry and safe invalidation;
-- protected Parent Zone routing;
-- Family, Learning, Accessibility & Audio, Storage & Data, Safety & Privacy and About shell;
+- protected Parent Zone routing and six-section shell;
 - atomic editing of the existing single local child profile;
 - truthful offline/privacy/version surfaces;
 - no new permission, account, cloud dependency or multi-profile migration.
 
-### P6.3 — Parent Progress & Curriculum Visibility — ACTIVE
-Issue: #96.
+### P6.3 — Parent Progress & Curriculum Visibility — COMPLETE
+- issue #96 CLOSED / COMPLETED;
+- contract audit **64/64 PASS**;
+- contract CI #606 GREEN;
+- implementation CIs #607, #608 and #609 GREEN;
+- accepted executable `f155abc894d21b8cc09112a018fdf53ae25e4447`;
+- version `0.6.0-family-readiness-p6.3-qa1`, versionCode **29**;
+- profile artifact **10387978868**;
+- profile SHA256 `93ccc4cbbf3be6b1d89e9d0094810dcf02a0654a410650752a3b8e47bf7d5b54`;
+- candidate CI #610 GREEN;
+- physical QA **24/24 PASS**;
+- acceptance-doc CI #616 GREEN;
+- squash merge `fc81703b57419d14c9baf50a0fb4fb91554652f0`;
+- merged-main CI #617 / run `34954128416` GREEN.
 
-Build a local, read-only, non-judgmental parent Learning surface grounded only in real persisted product truth.
+Delivered by P6.3:
+- protected Parent Zone → Learning read-only progress surface;
+- genuine local completed/recent lesson truth;
+- authored categories/skills/journeys/prerequisite context;
+- timestamped Gallery activity with Lesson vs Free Draw provenance;
+- clearly separate drawing/coloring in-progress state;
+- no fabricated completion dates or new analytics history store;
+- no grades, ranks, mastery %, XP/streak pressure, permanent ability labels, comparisons or parent-facing raw Help counts.
+
+### P6.4 — Accessibility System V2 — ACTIVE
+Issue: **#98**.
 
 Required direction:
-- audit and reuse existing local truth rather than create surveillance analytics;
-- completion/history must reflect genuine stored product events;
-- show useful recent learning, completed/explored lessons, curriculum areas, journeys and authored skills where supported;
-- clearly separate completion truth, saved-artwork activity, active/resume state and recommendations;
-- derive curriculum context from authored categories, skills, journeys and prerequisites;
-- handle missing/corrupt local state safely;
-- no grades, scores, ranks, mastery percentages, XP/streak pressure, permanent ability labels or sibling/peer comparison;
-- no cloud profiling, new account, network dependency or new Android permission;
-- remain single-profile in 0.6.
+- complete a source-level accessibility/contrast/motion/layout/semantics audit before production changes;
+- spoken labels, descriptive hints and screen-reader-friendly state descriptions on major child and parent flows;
+- explicit selected/toggled/current-state semantics and non-color-only indicators;
+- reduced-motion/static alternatives for decorative/transitional motion while preserving safety/timing semantics;
+- font scaling and large-text resilient layouts, including responsive stacking where needed;
+- contrast audit with targeted fixes for real usages rather than blanket palette claims;
+- focus/order/reachability audit across Home, Parent Gate/Zone/Learning, onboarding/profile controls, lesson/drawing/coloring and Gallery/Free Draw critical paths;
+- evidence-backed left-handed/layout adaptations only;
+- automated semantics/layout/policy coverage where practical;
+- exact monotonic APK + focused physical accessibility QA before merge.
 
-### P6.4 — Accessibility System V2 — PLANNED
-Reduced motion, larger/dynamic text resilience, touch-target/reachability audit, contrast/semantics, critical screen-reader flows where practical, handedness/layout considerations and age-appropriate control density.
+Inherited constraints:
+- critical effective targets >=48×48dp;
+- no color-only critical state;
+- critical controls remain reachable at large font/small screen via reflow/scroll;
+- no mandatory multi-finger, precision, shake or rapid-tap critical interaction;
+- reduced motion cannot weaken the 2.5-second Parent Gate/session/ownership semantics;
+- no new account/cloud/network dependency or Android permission;
+- accepted Drawing/Lesson/Coloring/Gallery/adaptive truth semantics remain frozen absent a concrete defect + explicit amendment;
+- 0.6 remains single-profile;
+- versionCode remains **29** through contract + implementation stabilization; reserve >29 only after full P6.4 implementation is automated-green.
+
+Pre-contract notes:
+- `docs/10-execution/P6_4_BASELINE_AUDIT_NOTES.md`;
+- `docs/10-execution/P6_4_TRANSITION_NOTE.md`.
+
+Next contract artifacts:
+- `P6_4_ACCESSIBILITY_V2_AUDIT.md`;
+- `P6_4_ACCESSIBILITY_V2_CONTRACT.md`;
+- `P6_4_ACCEPTANCE_CHECKLIST.md`.
 
 ### P6.5 — Device & Performance Hardening — PLANNED
 Small-screen/tablet adaptation, low-memory/process-recreation resilience, startup/runtime performance, large-canvas stress, storage-pressure behavior and Android device/API matrix validation.

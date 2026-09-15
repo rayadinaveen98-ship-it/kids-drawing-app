@@ -1,12 +1,12 @@
 # P6.2 Final QA — Parent Zone Foundation
 
-Status: **QA1 AUTOMATED GREEN / PHYSICAL ACCEPTANCE PENDING**  
+Status: **PHYSICAL ACCEPTED — 30/30 PASS / CLOSURE ACTIVE**  
 Issue: #94  
 Parent epic: #91  
 PR: #95  
 Target milestone: `0.6.0-family-readiness`
 
-## Immutable QA1 candidate
+## Immutable accepted QA1 candidate
 
 - versionName: `0.6.0-family-readiness-p6.2-qa1`
 - versionCode: **28**
@@ -25,7 +25,7 @@ Target milestone: `0.6.0-family-readiness`
 - content-quality artifact ID: **10384499464**
 - content-quality artifact archive digest: `sha256:05e88209faf89861c5df40f594ae19b1086acd7d24956e6a817875ab7df4416a`
 
-The profile APK above is the **only** P6.2 QA1 physical-acceptance binary unless a release-blocking executable defect requires a new versionCode. Later documentation-only commits do not replace it.
+The profile APK above is the **physically accepted P6.2 QA1 binary**. Later documentation/merge commits do not replace it.
 
 ## Automated acceptance evidence
 
@@ -36,8 +36,8 @@ The profile APK above is the **only** P6.2 QA1 physical-acceptance binary unless
 | A03 | Profile editor transaction/validation unit coverage | PASS | normalization, validation, interests rule, supported defaults and abandoned-draft behavior |
 | A04 | Protected Parent Zone product routing compiles/lints | PASS | exact QA1 CI #596 |
 | A05 | Parent Zone six-section production Compose shell compiles/lints | PASS | exact QA1 CI #596 |
-| A06 | Accessible Parent Gate Compose instrumentation coverage exists | COMPILES | Android test APK compiled in CI; no emulator execution is claimed |
-| A07 | Phase-5 `ChildProfileStore` compatibility instrumentation coverage exists | COMPILES | Android test APK compiled in CI; runtime upgrade is covered physically by P02 |
+| A06 | Accessible Parent Gate Compose instrumentation coverage exists | COMPILES | Android test APK compiled in CI; runtime verified physically below |
+| A07 | Phase-5 `ChildProfileStore` compatibility instrumentation coverage exists | COMPILES | Android test APK compiled in CI; upgrade/runtime verified physically below |
 | A08 | Phase-5 regression build matrix | PASS | unit tests + lint + debug APK + instrumentation APK + profile APK compile |
 | A09 | Frozen curriculum quality | PASS | **24 lessons / 0 errors / exactly 6 reviewed warnings** |
 | A10 | Android permission allowlist | PASS | no unexpected requested Android permission in debug/profile APKs |
@@ -46,59 +46,59 @@ The profile APK above is the **only** P6.2 QA1 physical-acceptance binary unless
 
 ## Focused physical acceptance matrix
 
-Use the exact profile APK identified above. Do not substitute a later CI rebuild.
+Tested on the exact profile APK identified above. User confirmed **all rows passed** on 2026-09-15 with no release-blocking defect reported.
 
 | ID | Physical check | Status |
 |---|---|---|
-| P01 | Install/upgrade exact QA1 profile APK and launch successfully | NOT RUN |
-| P02 | When upgrading from accepted v27, existing child profile and existing artwork remain readable; no migration loss | NOT RUN |
-| P03 | Child Home exposes a discoverable `Grown-ups` / Parent Zone entry without making it the primary child CTA | NOT RUN |
-| P04 | Tap or release the primary adult-intent control before 2.5 seconds: Parent Zone does **not** unlock | NOT RUN |
-| P05 | Hold the primary adult-intent control continuously for about 2.5 seconds: Parent Zone unlocks | NOT RUN |
-| P06 | Gate Cancel / return path goes safely back to child mode and performs no profile mutation | NOT RUN |
-| P07 | Accessible fallback is reachable; its first confirmation alone does not unlock Parent Zone | NOT RUN |
-| P08 | Accessible second confirmation unlocks; cancelling the fallback leaves Parent Zone locked | NOT RUN |
-| P09 | Parent Zone overview shows Family, Learning, Accessibility & Audio, Storage & Data, Safety & Privacy and About, with a child-mode return path | NOT RUN |
-| P10 | Family shows the current nickname, age band and supported defaults from the existing local profile | NOT RUN |
-| P11 | Valid nickname edit saves and normalized spacing is reflected after returning/reopening | NOT RUN |
-| P12 | Blank/invalid/over-limit nickname cannot be saved | NOT RUN |
-| P13 | Age-band edit saves and persists after returning/reopening | NOT RUN |
-| P14 | Default teaching-mode and teaching-pace edits save and persist | NOT RUN |
-| P15 | Interests edits persist and the profile cannot be saved with zero interests | NOT RUN |
-| P16 | Handedness and narration-default edits save and persist | NOT RUN |
-| P17 | Make unsaved profile changes then choose Cancel: previously accepted profile remains unchanged | NOT RUN |
-| P18 | Learning section is descriptive/read-only for this slice and shows no grades, ranks, mastery %, XP/streak pressure or fake progress controls | NOT RUN |
-| P19 | Accessibility & Audio truthfully shows current capability/deferral and does not expose fake unimplemented switches | NOT RUN |
-| P20 | Storage & Data truthfully describes local storage/deferral and exposes no fake destructive control | NOT RUN |
-| P21 | Safety & Privacy wording matches the product: offline core, no required account, no ads, no behavioral analytics upload, no new runtime permission | NOT RUN |
-| P22 | About shows `0.6.0-family-readiness-p6.2-qa1` | NOT RUN |
-| P23 | `Back to child mode` invalidates the adult session; reopening Parent Zone requires the gate again | NOT RUN |
-| P24 | Brief background/foreground within 30 seconds keeps an otherwise-valid adult session; background longer than 30 seconds relocks | NOT RUN |
-| P25 | Force-stop/process recreation/relaunch does not restore an unlocked Parent Zone | NOT RUN |
-| P26 | Leave Parent Zone open until the 5-minute adult-session limit expires: it relocks | NOT RUN |
-| P27 | Airplane Mode: gate, Parent Zone browsing and local profile edit/save continue to work | NOT RUN |
-| P28 | Larger system text: Parent Zone/gate text reflows or scrolls without clipping critical actions | NOT RUN |
-| P29 | Small-screen/reachability pass: critical actions remain reachable, usable and do not require precision/multi-finger/rapid gestures | NOT RUN |
-| P30 | Regression smoke: child Home plus one lesson/drawing action and Gallery or Free Draw still work after Parent Zone/profile use | NOT RUN |
+| P01 | Install/upgrade exact QA1 profile APK and launch successfully | PASS |
+| P02 | Upgrade from accepted v27 preserves existing child profile/artwork readability with no migration loss | PASS |
+| P03 | Child Home exposes a discoverable `Grown-ups` / Parent Zone entry without making it the primary child CTA | PASS |
+| P04 | Release primary adult-intent control before 2.5 seconds does not unlock | PASS |
+| P05 | Continuous ~2.5-second hold unlocks Parent Zone | PASS |
+| P06 | Gate Cancel / return path safely returns to child mode without profile mutation | PASS |
+| P07 | Accessible fallback is reachable; first confirmation alone does not unlock | PASS |
+| P08 | Accessible second confirmation unlocks; cancelling leaves Parent Zone locked | PASS |
+| P09 | Parent Zone overview shows all six contracted sections plus child-mode return | PASS |
+| P10 | Family shows current nickname, age band and supported defaults from existing local profile | PASS |
+| P11 | Valid nickname edit saves and normalized spacing persists after reopen | PASS |
+| P12 | Blank/invalid/over-limit nickname cannot be saved | PASS |
+| P13 | Age-band edit saves and persists | PASS |
+| P14 | Default teaching-mode and teaching-pace edits save and persist | PASS |
+| P15 | Interests edits persist and zero-interest profile cannot be saved | PASS |
+| P16 | Handedness and narration-default edits save and persist | PASS |
+| P17 | Cancel unsaved changes preserves previously accepted profile | PASS |
+| P18 | Learning section is descriptive/read-only and contains no grades/ranks/mastery %/XP/streak pressure/fake progress controls | PASS |
+| P19 | Accessibility & Audio wording is truthful and exposes no fake unimplemented switches | PASS |
+| P20 | Storage & Data truthfully describes local storage/deferral and exposes no fake destructive control | PASS |
+| P21 | Safety & Privacy matches implementation: offline core, no required account, no ads, no behavioral analytics upload, no new runtime permission | PASS |
+| P22 | About shows `0.6.0-family-readiness-p6.2-qa1` | PASS |
+| P23 | `Back to child mode` invalidates adult session; reopening requires gate again | PASS |
+| P24 | <=30s background preserves valid session; >30s background relocks | PASS |
+| P25 | Force-stop/process recreation/relaunch does not restore unlocked Parent Zone | PASS |
+| P26 | 5-minute adult-session limit relocks Parent Zone | PASS |
+| P27 | Airplane Mode: gate, Parent Zone browsing and local profile edit/save work | PASS |
+| P28 | Larger system text reflows/scrolls without clipping critical actions | PASS |
+| P29 | Small-screen/reachability: critical actions remain reachable and usable without precision/multi-finger/rapid gestures | PASS |
+| P30 | Child Home + lesson/drawing + Gallery or Free Draw regression smoke remains functional after Parent Zone/profile use | PASS |
 
 ### Physical status
 
-- PASS: **0 / 30**
+- PASS: **30 / 30**
 - FAIL: **0 / 30**
-- NOT RUN: **30 / 30**
-- tester device/model/API: **not yet provided**
-- release blockers from automated QA: **none**
-- release decision: **PENDING PHYSICAL ACCEPTANCE**
+- NOT RUN: **0 / 30**
+- acceptance date: **2026-09-15**
+- tester device/model/API: **not provided and not inferred**
+- reported release blockers: **none**
+- release decision: **ACCEPTED FOR P6.2 REPOSITORY CLOSURE**
 
 ## Closure rule
 
-If all P01–P30 pass on the exact profile binary:
-1. record actual device/API and results;
-2. finalize the P6.2 release report and project status;
-3. run documentation-only acceptance CI;
-4. mark PR #95 ready and squash-merge;
-5. verify merged-main Android CI GREEN;
-6. close #94 completed;
-7. begin P6.3 only from that verified merged-main baseline.
+With P01–P30 physically accepted:
+1. finalize release report/project status;
+2. require acceptance-documentation CI GREEN;
+3. mark PR #95 ready and squash-merge;
+4. require merged-main Android CI GREEN;
+5. close #94 completed;
+6. begin P6.3 only from that verified merged-main baseline.
 
-If a release-blocking executable defect is found, do **not** modify/reuse versionCode 28. Fix the defect, increment versionCode, cut a new QA candidate, and repeat exact-binary evidence + physical acceptance.
+Any later executable change would require a new monotonic versionCode and a fresh exact-binary QA cycle. Documentation/merge commits do not replace the physically accepted executable above.

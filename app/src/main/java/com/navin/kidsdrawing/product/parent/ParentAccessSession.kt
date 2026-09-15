@@ -53,6 +53,12 @@ class ParentAccessSession(
         return true
     }
 
+    fun remainingSessionMillis(): Long {
+        val startedAt = sessionStartedAtMillis ?: return 0L
+        val elapsed = (clock.nowMillis() - startedAt).coerceAtLeast(0L)
+        return (sessionDurationMillis - elapsed).coerceAtLeast(0L)
+    }
+
     fun onBackgrounded() {
         if (!isSessionActive()) return
         if (backgroundStartedAtMillis == null) {

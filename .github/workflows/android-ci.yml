@@ -30,6 +30,8 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       - name: Install required Android SDK packages
         shell: bash
@@ -50,7 +52,7 @@ jobs:
       - name: Unit tests, lint, debug APK, instrumentation APK, and profile APK compile
         run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleProfile
 
-      - name: Verify P5.2 content quality report
+      - name: Verify final Phase-5 content quality contract
         shell: bash
         run: |
           set -euo pipefail
@@ -63,30 +65,36 @@ jobs:
           from pathlib import Path
 
           report = json.loads(Path("app/build/reports/content-quality/catalog-report.json").read_text())
+          assert report["lessonCount"] == 24, report
           assert report["errorCount"] == 0, report
-          assert report["lessonCount"] >= 1, report
-          print(f"P5.2 content quality: lessons={report['lessonCount']} errors={report['errorCount']} warnings={report['warningCount']}")
+          assert report["warningCount"] == 6, report
+          print(
+              "Phase-5 content quality: "
+              f"lessons={report['lessonCount']} "
+              f"errors={report['errorCount']} "
+              f"warnings={report['warningCount']}"
+          )
           PY
           cat "$REPORT_DIR/catalog-report.txt"
           {
-            echo "## P5.2 Content Quality"
+            echo "## Phase-5 Final Content Quality"
             echo
             echo '```text'
             cat "$REPORT_DIR/catalog-report.txt"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload P5.2 content quality reports
+      - name: Upload final content quality reports
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-p5.2-content-quality-report
+          name: kids-drawing-0.5.0-curriculum-expansion-content-quality
           path: |
             app/build/reports/content-quality/catalog-report.txt
             app/build/reports/content-quality/catalog-report.json
           if-no-files-found: error
           retention-days: 30
 
-      - name: Verify milestone APK permission allowlist
+      - name: Verify final APK permission allowlist
         shell: bash
         run: |
           set -euo pipefail
@@ -107,54 +115,78 @@ jobs:
 
             for permission in "${REQUESTED_PERMISSIONS[@]}"; do
               if [[ "$permission" != "$ALLOWED_PERMISSION" ]]; then
-                echo "Unexpected Android permission detected in milestone APK: $permission"
+                echo "Unexpected Android permission detected in final APK: $permission"
                 exit 1
               fi
             done
           done
 
-          echo "Permission allowlist passed for debug and profile APKs."
+          echo "Permission allowlist passed for final debug and profile APKs."
 
-      - name: Package P5.7 QA1 APK evidence
+      - name: Verify final APK identity
         shell: bash
         run: |
           set -euo pipefail
-          EVIDENCE_DIR="app/build/outputs/milestone/0.5.0-curriculum-expansion-p5.7-qa1"
+          AAPT2="$ANDROID_HOME/build-tools/36.0.0/aapt2"
+          for APK in \
+            "app/build/outputs/apk/debug/app-debug.apk" \
+            "app/build/outputs/apk/profile/app-profile.apk"; do
+            BADGING=$("$AAPT2" dump badging "$APK")
+            echo "$BADGING" | head -n 1
+            echo "$BADGING" | grep -F "package: name='com.navin.kidsdrawing'"
+            echo "$BADGING" | grep -F "versionCode='27'"
+            echo "$BADGING" | grep -F "versionName='0.5.0-curriculum-expansion'"
+          done
+          echo "Final APK identity is 0.5.0-curriculum-expansion / versionCode 27."
+
+      - name: Package final 0.5.0 APK evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          EVIDENCE_DIR="app/build/outputs/milestone/0.5.0-curriculum-expansion"
           mkdir -p "$EVIDENCE_DIR"
           cp app/build/outputs/apk/debug/app-debug.apk \
-            "$EVIDENCE_DIR/Kids_Drawing_0.5.0_Curriculum_Expansion_P5.7_QA1-debug.apk"
+            "$EVIDENCE_DIR/Kids_Drawing_0.5.0_Curriculum_Expansion-debug.apk"
           cp app/build/outputs/apk/profile/app-profile.apk \
-            "$EVIDENCE_DIR/Kids_Drawing_0.5.0_Curriculum_Expansion_P5.7_QA1-profile.apk"
+            "$EVIDENCE_DIR/Kids_Drawing_0.5.0_Curriculum_Expansion-profile.apk"
           (
             cd "$EVIDENCE_DIR"
             sha256sum \
-              Kids_Drawing_0.5.0_Curriculum_Expansion_P5.7_QA1-debug.apk \
-              Kids_Drawing_0.5.0_Curriculum_Expansion_P5.7_QA1-profile.apk \
+              Kids_Drawing_0.5.0_Curriculum_Expansion-debug.apk \
+              Kids_Drawing_0.5.0_Curriculum_Expansion-profile.apk \
               | tee SHA256SUMS.txt
             stat -c '%n %s bytes' \
-              Kids_Drawing_0.5.0_Curriculum_Expansion_P5.7_QA1-debug.apk \
-              Kids_Drawing_0.5.0_Curriculum_Expansion_P5.7_QA1-profile.apk \
+              Kids_Drawing_0.5.0_Curriculum_Expansion-debug.apk \
+              Kids_Drawing_0.5.0_Curriculum_Expansion-profile.apk \
               | tee APK_SIZES.txt
+            {
+              echo "versionName=0.5.0-curriculum-expansion"
+              echo "versionCode=27"
+              echo "workflow_sha=${GITHUB_SHA}"
+              echo "source_head_sha=${{ github.event.pull_request.head.sha || github.sha }}"
+            } | tee RELEASE_IDENTITY.txt
           )
 
-      - name: Upload P5.7 QA1 debug APK
+      - name: Upload final 0.5.0 debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-0.5.0-curriculum-expansion-p5.7-qa1-debug
+          name: kids-drawing-0.5.0-curriculum-expansion-debug
           path: |
-            app/build/outputs/milestone/0.5.0-curriculum-expansion-p5.7-qa1/Kids_Drawing_0.5.0_Curriculum_Expansion_P5.7_QA1-debug.apk
-            app/build/outputs/milestone/0.5.0-curriculum-expansion-p5.7-qa1/SHA256SUMS.txt
-            app/build/outputs/milestone/0.5.0-curriculum-expansion-p5.7-qa1/APK_SIZES.txt
+            app/build/outputs/milestone/0.5.0-curriculum-expansion/Kids_Drawing_0.5.0_Curriculum_Expansion-debug.apk
+            app/build/outputs/milestone/0.5.0-curriculum-expansion/SHA256SUMS.txt
+            app/build/outputs/milestone/0.5.0-curriculum-expansion/APK_SIZES.txt
+            app/build/outputs/milestone/0.5.0-curriculum-expansion/RELEASE_IDENTITY.txt
           if-no-files-found: error
           retention-days: 30
 
-      - name: Upload P5.7 QA1 release-like profile APK
+      - name: Upload final 0.5.0 release-like profile APK
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-0.5.0-curriculum-expansion-p5.7-qa1-profile
+          name: kids-drawing-0.5.0-curriculum-expansion-profile
           path: |
-            app/build/outputs/milestone/0.5.0-curriculum-expansion-p5.7-qa1/Kids_Drawing_0.5.0_Curriculum_Expansion_P5.7_QA1-profile.apk
-            app/build/outputs/milestone/0.5.0-curriculum-expansion-p5.7-qa1/SHA256SUMS.txt
-            app/build/outputs/milestone/0.5.0-curriculum-expansion-p5.7-qa1/APK_SIZES.txt
+            app/build/outputs/milestone/0.5.0-curriculum-expansion/Kids_Drawing_0.5.0_Curriculum_Expansion-profile.apk
+            app/build/outputs/milestone/0.5.0-curriculum-expansion/SHA256SUMS.txt
+            app/build/outputs/milestone/0.5.0-curriculum-expansion/APK_SIZES.txt
+            app/build/outputs/milestone/0.5.0-curriculum-expansion/RELEASE_IDENTITY.txt
           if-no-files-found: error
           retention-days: 30

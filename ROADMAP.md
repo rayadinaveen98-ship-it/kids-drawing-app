@@ -11,85 +11,98 @@ Structured lessons, all teaching modes, Help Ladder and recovery proven; physica
 Production onboarding → lesson → coloring → Gallery journey physically passed 41/41.
 
 ## Phase 4 — Content & Studio Expansion 0.4 — COMPLETE
-`0.4.0-content-studio`, versionCode 19 remains the latest fully released milestone.
+`0.4.0-content-studio`, versionCode 19.
 
-## Phase 5 — Curriculum & Teaching Experience Expansion 0.5 — ACTIVE
+## Phase 5 — Curriculum & Teaching Experience Expansion 0.5 — PHYSICALLY ACCEPTED / CLOSURE ACTIVE
 
 **Target:** `0.5.0-curriculum-expansion`  
 **Parent epic:** #73  
-**Frozen curriculum:** **24 production lessons**.
+**Frozen curriculum:** **24 production lessons**  
+**Final accepted candidate:** versionCode **27** / commit `7ca10ac918def4e5d9e22346dc98ab2d7bdda957`  
+**Final-candidate CI:** Android CI #580 / run `34927419291` — **GREEN**  
+**Physical QA:** **52/52 PASS** on 2026-09-15.
 
 ### P5.1 — Curriculum & Teaching Contract — COMPLETE
-
 ### P5.2 — Content Production System V2 — COMPLETE
-
 ### P5.3 — Companion / Teacher Experience V2 — COMPLETE
-Physical 20/20 PASS.
-
 ### P5.4 — Curriculum Expansion Set C — COMPLETE
-Catalog 9→14; Content Lab 15/15; physical 30/30.
-
 ### P5.5 — Curriculum Expansion Set D — COMPLETE
-Catalog 14→20; Content Lab 18/18; physical 36/36; merged-main CI #528 GREEN.
+### P5.6 — Curriculum Expansion Set E — COMPLETE
+### P5.7 — Local Adaptive Teaching — COMPLETE
+### P5.8 — Cross-age Curriculum QA + 0.5 Release — PHYSICAL PASS / MERGE CLOSURE ACTIVE
 
-### P5.6 — Curriculum Expansion Set E — COMPLETE / FROZEN
-Catalog 20→24; Content Lab 16/16; physical 36/36; merged-main CI #552 GREEN.
+P5.8 has validated:
+- all 24 lessons and all four age bands;
+- journeys, prerequisites and browse/discovery;
+- Draw With Me, Watch Then Draw and authored Trace;
+- Companion + authored Help/Replay boundaries;
+- deterministic local adaptive recommendations and child-requested adaptive Help;
+- coloring resume → drawing resume → fresh precedence;
+- lifecycle/recovery, Gallery, Coloring and Free Draw;
+- Airplane Mode and privacy/permission boundaries;
+- exact content quality **24 / 0 / 6**;
+- final identity `0.5.0-curriculum-expansion`, versionCode 27;
+- exact APK artifact/hash evidence;
+- final physical QA **52/52 PASS**.
 
-### P5.7 — Local Adaptive Teaching — PHYSICALLY ACCEPTED / MERGE CLOSURE ACTIVE
-
-Issue #86. PR #87.
-
-Delivered:
-- local bounded/versioned adaptive state;
-- deterministic/idempotent reducer and corruption-safe store;
-- prerequisite-safe progression-aware fresh recommendations;
-- explainable primary reason copy;
-- coloring resume → drawing resume → fresh precedence preserved;
-- browse/category/journey discovery preserved;
-- child-controlled adaptive Help over authored Help/Replay only;
-- no invented Trace, automatic Help, ability labels, scores/ranks or network dependency;
-- deterministic cross-age pre-QA gate across all four age bands.
-
-Accepted QA1:
-- `0.5.0-curriculum-expansion-p5.7-qa1`;
-- versionCode **26**;
-- binary commit `e258632e83e83a39ac649855ea19592c2f5003ae`;
-- Android CI #563 / run `34866700627` **GREEN**;
-- profile artifact `10357367072`;
-- profile SHA256 `126b0c2d742a4c22b82239ded0502baf5119cf35a89883391ac68239c37b14d0`;
-- physical acceptance **45/45 PASS** on 2026-09-14;
-- tester device/API not provided;
-- no reported defects.
-
-Remaining P5.7 gates:
+Remaining Phase-5 closure gates:
 1. acceptance-doc exact-head CI GREEN;
-2. mark PR #87 ready;
-3. squash merge;
-4. merged-main CI GREEN;
-5. close #86 completed.
+2. PR #90 ready + squash merge;
+3. merged-main CI GREEN;
+4. close #88 and #73 completed.
 
-### P5.8 — Cross-age Curriculum QA + 0.5 Release — NEXT
+Completion of those gates makes `0.5.0-curriculum-expansion` the fully closed Phase-5 release.
 
-P5.8 is the final Phase-5 release gate. It must validate the complete integrated product, not add a parallel lesson system.
+## Phase 6 — Parent Zone + Accessibility + Device Hardening 0.6 — NEXT
 
-Final scope:
-- all **24 lessons**;
-- all four age bands;
-- journeys, prerequisites and discovery;
-- Companion + authored Help Ladder;
-- P5.7 local adaptive recommendations and Help;
-- offline / Airplane Mode;
-- lifecycle, recovery and resume precedence;
-- Gallery, Coloring and Free Draw;
-- content quality **24 / 0 errors / six reviewed warnings** unless a documented content change deliberately changes that contract;
-- permission/network/privacy boundaries;
-- final versionName **`0.5.0-curriculum-expansion`**;
-- new final release versionCode reserved and cut only at the final QA freeze;
-- exact debug/profile/release evidence;
-- focused physical acceptance;
-- merge + merged-main CI before Phase 5 closes.
+**Target:** `0.6.0-family-readiness`.
 
-Completion of P5.8 produces verified **`0.5.0-curriculum-expansion`**.
+### Objective
+Turn the accepted 0.5 learning product into a family-manageable, accessibility-strong and device-resilient product without weakening the child-first/offline-first architecture.
+
+### Planned slices
+
+- **P6.1 — Parent Zone & Family Controls Contract**  
+  Freeze parent-gate model, parent-only information architecture, child-profile management, progress visibility boundaries, local data controls, settings ownership, privacy language and threat/safety constraints before implementation.
+
+- **P6.2 — Parent Zone Foundation**  
+  Implement parent gate, Parent Zone navigation, local profile management, safe settings shell and parent-only data-management surfaces.
+
+- **P6.3 — Parent Progress & Curriculum Visibility**  
+  Add non-judgmental local progress summaries, completed-work/history visibility, curriculum/journey context and suggested next areas without grades, ranks, ability labels or cloud profiling.
+
+- **P6.4 — Accessibility System V2**  
+  Reduced motion, larger text/dynamic-type resilience, touch-target/reachability audit, contrast/semantics, screen-reader-critical flows where practical, handedness/layout considerations and age-appropriate control density.
+
+- **P6.5 — Device & Performance Hardening**  
+  Small-screen/tablet adaptation, low-memory/process-recreation resilience, startup/runtime performance, large-canvas stress, storage-pressure behavior and Android device/API matrix checks.
+
+- **P6.6 — Family Data & Recovery Controls**  
+  Safe local reset/delete/export boundaries if supported, per-profile cleanup, artwork protection, corruption recovery UX and parent-confirmed destructive actions.
+
+- **P6.7 — Cross-device Family Readiness QA + 0.6 Release**  
+  Full family/child flow regression, accessibility/device matrix, offline/privacy checks, exact APK evidence and physical acceptance.
+
+### Phase-6 non-goals
+
+- cloud accounts/sync;
+- public social sharing;
+- monetization/paywalls;
+- unrestricted child-facing generative AI;
+- punitive gamification, grades, ranks, XP or permanent ability labels;
+- reopening accepted Drawing/Lesson/Coloring/adaptive internals without a concrete defect + explicit contract/ADR.
+
+### Phase-6 exit target
+
+A verified installable `0.6.0-family-readiness` APK where a parent can safely manage the local family experience, understand progress without grading the child, control relevant settings/data through a parent-gated surface, and trust the app across accessibility/device/lifecycle conditions while the child experience remains offline-first and autonomous.
+
+## Phase 7 — Beta / Store Readiness 0.7 — PLANNED
+
+Broader real-device matrix, crash/ANR and upgrade hardening, Google Play Families/privacy re-review, production signing/release pipeline, store assets/listing, closed-beta feedback and final usability cleanup.
+
+## Phase 8 — Public V1 1.0 — PLANNED
+
+Final public-release regression, family testing, privacy/safety review, production AAB/APK, release notes/store presence and monitored launch.
 
 ## Permanent delivery rule
 

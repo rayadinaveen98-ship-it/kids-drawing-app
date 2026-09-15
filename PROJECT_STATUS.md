@@ -9,8 +9,8 @@
 **P6.1:** **COMPLETE** — #92 closed, PR #93 squash-merged, merged-main Android CI #591 GREEN  
 **Current slice:** P6.2 — Parent Zone Foundation #94  
 **Active branch:** `phase6/p6-2-parent-zone-foundation`  
-**PR:** #95 — draft pending physical acceptance  
-**Current P6.2 state:** **QA1 AUTOMATED GREEN / EXACT PROFILE APK READY / PHYSICAL 0/30 NOT RUN**  
+**PR:** #95 — closure active after physical acceptance  
+**Current P6.2 state:** **QA1 PHYSICAL 30/30 PASS / ACCEPTANCE-DOCUMENTATION CI + MERGE ACTIVE**  
 **Last updated:** 2026-09-15
 
 Git is authoritative when chat memory and repository state disagree.
@@ -87,7 +87,7 @@ Delivered:
 - hardening head: `8b836757fc6de9451848ea2fb937813c62c18ffe`;
 - Android CI #595 / run `34938060413`: **GREEN**.
 
-### Immutable P6.2 QA1 candidate
+### Immutable physically accepted P6.2 QA1 candidate
 
 - executable source head: `528467acdcfde9c4d6ea01959d57157376cb081d`;
 - versionName: `0.6.0-family-readiness-p6.2-qa1`;
@@ -98,7 +98,7 @@ Delivered:
 - permission allowlist: **PASS**;
 - APK identity: **PASS**.
 
-Authoritative physical-test profile APK:
+Authoritative physically accepted profile APK:
 - artifact ID: **10385266255**;
 - artifact archive digest: `sha256:11f77fb9f8225f0c01671abd2b112cf819d6aee49c2c3b89f5c2f7c5f82ee3fa`;
 - size: **16,377,441 bytes**;
@@ -113,28 +113,26 @@ Content-quality artifact: **10384499464**.
 
 Downloaded QA1 artifacts were independently hashed and matched their packaged SHA256 values.
 
-### Physical gate
+### Physical acceptance
 
 Authoritative matrix: `docs/10-execution/P6_2_FINAL_QA.md`.
 
-- PASS: **0/30**
+- PASS: **30/30**
 - FAIL: **0/30**
-- NOT RUN: **30/30**
-- tester device/API: **not yet provided**
-- automated release blockers: **none**
-- release decision: **PENDING PHYSICAL ACCEPTANCE**
+- NOT RUN: **0/30**
+- acceptance date: **2026-09-15**
+- tester device/API: **not provided and not inferred**
+- reported release blockers: **none**
+- release decision: **ACCEPTED FOR REPOSITORY CLOSURE**
 
-The exact physical candidate remains artifact `10385266255` built from executable head `528467ac...`. Documentation-only commits after that head do not replace the accepted-candidate binary.
+The exact accepted executable remains artifact `10385266255` built from executable head `528467ac...`. Documentation/merge commits after that head do not replace the tested binary.
 
-## Next closure sequence
+## P6.2 closure sequence
 
-1. physically test the exact P6.2 QA1 profile APK against P01–P30;
-2. record actual physical results/device information without inference;
-3. finalize `P6_2_FINAL_QA.md`, `P6_2_RELEASE_REPORT.md` and this status file;
-4. require acceptance-documentation CI GREEN;
-5. mark PR #95 ready and squash-merge;
-6. require merged-main Android CI GREEN;
-7. close issue #94 completed;
-8. begin P6.3 only from the verified merged-main baseline.
+1. require acceptance-documentation CI GREEN;
+2. mark PR #95 ready and squash-merge;
+3. require merged-main Android CI GREEN;
+4. close issue #94 completed;
+5. begin P6.3 only from the verified merged-main baseline.
 
-If physical QA discovers an executable release blocker, versionCode **28 must not be reused**. Fix the defect, increment versionCode, cut a new QA candidate and repeat exact-binary evidence + physical acceptance.
+Any later executable change requires a new monotonic versionCode and a fresh exact-binary QA cycle.

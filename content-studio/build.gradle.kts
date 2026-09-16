@@ -9,6 +9,8 @@ kotlin {
 
 sourceSets {
     main {
+        // Compile the exact pure production content/model sources as Studio validation truth.
+        // AndroidAssetLessonSource stays Android-only and is deliberately excluded.
         kotlin.srcDir("../app/src/main/java")
         kotlin.include("com/navin/kidsdrawing/lesson/model/**")
         kotlin.include("com/navin/kidsdrawing/lesson/content/**")
@@ -24,4 +26,8 @@ dependencies {
 
 tasks.test {
     useJUnit()
+    // Existing authoring gates address release assets as src/main/assets and publish evidence into
+    // app/build/reports/content-quality. Keeping that working directory makes the shared release
+    // corpus explicit without copying child assets into the tooling module.
+    workingDir = rootProject.file("app")
 }

@@ -66,8 +66,11 @@ jobs:
           test -s "$REPORT_DIR/authoring-capability-inventory.txt"
           test -s "$REPORT_DIR/generated-lesson-index-v2.json"
           test -s "$REPORT_DIR/catalog-index-v2-health.txt"
+          test -s "$REPORT_DIR/content-studio-v1-evidence.json"
+          test -s "$REPORT_DIR/content-studio-v1-health.txt"
           python -m json.tool "$REPORT_DIR/catalog-report.json" > /dev/null
           python -m json.tool "$REPORT_DIR/generated-lesson-index-v2.json" > /dev/null
+          python -m json.tool "$REPORT_DIR/content-studio-v1-evidence.json" > /dev/null
           cmp -s app/src/main/assets/catalog/lesson-index-v2.json "$REPORT_DIR/generated-lesson-index-v2.json"
           python - <<'PY'
           import json
@@ -88,6 +91,27 @@ jobs:
               "committedIndexDrift=0",
           ):
               assert expected in health, expected
+
+          studio = json.loads(Path("app/build/reports/content-quality/content-studio-v1-evidence.json").read_text())
+          assert studio["schemaVersion"] == "1.0", studio
+          assert studio["validationState"] == "ready", studio
+          assert studio["lessonId"] == "cute-cat", studio
+          assert studio["projectedIndexEntryCount"] == 24, studio
+          studio_health = Path("app/build/reports/content-quality/content-studio-v1-health.txt").read_text()
+          for expected in (
+              "releasePackages=24",
+              "roundTripPassed=24/24",
+              "representativeValidation=READY",
+              "projectedIndexEntries=24",
+              "authoredSignalReleaseBlockedUsages=0",
+              "enforcedSuggestedColorsReleaseBlockedUsages=0",
+              "audioDeclarations=0",
+              "promotionRequiresReadyValidation=true",
+              "promotionIncludesRegeneratedIndex=true",
+              "invalidCandidateMutationPlan=false",
+          ):
+              assert expected in studio_health, expected
+
           print(
               "Frozen curriculum content quality: "
               f"lessons={report['lessonCount']} "
@@ -95,10 +119,12 @@ jobs:
               f"warnings={report['warningCount']}"
           )
           print(f"Content V2.2 generated catalog index: entries={len(index['entries'])}, drift=0")
+          print("Content V2.3 Studio: roundTrip=24/24 representative=READY projectedIndex=24")
           PY
           cat "$REPORT_DIR/catalog-report.txt"
           cat "$REPORT_DIR/authoring-capability-inventory.txt"
           cat "$REPORT_DIR/catalog-index-v2-health.txt"
+          cat "$REPORT_DIR/content-studio-v1-health.txt"
           {
             echo "## Frozen Curriculum Content Quality"
             echo
@@ -117,6 +143,12 @@ jobs:
             echo '```text'
             cat "$REPORT_DIR/catalog-index-v2-health.txt"
             echo '```'
+            echo
+            echo "## Content V2.3 Studio Health"
+            echo
+            echo '```text'
+            cat "$REPORT_DIR/content-studio-v1-health.txt"
+            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload P6.4 QA content quality reports
@@ -129,6 +161,8 @@ jobs:
             app/build/reports/content-quality/authoring-capability-inventory.txt
             app/build/reports/content-quality/generated-lesson-index-v2.json
             app/build/reports/content-quality/catalog-index-v2-health.txt
+            app/build/reports/content-quality/content-studio-v1-evidence.json
+            app/build/reports/content-quality/content-studio-v1-health.txt
           if-no-files-found: error
           retention-days: 30
 

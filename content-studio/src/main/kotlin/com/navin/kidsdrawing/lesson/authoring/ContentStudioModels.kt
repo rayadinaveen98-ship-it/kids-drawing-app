@@ -80,6 +80,8 @@ enum class ContentStudioDiagnosticCode {
     CATALOG_INVALID,
     INDEX_INVALID,
     QUALITY_ERROR,
+    RELEASE_STATUS_INVALID,
+    REVISION_DECISION_INVALID,
 }
 
 data class ContentStudioDiagnostic(

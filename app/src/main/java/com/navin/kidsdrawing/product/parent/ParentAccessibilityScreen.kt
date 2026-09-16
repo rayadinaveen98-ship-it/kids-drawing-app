@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -136,10 +137,13 @@ fun ParentAccessibilityScreen(
                             color = StudioColors.Ink700,
                         )
                     }
+                    // The whole row is the accessible switch. This child is visual state only so
+                    // TalkBack does not encounter a duplicate nested switch node.
                     Switch(
                         checked = preferences.reduceMotion,
                         onCheckedChange = null,
                         enabled = !saving,
+                        modifier = Modifier.clearAndSetSemantics { },
                     )
                 }
             }
@@ -151,6 +155,11 @@ fun ParentAccessibilityScreen(
                     color = StudioColors.Ink700,
                 )
             }
+
+            AccessibilityInfoCard(
+                title = "Drawing canvas",
+                body = "Freehand drawing and spatial Fill are direct touch or stylus creative interactions. Accessibility V2 improves the surrounding labels, controls and status without pretending the drawing geometry itself has an equivalent non-visual interaction.",
+            )
 
             AccessibilityInfoCard(
                 title = "What Reduce motion does not change",

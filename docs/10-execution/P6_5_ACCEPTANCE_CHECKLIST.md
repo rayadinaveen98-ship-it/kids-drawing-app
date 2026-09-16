@@ -106,8 +106,8 @@ Later execution statuses use: `PASS`, `FAIL`, `PENDING-HARDWARE`, or `N/A` with 
 | C61 | product timing covers profile resolution/Home/Gallery/lesson/coloring/Free Draw operations | PASS |
 | C62 | repeated timings use monotonic elapsed time with sample count and median/P95 where appropriate | PASS |
 | C63 | P6.5 invents no universal cross-device cold-start millisecond threshold | PASS |
-| C64 | minSdk24/targetSdk36/compileSdk36 are explicitly represented in matrix | PASS |
-| C65 | representative API bands A 24–28, B 29–32, C 33–35, D 36 are explicit | PASS |
+| C64 | minSdk23/targetSdk36/compileSdk36 are explicitly represented in matrix | PASS |
+| C65 | representative API bands A 23–28, B 29–32, C 33–35, D 36 are explicit | PASS |
 | C66 | Class L/M/S device claims require actual known hardware evidence | PASS |
 | C67 | unavailable device/API classes remain PENDING-HARDWARE instead of fake PASS | PASS |
 | C68 | P6.4 semantics, Reduce motion, font scaling and critical target behavior are preserved | PASS |

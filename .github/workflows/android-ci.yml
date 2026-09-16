@@ -60,7 +60,10 @@ jobs:
           test -s "$REPORT_DIR/catalog-report.txt"
           test -s "$REPORT_DIR/catalog-report.json"
           test -s "$REPORT_DIR/authoring-capability-inventory.txt"
+          test -s "$REPORT_DIR/generated-lesson-index-v2.json"
+          test -s "$REPORT_DIR/catalog-index-v2-health.txt"
           python -m json.tool "$REPORT_DIR/catalog-report.json" > /dev/null
+          python -m json.tool "$REPORT_DIR/generated-lesson-index-v2.json" > /dev/null
           python - <<'PY'
           import json
           from pathlib import Path
@@ -69,15 +72,19 @@ jobs:
           assert report["lessonCount"] == 24, report
           assert report["errorCount"] == 0, report
           assert report["warningCount"] == 6, report
+          index = json.loads(Path("app/build/reports/content-quality/generated-lesson-index-v2.json").read_text())
+          assert len(index["entries"]) == 24, len(index["entries"])
           print(
               "Frozen curriculum content quality: "
               f"lessons={report['lessonCount']} "
               f"errors={report['errorCount']} "
               f"warnings={report['warningCount']}"
           )
+          print(f"Content V2.2 generated catalog index: entries={len(index['entries'])}")
           PY
           cat "$REPORT_DIR/catalog-report.txt"
           cat "$REPORT_DIR/authoring-capability-inventory.txt"
+          cat "$REPORT_DIR/catalog-index-v2-health.txt"
           {
             echo "## Frozen Curriculum Content Quality"
             echo
@@ -90,6 +97,12 @@ jobs:
             echo '```text'
             cat "$REPORT_DIR/authoring-capability-inventory.txt"
             echo '```'
+            echo
+            echo "## Content V2.2 Catalog Index Health"
+            echo
+            echo '```text'
+            cat "$REPORT_DIR/catalog-index-v2-health.txt"
+            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload P6.4 QA content quality reports
@@ -100,6 +113,8 @@ jobs:
             app/build/reports/content-quality/catalog-report.txt
             app/build/reports/content-quality/catalog-report.json
             app/build/reports/content-quality/authoring-capability-inventory.txt
+            app/build/reports/content-quality/generated-lesson-index-v2.json
+            app/build/reports/content-quality/catalog-index-v2-health.txt
           if-no-files-found: error
           retention-days: 30
 

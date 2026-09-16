@@ -73,7 +73,7 @@ class ContentStudioPackageImporter(
                         "Declared strings asset is not a valid string map.",
                     )
                 } else {
-                    stringsByLocale[locale] = decoded.toSortedMap()
+                    stringsByLocale[locale] = canonicalStringMap(decoded)
                 }
             }
         }
@@ -142,8 +142,8 @@ object ContentStudioCanonicalExporter {
 
         val lesson = draft.lesson.copy(
             assets = draft.lesson.assets.copy(
-                strings = draft.lesson.assets.strings.toSortedMap(),
-                audio = draft.lesson.assets.audio.toSortedMap(),
+                strings = canonicalStringMap(draft.lesson.assets.strings),
+                audio = canonicalStringMap(draft.lesson.assets.audio),
             ),
         )
         val files = sortedMapOf<String, String>()
@@ -151,7 +151,7 @@ object ContentStudioCanonicalExporter {
         files[checkNotNull(studioSafeJoin(draft.packageRoot, lesson.assets.strokeFile))] =
             renderJson.encodeToString(draft.strokeCatalog) + "\n"
         lesson.assets.strings.toSortedMap().forEach { (locale, relativePath) ->
-            val strings = checkNotNull(draft.stringsByLocale[locale]).toSortedMap()
+            val strings: Map<String, String> = canonicalStringMap(checkNotNull(draft.stringsByLocale[locale]))
             files[checkNotNull(studioSafeJoin(draft.packageRoot, relativePath))] =
                 renderJson.encodeToString(strings) + "\n"
         }
@@ -266,6 +266,11 @@ object ContentStudioCanonicalExporter {
         }
     }.sortedBy { "${it.code}:${it.path}:${it.message}" }
 }
+
+private fun canonicalStringMap(source: Map<String, String>): Map<String, String> =
+    linkedMapOf<String, String>().apply {
+        source.toSortedMap().forEach { (key, value) -> put(key, value) }
+    }
 
 internal fun studioSafeJoin(root: String, relative: String): String? {
     if (root.isBlank() || relative.isBlank()) return null

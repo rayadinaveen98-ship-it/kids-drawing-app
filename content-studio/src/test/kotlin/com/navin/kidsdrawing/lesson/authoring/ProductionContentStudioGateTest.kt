@@ -1,11 +1,13 @@
 package com.navin.kidsdrawing.lesson.authoring
 
+import com.navin.kidsdrawing.lesson.content.CatalogColoringCapability
 import com.navin.kidsdrawing.lesson.content.LessonCapabilityValidator
 import com.navin.kidsdrawing.lesson.content.LessonCatalogSource
 import com.navin.kidsdrawing.lesson.content.LessonLoadResult
 import com.navin.kidsdrawing.lesson.content.LessonPackageLoader
 import com.navin.kidsdrawing.lesson.content.LessonPackageSource
 import com.navin.kidsdrawing.lesson.model.ChildCompletionPolicy
+import com.navin.kidsdrawing.lesson.model.LessonStatus
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -74,7 +76,28 @@ class ProductionContentStudioGateTest {
             representativeValidation is ContentStudioValidationResult.Ready,
         )
         val ready = representativeValidation as ContentStudioValidationResult.Ready
-        assertEquals(24, ready.evidence.projectedIndexEntryCount)
+        val evidence = ready.evidence
+        assertEquals("cute-cat", evidence.lessonId)
+        assertEquals(1, evidence.revision)
+        assertEquals(LessonStatus.RELEASE, evidence.lessonStatus)
+        assertTrue(evidence.packageLoaderPassed)
+        assertEquals(4, evidence.drawingStepCount)
+        assertTrue((evidence.strokeCount ?: 0) > 0)
+        assertTrue((evidence.guideCount ?: 0) > 0)
+        assertEquals(0, evidence.coloringRegionCount)
+        assertEquals(representativeDraft.lesson.supportedModes, evidence.supportedModes)
+        assertEquals(true, evidence.helpReady)
+        assertEquals(true, evidence.traceReady)
+        assertEquals(CatalogColoringCapability.FREEHAND, evidence.coloringCapability)
+        assertEquals(6, evidence.gateEvidence.size)
+        assertTrue(evidence.gateEvidence.all { it.status == ContentStudioGateStatus.PASSED })
+        assertEquals(6, evidence.qualityWarningCount)
+        assertEquals(24, evidence.projectedIndexEntryCount)
+        val projectedEntry = checkNotNull(evidence.projectedIndexEntry)
+        assertEquals("cute-cat", projectedEntry.lessonId)
+        assertEquals(1, projectedEntry.revision)
+        assertEquals(evidence.supportedModes, projectedEntry.supportedModes)
+        assertEquals(CatalogColoringCapability.FREEHAND, projectedEntry.capabilitySummary.coloring)
 
         val reportDir = File("build/reports/content-quality").apply { mkdirs() }
         val evidenceJson = ContentStudioEvidenceJson.render(ready)
@@ -86,7 +109,12 @@ class ProductionContentStudioGateTest {
             appendLine("roundTripPassed=$roundTrips/${packageNames.size}")
             appendLine("representativePackage=cute-cat")
             appendLine("representativeValidation=READY")
-            appendLine("projectedIndexEntries=${ready.evidence.projectedIndexEntryCount}")
+            appendLine("evidenceSchema=${ContentStudioEvidenceJson.SCHEMA_VERSION}")
+            appendLine("packageLoaderPassed=${evidence.packageLoaderPassed}")
+            appendLine("validationGatesPassed=${evidence.gateEvidence.count { it.status == ContentStudioGateStatus.PASSED }}/${evidence.gateEvidence.size}")
+            appendLine("evidenceQualityWarnings=${evidence.qualityWarningCount}")
+            appendLine("projectedIndexEntries=${evidence.projectedIndexEntryCount}")
+            appendLine("projectedEntry=${projectedEntry.lessonId}@${projectedEntry.revision}")
             appendLine("toolPresetReservedUsages=$toolPresetUsages")
             appendLine("playAsGroupReservedUsages=$playAsGroupUsages")
             appendLine("suggestedColorRolesReservedUsages=$suggestedColorRoleUsages")

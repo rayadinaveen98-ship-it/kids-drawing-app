@@ -24,6 +24,7 @@ import com.navin.kidsdrawing.product.lesson.ProductLessonRuntime
 import com.navin.kidsdrawing.product.quality.ProductTimingEvidence
 import com.navin.kidsdrawing.product.quality.ProductTimingMetric
 import java.io.File
+import java.io.IOException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -345,8 +346,7 @@ class ProductColoringRuntime(
         try {
             persistArtworkAndSessionOrThrow()
             _persistenceMessage.value = null
-        } catch (failure: Throwable) {
-            if (failure is CancellationException) throw failure
+        } catch (failure: IOException) {
             reportPersistenceFailure()
             throw failure
         }
@@ -422,8 +422,7 @@ class ProductColoringRuntime(
         try {
             block()
             _persistenceMessage.value = null
-        } catch (failure: Throwable) {
-            if (failure is CancellationException) throw failure
+        } catch (failure: IOException) {
             reportPersistenceFailure()
         }
     }

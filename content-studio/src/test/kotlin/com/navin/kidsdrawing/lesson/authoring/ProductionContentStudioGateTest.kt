@@ -122,6 +122,8 @@ class ProductionContentStudioGateTest {
             appendLine("enforcedSuggestedColorsReleaseBlockedUsages=$enforcedSuggestedColorUsages")
             appendLine("audioDeclarations=$audioDeclarations")
             appendLine("promotionRequiresReadyValidation=true")
+            appendLine("promotionRequiresExplicitRevisionDecision=true")
+            appendLine("promotionRequiresReleaseStatus=true")
             appendLine("promotionIncludesRegeneratedIndex=true")
             appendLine("invalidCandidateMutationPlan=false")
         }.trimEnd() + "\n"

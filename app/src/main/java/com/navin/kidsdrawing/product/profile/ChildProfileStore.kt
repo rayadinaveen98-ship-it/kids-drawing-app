@@ -9,6 +9,8 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.navin.kidsdrawing.drawing.domain.TeachingPace
 import com.navin.kidsdrawing.lesson.model.TeachingMode
+import com.navin.kidsdrawing.product.quality.ProductTimingEvidence
+import com.navin.kidsdrawing.product.quality.ProductTimingMetric
 import kotlinx.coroutines.flow.first
 
 private val Context.childProfileDataStore by preferencesDataStore(name = "child_profile")
@@ -16,27 +18,28 @@ private val Context.childProfileDataStore by preferencesDataStore(name = "child_
 class ChildProfileStore(
     private val context: Context,
 ) {
-    suspend fun loadDraft(): ChildProfileDraft {
-        val prefs = context.childProfileDataStore.data.first()
-        return ChildProfileDraft(
-            nickname = prefs[Keys.NICKNAME].orEmpty(),
-            ageBand = enumValueOrNull(prefs[Keys.AGE_BAND]),
-            teachingMode = enumValueOrNull(prefs[Keys.TEACHING_MODE]),
-            pace = enumValueOrNull(prefs[Keys.PACE]),
-            interests = decodeInterests(prefs[Keys.INTERESTS]),
-            handedness = enumValueOrNull(prefs[Keys.HANDEDNESS]),
-            narrationPreference = enumValueOrNull(prefs[Keys.NARRATION]),
-            currentStepIndex = prefs[Keys.STEP_INDEX]
-                ?.coerceIn(0, OnboardingStep.entries.lastIndex)
-                ?: 0,
-        )
-    }
+    suspend fun loadDraft(): ChildProfileDraft =
+        ProductTimingEvidence.measure(ProductTimingMetric.PROFILE_RESOLUTION) {
+            val prefs = context.childProfileDataStore.data.first()
+            ChildProfileDraft(
+                nickname = prefs[Keys.NICKNAME].orEmpty(),
+                ageBand = enumValueOrNull(prefs[Keys.AGE_BAND]),
+                teachingMode = enumValueOrNull(prefs[Keys.TEACHING_MODE]),
+                pace = enumValueOrNull(prefs[Keys.PACE]),
+                interests = decodeInterests(prefs[Keys.INTERESTS]),
+                handedness = enumValueOrNull(prefs[Keys.HANDEDNESS]),
+                narrationPreference = enumValueOrNull(prefs[Keys.NARRATION]),
+                currentStepIndex = prefs[Keys.STEP_INDEX]
+                    ?.coerceIn(0, OnboardingStep.entries.lastIndex)
+                    ?: 0,
+            )
+        }
 
-    suspend fun loadCompletedProfile(): ChildProfile? {
-        val prefs = context.childProfileDataStore.data.first()
-        if (prefs[Keys.COMPLETE] != true) return null
-        return draftFromPreferences(prefs).toCompletedProfileOrNull()
-    }
+    suspend fun loadCompletedProfile(): ChildProfile? =
+        ProductTimingEvidence.measure(ProductTimingMetric.PROFILE_RESOLUTION) {
+            val prefs = context.childProfileDataStore.data.first()
+            if (prefs[Keys.COMPLETE] != true) null else draftFromPreferences(prefs).toCompletedProfileOrNull()
+        }
 
     suspend fun saveDraft(draft: ChildProfileDraft) {
         context.childProfileDataStore.edit { prefs ->

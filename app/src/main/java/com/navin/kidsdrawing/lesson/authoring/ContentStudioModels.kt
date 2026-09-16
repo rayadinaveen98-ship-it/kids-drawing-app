@@ -106,13 +106,14 @@ object ContentStudioCapabilityStatusPolicy {
     fun evaluate(packageData: LessonRuntimePackage): List<ContentStudioCapabilityState> {
         val lesson = packageData.lesson
         val diagnostics = LessonCapabilityValidator.validate(packageData)
-        val unsupportedRuntime = diagnostics.any {
-            it.code == LessonCapabilityDiagnosticCode.UNSUPPORTED_RUNTIME_CAPABILITY
+        val drawingRuntimeUnsupported = diagnostics.any {
+            it.code == LessonCapabilityDiagnosticCode.UNSUPPORTED_RUNTIME_CAPABILITY &&
+                it.path.startsWith("drawing.")
         }
 
         fun teachingModeStatus(mode: TeachingMode): ContentStudioCapabilityStatus = when {
             mode !in lesson.supportedModes -> ContentStudioCapabilityStatus.NOT_DECLARED
-            unsupportedRuntime -> ContentStudioCapabilityStatus.UNSUPPORTED_RUNTIME
+            drawingRuntimeUnsupported -> ContentStudioCapabilityStatus.UNSUPPORTED_RUNTIME
             mode == TeachingMode.TRACE_AND_LEARN && diagnostics.any {
                 it.code == LessonCapabilityDiagnosticCode.INCOMPLETE_TRACE_SUPPORT
             } -> ContentStudioCapabilityStatus.INCOMPLETE

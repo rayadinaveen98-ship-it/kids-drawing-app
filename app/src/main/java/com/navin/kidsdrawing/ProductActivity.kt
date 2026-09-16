@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +32,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import com.navin.kidsdrawing.lesson.content.LessonCatalogIdentity
+import com.navin.kidsdrawing.product.accessibility.AccessibilityPreferences
+import com.navin.kidsdrawing.product.accessibility.AccessibilityPreferencesStore
 import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
 import com.navin.kidsdrawing.product.design.StudioColors
 import com.navin.kidsdrawing.product.design.StudioTheme
@@ -132,6 +135,12 @@ private fun ProductStudio(
     onProfileChanged: (ChildProfile) -> Unit,
 ) {
     val context = LocalContext.current
+    val accessibilityStore = remember(context) {
+        AccessibilityPreferencesStore(context.applicationContext)
+    }
+    val accessibilityPreferences by accessibilityStore.preferences.collectAsState(
+        initial = AccessibilityPreferences(),
+    )
     val repository = remember(context) { StudioHomeRepository(context) }
     val freeDrawRuntime = remember(context) { ProductFreeDrawRuntime(context) }
     val galleryBrowserRuntime = remember(context) {
@@ -417,6 +426,10 @@ private fun ProductStudio(
                         parentSessionRevision += 1
                         routeName = StudioDestination.HOME.name
                     },
+                    accessibilityPreferences = accessibilityPreferences,
+                    onSetReduceMotion = { enabled ->
+                        runCatching { accessibilityStore.setReduceMotion(enabled) }.isSuccess
+                    },
                 )
             } else {
                 ParentGateScreen(
@@ -426,6 +439,7 @@ private fun ProductStudio(
                         parentSession.invalidateForChildReturn()
                         routeName = StudioDestination.HOME.name
                     },
+                    reduceMotion = accessibilityPreferences.reduceMotion,
                 )
             }
         }

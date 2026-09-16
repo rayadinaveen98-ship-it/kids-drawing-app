@@ -41,7 +41,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.navin.kidsdrawing.drawing.domain.TeachingPace
 import com.navin.kidsdrawing.lesson.model.TeachingMode
+import com.navin.kidsdrawing.product.accessibility.AccessibilityPreferences
 import com.navin.kidsdrawing.product.design.StudioChoiceCard
+import com.navin.kidsdrawing.product.design.StudioChoiceSelectionMode
 import com.navin.kidsdrawing.product.design.StudioColors
 import com.navin.kidsdrawing.product.design.StudioPrimaryButton
 import com.navin.kidsdrawing.product.profile.AgeBand
@@ -49,6 +51,7 @@ import com.navin.kidsdrawing.product.profile.ChildInterest
 import com.navin.kidsdrawing.product.profile.ChildProfile
 import com.navin.kidsdrawing.product.profile.Handedness
 import com.navin.kidsdrawing.product.profile.NarrationPreference
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private enum class ParentZoneSection(
@@ -57,7 +60,7 @@ private enum class ParentZoneSection(
 ) {
     FAMILY("Family", "Manage the one local child profile on this device"),
     LEARNING("Learning", "Understand learning activity without grades or rankings"),
-    ACCESSIBILITY_AUDIO("Accessibility & Audio", "Current audio defaults and upcoming accessibility controls"),
+    ACCESSIBILITY_AUDIO("Accessibility & Audio", "Motion, system text-size guidance and narration defaults"),
     STORAGE_DATA("Storage & Data", "Understand what is stored locally and what is coming later"),
     SAFETY_PRIVACY("Safety & Privacy", "See the app's offline, account and permission boundaries"),
     ABOUT("About", "Version and release information"),
@@ -69,12 +72,13 @@ fun ParentGateScreen(
     onUnlocked: () -> Unit,
     onCancel: () -> Unit,
     modifier: Modifier = Modifier,
+    reduceMotion: Boolean = false,
 ) {
     var isHolding by remember { mutableStateOf(false) }
     var fallbackStep by remember { mutableStateOf(0) }
     val progress = remember { Animatable(0f) }
 
-    LaunchedEffect(isHolding) {
+    LaunchedEffect(isHolding, reduceMotion) {
         if (!isHolding) {
             session.cancelHold()
             progress.snapTo(0f)
@@ -83,13 +87,17 @@ fun ParentGateScreen(
 
         session.beginHold()
         progress.snapTo(0f)
-        progress.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(
-                durationMillis = ParentAccessSession.HOLD_DURATION_MILLIS.toInt(),
-                easing = LinearEasing,
-            ),
-        )
+        if (reduceMotion) {
+            delay(ParentAccessSession.HOLD_DURATION_MILLIS)
+        } else {
+            progress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(
+                    durationMillis = ParentAccessSession.HOLD_DURATION_MILLIS.toInt(),
+                    easing = LinearEasing,
+                ),
+            )
+        }
         if (isHolding && session.completeHoldIfEligible()) {
             onUnlocked()
         }
@@ -152,12 +160,20 @@ fun ParentGateScreen(
                         style = MaterialTheme.typography.titleLarge,
                         color = StudioColors.Ink900,
                     )
-                    LinearProgressIndicator(
-                        progress = { progress.value },
-                        modifier = Modifier.fillMaxWidth(),
-                        color = StudioColors.Studio600,
-                        trackColor = StudioColors.Line200,
-                    )
+                    if (reduceMotion) {
+                        Text(
+                            text = if (isHolding) "Timed hold in progress" else "Timed hold ready",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = StudioColors.Ink700,
+                        )
+                    } else {
+                        LinearProgressIndicator(
+                            progress = { progress.value },
+                            modifier = Modifier.fillMaxWidth(),
+                            color = StudioColors.Studio600,
+                            trackColor = StudioColors.Line200,
+                        )
+                    }
                     Text(
                         text = "Hold continuously for 2.5 seconds",
                         style = MaterialTheme.typography.bodyMedium,
@@ -227,6 +243,8 @@ fun ParentZoneScreen(
     onSaveProfile: suspend (ChildProfile) -> Boolean,
     onReturnToChild: () -> Unit,
     modifier: Modifier = Modifier,
+    accessibilityPreferences: AccessibilityPreferences = AccessibilityPreferences(),
+    onSetReduceMotion: suspend (Boolean) -> Boolean = { false },
 ) {
     var section by remember { mutableStateOf<ParentZoneSection?>(null) }
 
@@ -252,9 +270,10 @@ fun ParentZoneScreen(
             onBack = { section = null },
             modifier = modifier,
         )
-        ParentZoneSection.ACCESSIBILITY_AUDIO -> ParentSectionDetail(
-            title = "Accessibility & Audio",
-            body = "Current narration default: ${profile.narrationPreference.displayName}. You can change that default in Family. Reduced motion, text-scale resilience and broader accessibility controls are intentionally owned by P6.4 so this screen does not expose fake switches before the runtime supports them.",
+        ParentZoneSection.ACCESSIBILITY_AUDIO -> ParentAccessibilityScreen(
+            narrationPreference = profile.narrationPreference,
+            preferences = accessibilityPreferences,
+            onSetReduceMotion = onSetReduceMotion,
             onBack = { section = null },
             modifier = modifier,
         )
@@ -335,6 +354,7 @@ private fun ParentZoneOverview(
                     selected = false,
                     onClick = { onOpenSection(item) },
                     ageBand = AgeBand.YOUNG_ARTIST,
+                    selectionMode = StudioChoiceSelectionMode.NAVIGATION,
                 )
             }
         }
@@ -422,6 +442,7 @@ private fun ParentProfileEditor(
                         saveError = null
                     },
                     ageBand = AgeBand.YOUNG_ARTIST,
+                    selectionMode = StudioChoiceSelectionMode.MULTIPLE,
                 )
             }
         }
@@ -452,7 +473,7 @@ private fun ParentProfileEditor(
             Text(
                 text = it,
                 style = MaterialTheme.typography.bodyMedium,
-                color = StudioColors.Coral500,
+                color = StudioColors.Ink700,
             )
         }
 

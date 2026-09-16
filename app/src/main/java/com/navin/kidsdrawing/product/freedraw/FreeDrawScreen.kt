@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -36,8 +37,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -46,6 +50,8 @@ import com.navin.kidsdrawing.drawing.domain.DrawingBrushPreset
 import com.navin.kidsdrawing.drawing.domain.DrawingTool
 import com.navin.kidsdrawing.drawing.ui.DrawingSurface
 import com.navin.kidsdrawing.drawing.ui.DrawingSurfaceController
+import com.navin.kidsdrawing.product.accessibility.AccessibilityPolicy
+import com.navin.kidsdrawing.product.accessibility.accessibleColorName
 import com.navin.kidsdrawing.product.design.StudioColors
 import com.navin.kidsdrawing.product.profile.AgeBand
 import kotlinx.coroutines.launch
@@ -65,6 +71,8 @@ fun FreeDrawScreen(
     val documentState by runtime.documentEngine.state.collectAsState()
     val toolSettings by runtime.toolEngine.state.collectAsState()
     val policy = remember(ageBand) { freeDrawPresentationPolicyFor(ageBand) }
+    val accessibilityLayout = AccessibilityPolicy.layout(LocalDensity.current.fontScale)
+    val toolColumns = if (accessibilityLayout.preferSingleColumnActions) 1 else policy.toolColumns
     var recoveryReady by remember(runtime) { mutableStateOf(false) }
     var message by rememberSaveable { mutableStateOf<String?>(null) }
     var confirmClear by rememberSaveable { mutableStateOf(false) }
@@ -113,63 +121,38 @@ fun FreeDrawScreen(
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                TextButton(
-                    onClick = {
-                        scope.launch {
-                            runCatching { runtime.saveNow() }
-                                .onFailure { message = "Your drawing could not save yet. Please try again." }
-                                .onSuccess { onExitToHome() }
-                        }
-                    },
-                    modifier = Modifier.heightIn(min = policy.minimumControlHeightDp.dp),
-                ) {
-                    Text("← Save & leave", color = StudioColors.Ink700)
-                }
-                Column(
-                    modifier = Modifier.weight(1f),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text(
-                        text = "Free Draw",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = StudioColors.Ink900,
-                    )
-                    Text(
-                        text = "Make anything you imagine",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = StudioColors.Ink600,
-                    )
-                }
-                Button(
-                    enabled = runtime.hasVisibleArtwork() && !finishing,
-                    onClick = {
-                        finishing = true
-                        message = null
-                        scope.launch {
-                            when (val result = runtime.finishToGallery("My Free Drawing")) {
-                                is FreeDrawFinishResult.Failed -> {
-                                    finishing = false
-                                    message = result.message
+            FreeDrawTopBar(
+                stackActions = accessibilityLayout.preferSingleColumnActions,
+                minimumControlHeightDp = policy.minimumControlHeightDp,
+                canSaveToGallery = runtime.hasVisibleArtwork() && !finishing,
+                finishing = finishing,
+                onSaveAndLeave = {
+                    scope.launch {
+                        runCatching { runtime.saveNow() }
+                            .onFailure { message = "Your drawing could not save yet. Please try again." }
+                            .onSuccess { onExitToHome() }
+                    }
+                },
+                onSaveToGallery = {
+                    finishing = true
+                    message = null
+                    scope.launch {
+                        when (val result = runtime.finishToGallery("My Free Drawing")) {
+                            is FreeDrawFinishResult.Failed -> {
+                                finishing = false
+                                message = result.message
+                            }
+                            is FreeDrawFinishResult.Saved -> {
+                                finishing = false
+                                if (!result.workingCanvasReset) {
+                                    message = "Your Gallery copy is safe. The working canvas will reset next time."
                                 }
-                                is FreeDrawFinishResult.Saved -> {
-                                    finishing = false
-                                    if (!result.workingCanvasReset) {
-                                        message = "Your Gallery copy is safe. The working canvas will reset next time."
-                                    }
-                                    onArtworkCompleted(result.completion.record.entryId)
-                                }
+                                onArtworkCompleted(result.completion.record.entryId)
                             }
                         }
-                    },
-                    modifier = Modifier.heightIn(min = policy.minimumControlHeightDp.dp),
-                ) {
-                    Text(if (finishing) "Saving…" else "Save to Gallery")
-                }
-            }
+                    }
+                },
+            )
 
             message?.let {
                 Text(
@@ -194,7 +177,11 @@ fun FreeDrawScreen(
                     }
                 } else {
                     DrawingSurface(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .semantics {
+                                contentDescription = "Free Draw canvas. Freehand drawing uses touch or stylus."
+                            },
                         controller = surfaceController,
                         toolSettings = toolSettings,
                         onStrokeCommitted = { stroke ->
@@ -229,7 +216,7 @@ fun FreeDrawScreen(
                 ) {
                     Text("Tools", style = MaterialTheme.typography.titleSmall, color = StudioColors.Ink800)
                     ToolGrid(
-                        columns = policy.toolColumns,
+                        columns = toolColumns,
                         minimumHeightDp = policy.minimumControlHeightDp,
                         showDescriptions = policy.showToolDescriptions,
                         selectedTool = toolSettings.tool,
@@ -247,11 +234,18 @@ fun FreeDrawScreen(
                             colors.forEach { argb ->
                                 val selected = toolSettings.tool == DrawingTool.PENCIL &&
                                     toolSettings.colorArgb == argb
+                                val name = accessibleColorName(argb)
                                 Surface(
                                     modifier = Modifier
                                         .weight(1f)
                                         .heightIn(min = (policy.minimumControlHeightDp - 10).dp)
-                                        .semantics { contentDescription = "Drawing color" }
+                                        .semantics {
+                                            contentDescription = "$name drawing color"
+                                            if (selected) {
+                                                this.selected = true
+                                                stateDescription = "Selected"
+                                            }
+                                        }
                                         .clickable {
                                             scope.launch {
                                                 runtime.setColor(argb)
@@ -266,62 +260,111 @@ fun FreeDrawScreen(
                                         if (selected) 3.dp else 1.dp,
                                         if (selected) StudioColors.Studio600 else StudioColors.Line200,
                                     ),
-                                ) {}
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        if (selected) {
+                                            Surface(
+                                                shape = CircleShape,
+                                                color = Color.White,
+                                            ) {
+                                                Text(
+                                                    text = "✓",
+                                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp),
+                                                    color = StudioColors.Ink900,
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             repeat(policy.paletteColumns - colors.size) { Spacer(Modifier.weight(1f)) }
                         }
                     }
 
                     Text("Size", style = MaterialTheme.typography.titleSmall, color = StudioColors.Ink800)
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        freeDrawSizeChoices(toolSettings.tool, toolSettings.brushPreset).forEach { choice ->
-                            val selected = kotlin.math.abs(toolSettings.width - choice.width) < 0.5f
-                            if (selected) {
-                                Button(
+                    val sizeChoices = freeDrawSizeChoices(toolSettings.tool, toolSettings.brushPreset)
+                    if (accessibilityLayout.preferSingleColumnActions) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            sizeChoices.forEach { choice ->
+                                val selected = kotlin.math.abs(toolSettings.width - choice.width) < 0.5f
+                                SizeChoiceButton(
+                                    label = choice.label,
+                                    selected = selected,
+                                    minimumHeightDp = policy.minimumControlHeightDp,
+                                    modifier = Modifier.fillMaxWidth(),
                                     onClick = { scope.launch { runtime.setWidth(choice.width) } },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .heightIn(min = policy.minimumControlHeightDp.dp),
-                                ) { Text(choice.label) }
-                            } else {
-                                OutlinedButton(
+                                )
+                            }
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            sizeChoices.forEach { choice ->
+                                val selected = kotlin.math.abs(toolSettings.width - choice.width) < 0.5f
+                                SizeChoiceButton(
+                                    label = choice.label,
+                                    selected = selected,
+                                    minimumHeightDp = policy.minimumControlHeightDp,
+                                    modifier = Modifier.weight(1f),
                                     onClick = { scope.launch { runtime.setWidth(choice.width) } },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .heightIn(min = policy.minimumControlHeightDp.dp),
-                                ) { Text(choice.label) }
+                                )
                             }
                         }
                     }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        OutlinedButton(
-                            enabled = documentState.canUndo,
-                            onClick = { scope.launch { runtime.undo() } },
-                            modifier = Modifier
-                                .weight(1f)
-                                .heightIn(min = policy.minimumControlHeightDp.dp),
-                        ) { Text("Undo") }
-                        OutlinedButton(
-                            enabled = documentState.canRedo,
-                            onClick = { scope.launch { runtime.redo() } },
-                            modifier = Modifier
-                                .weight(1f)
-                                .heightIn(min = policy.minimumControlHeightDp.dp),
-                        ) { Text("Redo") }
-                        OutlinedButton(
-                            enabled = documentState.document.operations.isNotEmpty(),
-                            onClick = { confirmClear = true },
-                            modifier = Modifier
-                                .weight(1f)
-                                .heightIn(min = policy.minimumControlHeightDp.dp),
-                        ) { Text("Clear") }
+                    if (accessibilityLayout.preferSingleColumnActions) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(
+                                enabled = documentState.canUndo,
+                                onClick = { scope.launch { runtime.undo() } },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = policy.minimumControlHeightDp.dp),
+                            ) { Text("Undo") }
+                            OutlinedButton(
+                                enabled = documentState.canRedo,
+                                onClick = { scope.launch { runtime.redo() } },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = policy.minimumControlHeightDp.dp),
+                            ) { Text("Redo") }
+                            OutlinedButton(
+                                enabled = documentState.document.operations.isNotEmpty(),
+                                onClick = { confirmClear = true },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(min = policy.minimumControlHeightDp.dp),
+                            ) { Text("Clear") }
+                        }
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            OutlinedButton(
+                                enabled = documentState.canUndo,
+                                onClick = { scope.launch { runtime.undo() } },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .heightIn(min = policy.minimumControlHeightDp.dp),
+                            ) { Text("Undo") }
+                            OutlinedButton(
+                                enabled = documentState.canRedo,
+                                onClick = { scope.launch { runtime.redo() } },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .heightIn(min = policy.minimumControlHeightDp.dp),
+                            ) { Text("Redo") }
+                            OutlinedButton(
+                                enabled = documentState.document.operations.isNotEmpty(),
+                                onClick = { confirmClear = true },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .heightIn(min = policy.minimumControlHeightDp.dp),
+                            ) { Text("Clear") }
+                        }
                     }
                 }
             }
@@ -354,6 +397,86 @@ fun FreeDrawScreen(
 }
 
 @Composable
+private fun FreeDrawTopBar(
+    stackActions: Boolean,
+    minimumControlHeightDp: Int,
+    canSaveToGallery: Boolean,
+    finishing: Boolean,
+    onSaveAndLeave: () -> Unit,
+    onSaveToGallery: () -> Unit,
+) {
+    if (stackActions) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                text = "Free Draw",
+                style = MaterialTheme.typography.titleLarge,
+                color = StudioColors.Ink900,
+            )
+            Text(
+                text = "Make anything you imagine",
+                style = MaterialTheme.typography.bodySmall,
+                color = StudioColors.Ink600,
+            )
+            TextButton(
+                onClick = onSaveAndLeave,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = minimumControlHeightDp.dp),
+            ) {
+                Text("← Save & leave", color = StudioColors.Ink700)
+            }
+            Button(
+                enabled = canSaveToGallery,
+                onClick = onSaveToGallery,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = minimumControlHeightDp.dp),
+            ) {
+                Text(if (finishing) "Saving…" else "Save to Gallery")
+            }
+        }
+        return
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        TextButton(
+            onClick = onSaveAndLeave,
+            modifier = Modifier.heightIn(min = minimumControlHeightDp.dp),
+        ) {
+            Text("← Save & leave", color = StudioColors.Ink700)
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = "Free Draw",
+                style = MaterialTheme.typography.titleLarge,
+                color = StudioColors.Ink900,
+            )
+            Text(
+                text = "Make anything you imagine",
+                style = MaterialTheme.typography.bodySmall,
+                color = StudioColors.Ink600,
+            )
+        }
+        Button(
+            enabled = canSaveToGallery,
+            onClick = onSaveToGallery,
+            modifier = Modifier.heightIn(min = minimumControlHeightDp.dp),
+        ) {
+            Text(if (finishing) "Saving…" else "Save to Gallery")
+        }
+    }
+}
+
+@Composable
 private fun ToolGrid(
     columns: Int,
     minimumHeightDp: Int,
@@ -381,15 +504,24 @@ private fun ToolGrid(
                     selectedTool == DrawingTool.PENCIL && selectedPreset == choice.preset
                 }
                 val action = { if (choice.preset == null) onEraser() else onPreset(choice.preset) }
+                val selectionSemantics = if (selected) {
+                    Modifier.semantics {
+                        this.selected = true
+                        stateDescription = "Selected"
+                    }
+                } else {
+                    Modifier
+                }
                 if (selected) {
                     Button(
                         onClick = action,
                         modifier = Modifier
                             .weight(1f)
-                            .heightIn(min = minimumHeightDp.dp),
+                            .heightIn(min = minimumHeightDp.dp)
+                            .then(selectionSemantics),
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(choice.label)
+                            Text("✓ ${choice.label}")
                             if (showDescriptions) {
                                 Text(choice.description, style = MaterialTheme.typography.labelSmall)
                             }
@@ -413,6 +545,32 @@ private fun ToolGrid(
             }
             repeat(columns - rowChoices.size) { Spacer(Modifier.weight(1f)) }
         }
+    }
+}
+
+@Composable
+private fun SizeChoiceButton(
+    label: String,
+    selected: Boolean,
+    minimumHeightDp: Int,
+    modifier: Modifier,
+    onClick: () -> Unit,
+) {
+    if (selected) {
+        Button(
+            onClick = onClick,
+            modifier = modifier
+                .heightIn(min = minimumHeightDp.dp)
+                .semantics {
+                    this.selected = true
+                    stateDescription = "Selected"
+                },
+        ) { Text("✓ $label") }
+    } else {
+        OutlinedButton(
+            onClick = onClick,
+            modifier = modifier.heightIn(min = minimumHeightDp.dp),
+        ) { Text(label) }
     }
 }
 

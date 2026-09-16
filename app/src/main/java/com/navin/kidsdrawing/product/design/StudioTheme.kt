@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -18,6 +20,9 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -32,11 +37,13 @@ object StudioColors {
     val Ink800 = Ink900
     val Ink700 = Color(0xFF4E4A45)
     val Ink600 = Ink700
-    val Ink500 = Color(0xFF79736C)
+    // P6.4: >=4.5:1 on Paper100/white for normal supporting text.
+    val Ink500 = Color(0xFF746E67)
     val Line200 = Color(0xFFE8E0D4)
     val Studio600 = Color(0xFF5C6F52)
     val Studio700 = Studio600
-    val Studio500 = Color(0xFF718567)
+    // P6.4: darkened enough for normal text use on light product surfaces.
+    val Studio500 = Color(0xFF64755C)
     val Studio100 = Color(0xFFEAF0E5)
     val Sun500 = Color(0xFFE9A94A)
     val Coral500 = Color(0xFFE47C68)
@@ -56,6 +63,12 @@ fun densityPolicyFor(ageBand: AgeBand?): StudioDensityPolicy = when (ageBand) {
     AgeBand.GROWING_ARTIST -> StudioDensityPolicy(58.dp, 18.dp, 14.dp)
     AgeBand.YOUNG_ARTIST -> StudioDensityPolicy(54.dp, 16.dp, 12.dp)
     null -> StudioDensityPolicy(64.dp, 20.dp, 16.dp)
+}
+
+enum class StudioChoiceSelectionMode {
+    SINGLE,
+    MULTIPLE,
+    NAVIGATION,
 }
 
 private val StudioColorScheme = lightColorScheme(
@@ -151,18 +164,51 @@ fun StudioChoiceCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     ageBand: AgeBand? = null,
+    selectionMode: StudioChoiceSelectionMode = StudioChoiceSelectionMode.SINGLE,
 ) {
     val density = densityPolicyFor(ageBand)
+    val stateModifier = when (selectionMode) {
+        StudioChoiceSelectionMode.SINGLE -> Modifier
+            .semantics {
+                stateDescription = if (selected) "Selected" else "Not selected"
+            }
+            .selectable(
+                selected = selected,
+                role = Role.RadioButton,
+                onClick = onClick,
+            )
+        StudioChoiceSelectionMode.MULTIPLE -> Modifier
+            .semantics {
+                stateDescription = if (selected) "Selected" else "Not selected"
+            }
+            .toggleable(
+                value = selected,
+                role = Role.Checkbox,
+                onValueChange = { onClick() },
+            )
+        StudioChoiceSelectionMode.NAVIGATION -> Modifier.clickable(
+            role = Role.Button,
+            onClick = onClick,
+        )
+    }
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = density.minimumTouchTarget)
-            .clickable(onClick = onClick),
+            .then(stateModifier),
         shape = RoundedCornerShape(20.dp),
-        color = if (selected) StudioColors.Studio100 else StudioColors.Paper100,
+        color = if (selected && selectionMode != StudioChoiceSelectionMode.NAVIGATION) {
+            StudioColors.Studio100
+        } else {
+            StudioColors.Paper100
+        },
         border = BorderStroke(
-            width = if (selected) 2.dp else 1.dp,
-            color = if (selected) StudioColors.Studio600 else StudioColors.Line200,
+            width = if (selected && selectionMode != StudioChoiceSelectionMode.NAVIGATION) 2.dp else 1.dp,
+            color = if (selected && selectionMode != StudioChoiceSelectionMode.NAVIGATION) {
+                StudioColors.Studio600
+            } else {
+                StudioColors.Line200
+            },
         ),
     ) {
         Column(modifier = Modifier.padding(density.cardPadding)) {
@@ -177,6 +223,15 @@ fun StudioChoiceCard(
                     modifier = Modifier.padding(top = 4.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = StudioColors.Ink700,
+                )
+            }
+            if (selected && selectionMode != StudioChoiceSelectionMode.NAVIGATION) {
+                Text(
+                    text = "✓ Selected",
+                    modifier = Modifier.padding(top = 6.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = StudioColors.Studio600,
+                    fontWeight = FontWeight.Bold,
                 )
             }
         }

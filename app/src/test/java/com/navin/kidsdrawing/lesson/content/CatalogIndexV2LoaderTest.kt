@@ -21,7 +21,7 @@ class CatalogIndexV2LoaderTest {
                     collectionIds = listOf("starter-fun"),
                     contentFamilyId = "fruit-family",
                     helpAvailable = true,
-                ),
+                ).copy(skillIds = listOf("basic-shapes", "line-control")),
             ),
         )
 
@@ -35,6 +35,7 @@ class CatalogIndexV2LoaderTest {
         assertEquals(listOf("apple-shapes"), snapshot.byCollection("starter-fun").map { it.identity.lessonId })
         assertEquals(listOf("apple-shapes"), snapshot.byContentFamily("fruit-family").map { it.identity.lessonId })
         assertEquals(listOf("apple-shapes"), snapshot.withHelp().map { it.identity.lessonId })
+        assertEquals(listOf("basic-shapes", "line-control"), snapshot.entries.first().skillIds)
     }
 
     @Test
@@ -67,6 +68,22 @@ class CatalogIndexV2LoaderTest {
     }
 
     @Test
+    fun capabilityTeachingModeOrderMustMatchAuthoredOrder() {
+        val invalid = entry("mode-order").copy(
+            supportedModes = listOf(TeachingMode.DRAW_WITH_ME, TeachingMode.WATCH_THEN_DRAW),
+            capabilitySummary = CatalogCapabilitySummarySource(
+                teachingModes = listOf(TeachingMode.WATCH_THEN_DRAW, TeachingMode.DRAW_WITH_ME),
+                helpAvailable = false,
+                traceReady = false,
+                coloring = CatalogColoringCapability.NONE,
+            ),
+        )
+
+        val result = load(source(listOf(invalid))) as CatalogIndexV2LoadResult.Failure
+        assertTrue(result.diagnostics.any { it.message.contains("including authored order") })
+    }
+
+    @Test
     fun unsupportedVoiceCapabilityFailsClosed() {
         val invalid = entry("voice-claim").copy(
             capabilitySummary = entry("voice-claim").capabilitySummary.copy(
@@ -76,6 +93,36 @@ class CatalogIndexV2LoaderTest {
 
         val result = load(source(listOf(invalid))) as CatalogIndexV2LoadResult.Failure
         assertTrue(result.diagnostics.any { it.message.contains("voiceAudio READY") })
+    }
+
+    @Test
+    fun missingTaxonomyReferenceFailsClosed() {
+        val index = source(listOf(entry("unknown-category", category = "not-registered")))
+        val registry = CatalogTaxonomyRegistry.fromIds(
+            categories = emptySet(),
+            skills = index.entries.flatMap { it.skillIds }.toSet(),
+        )
+
+        val result = load(index, registry) as CatalogIndexV2LoadResult.Failure
+        assertTrue(result.diagnostics.any {
+            it.code == CatalogIndexV2DiagnosticCode.MISSING_TAXONOMY_REFERENCE &&
+                it.message.contains("not-registered")
+        })
+    }
+
+    @Test
+    fun duplicateTaxonomyDefinitionFailsClosed() {
+        val index = source(listOf(entry("duplicate-taxonomy", category = "animals", skill = "line-control")))
+        val registry = CatalogTaxonomyRegistry(
+            listOf(
+                CatalogTaxonomyDefinition(CatalogTaxonomyKind.CATEGORY, "animals", "Animals"),
+                CatalogTaxonomyDefinition(CatalogTaxonomyKind.CATEGORY, "animals", "Animals Again"),
+                CatalogTaxonomyDefinition(CatalogTaxonomyKind.SKILL, "line-control", "Line Control"),
+            ),
+        )
+
+        val result = load(index, registry) as CatalogIndexV2LoadResult.Failure
+        assertTrue(result.diagnostics.any { it.code == CatalogIndexV2DiagnosticCode.DUPLICATE_TAXONOMY_ID })
     }
 
     @Test
@@ -149,13 +196,25 @@ class CatalogIndexV2LoaderTest {
         assertTrue(snapshot.entries.all { it.drawingStepCount == 3 })
     }
 
-    private fun load(index: CatalogIndexV2Source): CatalogIndexV2LoadResult {
+    private fun load(
+        index: CatalogIndexV2Source,
+        registry: CatalogTaxonomyRegistry = registryFor(index),
+    ): CatalogIndexV2LoadResult {
         val json = LessonPackageLoader.DEFAULT_JSON.encodeToString(index)
         val packageSource = LessonPackageSource { path ->
             if (path == CatalogIndexV2Loader.DEFAULT_INDEX_PATH) json else null
         }
-        return CatalogIndexV2Loader(packageSource).load()
+        return CatalogIndexV2Loader(packageSource, taxonomyRegistry = registry).load()
     }
+
+    private fun registryFor(index: CatalogIndexV2Source): CatalogTaxonomyRegistry =
+        CatalogTaxonomyRegistry.fromIds(
+            categories = index.entries.flatMap { it.categoryIds }.toSet(),
+            skills = index.entries.flatMap { it.skillIds }.toSet(),
+            journeys = index.entries.flatMap { it.journeyIds }.toSet(),
+            collections = index.entries.flatMap { it.collectionIds }.toSet(),
+            contentFamilies = index.entries.mapNotNull { it.contentFamilyId }.toSet(),
+        )
 
     private fun source(entries: List<CatalogIndexV2EntrySource>) = CatalogIndexV2Source(
         schemaVersion = CatalogIndexV2Loader.SCHEMA_VERSION,

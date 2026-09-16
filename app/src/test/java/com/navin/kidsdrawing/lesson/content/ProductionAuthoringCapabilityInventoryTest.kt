@@ -17,7 +17,7 @@ class ProductionAuthoringCapabilityInventoryTest {
     fun releaseCatalogEmitsDeterministicAuthoringCapabilityInventory() {
         val snapshot = LessonCatalog(FileAssetCatalogSource(File("src/main/assets"))).load()
         assertTrue("Catalog diagnostics: ${snapshot.diagnostics}", snapshot.diagnostics.isEmpty())
-        assertEquals(24, snapshot.entries.size)
+        assertEquals(28, snapshot.entries.size)
 
         val toolPresets = mutableListOf<FieldUse>()
         val groupedTeacherDemos = mutableListOf<FieldUse>()
@@ -73,8 +73,6 @@ class ProductionAuthoringCapabilityInventoryTest {
             }
         }
 
-        // The stricter capability gate already rejects this runtime-unsupported behavior. Keeping
-        // the inventory assertion here makes accidental release use visible in two independent gates.
         assertTrue(
             "Release content must not enforce suggested colors until runtime support exists: $enforcedSuggestedColors",
             enforcedSuggestedColors.isEmpty(),

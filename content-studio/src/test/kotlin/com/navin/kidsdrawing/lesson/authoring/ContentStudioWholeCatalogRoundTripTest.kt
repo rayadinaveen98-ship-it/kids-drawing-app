@@ -15,7 +15,7 @@ class ContentStudioWholeCatalogRoundTripTest {
     fun everyCurrentLessonPackageSurvivesStudioImportCanonicalExportAndProductionReload() {
         val base = FileAssetCatalogSource(File("src/main/assets"))
         val packageNames = checkNotNull(base.list("lessons")).sorted()
-        assertEquals(28, packageNames.size)
+        assertEquals(36, packageNames.size)
 
         packageNames.forEach { packageName ->
             val root = "lessons/$packageName"

@@ -206,15 +206,15 @@ Cross-device absolute startup thresholds are not invented in this slice. Measure
 ## 12. Android/API matrix truth
 
 Current build:
-- minSdk 24;
+- minSdk 23;
 - targetSdk 36;
 - compileSdk 36;
 - versionCode 30 during P6.5 stabilization.
 
-CI compilation does not prove runtime compatibility across API 24–36. P6.5 should define representative API bands rather than pretend every API/device combination has run.
+CI compilation does not prove runtime compatibility across API 23–36. P6.5 should define representative API bands rather than pretend every API/device combination has run.
 
 Recommended representative bands for automated/manual evidence:
-- API 24–28 legacy/min band;
+- API 23–28 legacy/min band;
 - API 29–32 middle band;
 - API 33–35 modern band;
 - API 36 target/current band.

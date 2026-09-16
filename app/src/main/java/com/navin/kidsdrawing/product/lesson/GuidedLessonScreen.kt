@@ -174,6 +174,12 @@ fun GuidedLessonScreen(
         ageBand = ageBand,
     )
     val postDrawingCapabilities = postDrawingCapabilityPolicy(runtime.coloringAvailable)
+    val lessonTextRepository = remember(context, runtime.packageData) {
+        ProductLessonTextRepository(context, runtime.packageData)
+    }
+    val authoredInstruction = lessonTextRepository.resolve(
+        LessonAuthoredTextPolicy.keyFor(sessionState, runtime.packageData),
+    )
     val childCanDraw = sessionState is LessonSessionState.AwaitingChild ||
         sessionState is LessonSessionState.HelpActive
 
@@ -208,6 +214,7 @@ fun GuidedLessonScreen(
 
                 CompanionInstruction(
                     presentation = presentation,
+                    authoredInstruction = authoredInstruction,
                     isolationPass = diagnostics.overlayIsolationPass,
                 )
 
@@ -432,6 +439,7 @@ private fun LessonProgress(presentation: LessonWorkspacePresentation) {
 @Composable
 private fun CompanionInstruction(
     presentation: LessonWorkspacePresentation,
+    authoredInstruction: String?,
     isolationPass: Boolean,
 ) {
     Surface(
@@ -461,7 +469,7 @@ private fun CompanionInstruction(
                     color = StudioColors.Studio600,
                 )
                 Text(
-                    text = presentation.instruction,
+                    text = authoredInstruction ?: presentation.instruction,
                     modifier = Modifier.padding(top = 2.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = StudioColors.Ink700,

@@ -1,5 +1,6 @@
 package com.navin.kidsdrawing.product.quality
 
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -53,5 +54,31 @@ class ProductTimingLedgerTest {
         assertTrue(snapshots.values.all { it.sampleCount == 0L })
         assertTrue(snapshots.values.all { it.medianMillis == null })
         assertNull(ledger.snapshot(ProductTimingMetric.HOME_LOAD).p95Millis)
+    }
+
+    @Test
+    fun `process evidence measures suspend operation and returns its result`() = runBlocking {
+        ProductTimingEvidence.ledger.resetAll()
+
+        val result = ProductTimingEvidence.measure(ProductTimingMetric.HOME_LOAD) { "loaded" }
+
+        assertEquals("loaded", result)
+        assertEquals(1L, ProductTimingEvidence.ledger.snapshot(ProductTimingMetric.HOME_LOAD).sampleCount)
+        assertEquals(0L, ProductTimingEvidence.ledger.snapshot(ProductTimingMetric.GALLERY_LIST).sampleCount)
+    }
+
+    @Test
+    fun `process evidence records blocking failure without swallowing it`() {
+        ProductTimingEvidence.ledger.resetAll()
+
+        val failure = runCatching {
+            ProductTimingEvidence.measureBlocking(ProductTimingMetric.LESSON_RECOVERY) {
+                error("expected timing failure")
+            }
+        }.exceptionOrNull()
+
+        assertTrue(failure is IllegalStateException)
+        assertEquals(1L, ProductTimingEvidence.ledger.snapshot(ProductTimingMetric.LESSON_RECOVERY).sampleCount)
+        assertEquals(0L, ProductTimingEvidence.ledger.snapshot(ProductTimingMetric.COLORING_RECOVERY).sampleCount)
     }
 }

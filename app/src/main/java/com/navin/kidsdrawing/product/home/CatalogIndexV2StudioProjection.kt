@@ -1,6 +1,8 @@
 package com.navin.kidsdrawing.product.home
 
 import com.navin.kidsdrawing.lesson.content.CatalogIndexV2Entry
+import com.navin.kidsdrawing.lesson.content.CatalogTaxonomyKind
+import com.navin.kidsdrawing.lesson.content.CatalogTaxonomyV2
 import com.navin.kidsdrawing.lesson.session.LessonSessionSnapshot
 import com.navin.kidsdrawing.lesson.session.LessonSnapshotPhase
 import com.navin.kidsdrawing.product.profile.AgeBand
@@ -36,11 +38,11 @@ internal fun CatalogIndexV2Entry.toStudioRecommendation(profile: ChildProfile): 
         defaultPace = profile.pace,
         ageFit = ageFit,
         reason = reason,
-        primarySkillIds = skillIds.sorted().take(3),
-        journeyIds = journeyIds.sorted(),
-        categoryIds = categoryIds.sorted(),
-        tags = tags.sorted(),
-        prerequisiteLessonIds = prerequisiteLessonIds.sorted(),
+        primarySkillIds = skillIds.take(3),
+        journeyIds = journeyIds,
+        categoryIds = categoryIds,
+        tags = tags,
+        prerequisiteLessonIds = prerequisiteLessonIds,
     )
 }
 
@@ -65,6 +67,67 @@ internal fun CatalogIndexV2Entry.resumeCandidate(
         totalSteps = drawingStepCount,
         savedAtEpochMillis = snapshot.savedAtEpochMillis,
     )
+}
+
+internal fun catalogCategories(recommendations: List<LessonRecommendation>): List<StudioCategory> =
+    recommendations
+        .flatMap { recommendation -> recommendation.categoryIds.map { it to recommendation } }
+        .groupBy(keySelector = { it.first }, valueTransform = { it.second })
+        .toSortedMap()
+        .map { (categoryId, lessons) ->
+            StudioCategory(
+                categoryId = categoryId,
+                title = CatalogTaxonomyV2.registry
+                    .definition(CatalogTaxonomyKind.CATEGORY, categoryId)
+                    ?.displayLabel
+                    ?: categoryId,
+                lessons = catalogOrderByPrerequisites(
+                    lessons.distinctBy { it.lessonId to it.lessonRevision },
+                ),
+            )
+        }
+
+internal fun catalogJourneys(
+    recommendations: List<LessonRecommendation>,
+    activeLessonId: String? = null,
+): List<StudioJourney> = recommendations
+    .flatMap { recommendation -> recommendation.journeyIds.map { it to recommendation } }
+    .groupBy(keySelector = { it.first }, valueTransform = { it.second })
+    .toSortedMap()
+    .map { (journeyId, lessons) ->
+        StudioJourney(
+            journeyId = journeyId,
+            title = CatalogTaxonomyV2.registry
+                .definition(CatalogTaxonomyKind.JOURNEY, journeyId)
+                ?.displayLabel
+                ?: journeyId,
+            lessons = catalogOrderByPrerequisites(
+                lessons.distinctBy { it.lessonId to it.lessonRevision },
+            ),
+            activeLessonId = activeLessonId?.takeIf { active -> lessons.any { it.lessonId == active } },
+        )
+    }
+
+private fun catalogOrderByPrerequisites(
+    lessons: List<LessonRecommendation>,
+): List<LessonRecommendation> {
+    val remaining = lessons.associateBy { it.lessonId }.toMutableMap()
+    val ordered = mutableListOf<LessonRecommendation>()
+    while (remaining.isNotEmpty()) {
+        val remainingIds = remaining.keys
+        val ready = remaining.values
+            .filter { lesson -> lesson.prerequisiteLessonIds.none { it in remainingIds } }
+            .sortedWith(compareBy({ it.lessonId }, { it.lessonRevision }))
+        if (ready.isEmpty()) {
+            ordered += remaining.values.sortedWith(compareBy({ it.lessonId }, { it.lessonRevision }))
+            break
+        }
+        ready.forEach { lesson ->
+            ordered += lesson
+            remaining.remove(lesson.lessonId)
+        }
+    }
+    return ordered
 }
 
 private fun AgeBand.toLessonAgeBand(): LessonAgeBand = when (this) {

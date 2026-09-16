@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -23,11 +24,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.unit.dp
 import com.navin.kidsdrawing.drawing.domain.TeachingPace
 import com.navin.kidsdrawing.lesson.model.TeachingMode
+import com.navin.kidsdrawing.product.accessibility.AccessibilityPolicy
 import com.navin.kidsdrawing.product.design.StudioChoiceCard
 import com.navin.kidsdrawing.product.design.StudioColors
 import com.navin.kidsdrawing.product.design.StudioPrimaryButton
@@ -253,25 +255,43 @@ private fun HandednessStep(
     draft: ChildProfileDraft,
     onDraftChange: (ChildProfileDraft) -> Unit,
 ) {
+    val stackChoices = AccessibilityPolicy.layout(LocalDensity.current.fontScale).avoidFixedTwoColumnCards
     Question(
         title = "Which hand do you draw with most?",
-        subtitle = "We'll keep important tools away from your drawing hand when we can.",
+        subtitle = "This preference is saved with your profile. The main drawing tools currently stay below the canvas for both left- and right-handed artists.",
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        StudioChoiceCard(
-            title = "🤚  Left hand",
-            selected = draft.handedness == Handedness.LEFT,
-            onClick = { onDraftChange(draft.copy(handedness = Handedness.LEFT)) },
-            modifier = Modifier.weight(1f),
-            ageBand = draft.ageBand,
-        )
-        StudioChoiceCard(
-            title = "✋  Right hand",
-            selected = draft.handedness == Handedness.RIGHT,
-            onClick = { onDraftChange(draft.copy(handedness = Handedness.RIGHT)) },
-            modifier = Modifier.weight(1f),
-            ageBand = draft.ageBand,
-        )
+    if (stackChoices) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            StudioChoiceCard(
+                title = "🤚  Left hand",
+                selected = draft.handedness == Handedness.LEFT,
+                onClick = { onDraftChange(draft.copy(handedness = Handedness.LEFT)) },
+                ageBand = draft.ageBand,
+            )
+            StudioChoiceCard(
+                title = "✋  Right hand",
+                selected = draft.handedness == Handedness.RIGHT,
+                onClick = { onDraftChange(draft.copy(handedness = Handedness.RIGHT)) },
+                ageBand = draft.ageBand,
+            )
+        }
+    } else {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            StudioChoiceCard(
+                title = "🤚  Left hand",
+                selected = draft.handedness == Handedness.LEFT,
+                onClick = { onDraftChange(draft.copy(handedness = Handedness.LEFT)) },
+                modifier = Modifier.weight(1f),
+                ageBand = draft.ageBand,
+            )
+            StudioChoiceCard(
+                title = "✋  Right hand",
+                selected = draft.handedness == Handedness.RIGHT,
+                onClick = { onDraftChange(draft.copy(handedness = Handedness.RIGHT)) },
+                modifier = Modifier.weight(1f),
+                ageBand = draft.ageBand,
+            )
+        }
     }
 }
 

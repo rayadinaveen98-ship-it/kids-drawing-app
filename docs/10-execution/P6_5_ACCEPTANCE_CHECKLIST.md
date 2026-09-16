@@ -1,13 +1,14 @@
 # P6.5 Device & Performance Hardening — Acceptance Checklist
 
-Status: **CONTRACT AUDIT 80/80 PASS — IMPLEMENTATION NOT YET ACCEPTED**  
+Status: **QA1 BUILT / EXACT ARTIFACT VERIFIED / PHYSICAL QA READY**  
 Issue: #100  
 Parent epic: #91  
-Baseline: `c49434ab6acd32e8153164e46f86a58ec09bca0a` / Android CI #655 GREEN
+Baseline: `c49434ab6acd32e8153164e46f86a58ec09bca0a` / Android CI #655 GREEN  
+Immutable QA1 executable: `cbe31b2b24c43fe3a06ed60e0f917a270f67449f` / versionCode **31** / profile artifact **10439774674**
 
-`PASS` below means the requirement is explicitly present and consistent in the frozen P6.5 contract. It does **not** mean production implementation, physical hardware, runtime instrumentation or performance numbers have passed.
+`PASS` in the specification-audit columns below means the requirement is explicitly present and consistent in the frozen P6.5 contract. It does **not** by itself mean a physical hardware or numeric performance gate has passed.
 
-Later execution statuses use: `PASS`, `FAIL`, `PENDING-HARDWARE`, or `N/A` with rationale.
+Runtime execution statuses use: `PASS`, `FAIL`, `PENDING-HARDWARE`, `PENDING-TOOLING`, or `N/A` with rationale. A compiled instrumentation APK is not a runtime instrumentation PASS.
 
 ## A. Baseline, authority and scope — 10/10
 
@@ -142,21 +143,31 @@ Later execution statuses use: `PASS`, `FAIL`, `PENDING-HARDWARE`, or `N/A` with 
 
 **Total specification audit: 80/80 PASS.**
 
-Again: this is a contract completeness audit only. No P6.5 production implementation or hardware benchmark is accepted by this document.
+## Implementation/QA evidence status
 
-## Implementation acceptance sequence
+- contract CI #656: **GREEN**;
+- complete versionCode-30 stabilization head `881f98f...`: Android CI #693 **GREEN**;
+- first monotonic candidate: `0.6.0-family-readiness-p6.5-qa1`, versionCode **31**;
+- immutable executable source: `cbe31b2b24c43fe3a06ed60e0f917a270f67449f`;
+- QA1 candidate CI #695 / run `35080612216`: **GREEN**;
+- exact profile artifact: **10439774674**, **16,459,363 bytes**, SHA256 `da939a0057391497cf0eacde524ac14409215d06f7ba573ec68920430138a51e`;
+- exact debug artifact: **10440550942**, **20,773,409 bytes**, SHA256 `969879fb515fa923c9995e794cfe49052dec530bcc871fe48223245722f33336`;
+- ZIP/APK hashes and sizes independently recomputed and matched CI evidence;
+- focused core physical matrix: **0/30 PASS, 0 FAIL, 30 NOT RUN**;
+- hardware-specific numeric/API/tablet/cold-start/product-timing evidence: **PENDING-HARDWARE/TOOLING** unless actually executed on identified hardware;
+- PR #102: **DRAFT / DO NOT MERGE YET**.
 
-After contract CI is GREEN:
-1. pure geometry policy + tests;
-2. async Gallery preview decode;
-3. compact-height/expanded-width targeted layout hardening;
-4. Quality Lab coloring/product timing extensions;
-5. lifecycle/recreation/storage-pressure coverage;
-6. measured defect fixes only;
-7. full versionCode-30 stabilization CI;
-8. monotonic QA cut;
-9. exact artifact evidence;
-10. physical matrix with explicit pending hardware entries;
-11. acceptance-doc CI;
-12. squash merge + merged-main CI;
-13. close #100 and activate P6.6.
+See `P6_5_FINAL_QA.md` and `P6_5_RELEASE_REPORT.md` for the exact physical matrix and immutable binary evidence.
+
+## Remaining acceptance sequence
+
+1. install/test exact profile artifact 10439774674;
+2. complete focused P01–P30 core physical matrix;
+3. record only actually measured identified-hardware evidence and leave unavailable rows pending;
+4. finalize acceptance/release docs without changing the executable;
+5. require acceptance-documentation CI GREEN;
+6. mark PR #102 ready and squash-merge;
+7. require merged-main CI GREEN;
+8. close #100 and activate P6.6.
+
+Any executable change after physical QA starts requires a new monotonic versionCode (>31) and fresh exact-binary acceptance. Documentation-only commits do not replace `cbe31b2...` / artifact **10439774674**.

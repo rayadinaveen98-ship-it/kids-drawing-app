@@ -31,6 +31,7 @@ import com.navin.kidsdrawing.drawing.domain.TeachingPace
 import com.navin.kidsdrawing.lesson.model.TeachingMode
 import com.navin.kidsdrawing.product.accessibility.AccessibilityPolicy
 import com.navin.kidsdrawing.product.design.StudioChoiceCard
+import com.navin.kidsdrawing.product.design.StudioChoiceSelectionMode
 import com.navin.kidsdrawing.product.design.StudioColors
 import com.navin.kidsdrawing.product.design.StudioPrimaryButton
 import com.navin.kidsdrawing.product.profile.AgeBand
@@ -246,6 +247,7 @@ private fun InterestsStep(
             },
             modifier = Modifier.padding(bottom = 10.dp),
             ageBand = draft.ageBand,
+            selectionMode = StudioChoiceSelectionMode.MULTIPLE,
         )
     }
 }

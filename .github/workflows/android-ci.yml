@@ -59,6 +59,7 @@ jobs:
           REPORT_DIR="app/build/reports/content-quality"
           test -s "$REPORT_DIR/catalog-report.txt"
           test -s "$REPORT_DIR/catalog-report.json"
+          test -s "$REPORT_DIR/authoring-capability-inventory.txt"
           python -m json.tool "$REPORT_DIR/catalog-report.json" > /dev/null
           python - <<'PY'
           import json
@@ -76,11 +77,18 @@ jobs:
           )
           PY
           cat "$REPORT_DIR/catalog-report.txt"
+          cat "$REPORT_DIR/authoring-capability-inventory.txt"
           {
             echo "## Frozen Curriculum Content Quality"
             echo
             echo '```text'
             cat "$REPORT_DIR/catalog-report.txt"
+            echo '```'
+            echo
+            echo "## Content V2 Authoring Capability Inventory"
+            echo
+            echo '```text'
+            cat "$REPORT_DIR/authoring-capability-inventory.txt"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -91,6 +99,7 @@ jobs:
           path: |
             app/build/reports/content-quality/catalog-report.txt
             app/build/reports/content-quality/catalog-report.json
+            app/build/reports/content-quality/authoring-capability-inventory.txt
           if-no-files-found: error
           retention-days: 30
 

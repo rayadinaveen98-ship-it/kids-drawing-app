@@ -1,5 +1,45 @@
 package com.navin.kidsdrawing.lesson.content
 
+private val CATEGORY_LABELS = mapOf(
+    "animals" to "Animals",
+    "characters" to "People & Characters",
+    "design" to "Design & Invent",
+    "everyday" to "Everyday Things",
+    "food" to "Food",
+    "foundations" to "Drawing Basics",
+    "imagination" to "Fantasy & Imagination",
+    "nature" to "Nature",
+    "portrait" to "Portraits",
+    "scenes" to "Stories & Scenes",
+    "space" to "Space & Science",
+    "vehicles" to "Vehicles & Machines",
+)
+
+private val SKILL_LABELS = mapOf(
+    "line.control" to "Line Control",
+    "curves" to "Curves",
+    "shape.construction" to "Shape Construction",
+    "shape_construction" to "Shape Construction",
+    "placement" to "Placement",
+    "placement.symmetry" to "Symmetry",
+    "proportion" to "Proportion",
+    "proportion.basic" to "Basic Proportion",
+    "overlap.basic" to "Overlap & Depth",
+    "pattern" to "Texture & Pattern",
+    "expression.face" to "Facial Expression",
+    "pose.simple" to "Pose & Gesture",
+    "perspective.one_point" to "One-Point Perspective",
+    "composition.balance" to "Composition",
+    "storytelling.character" to "Visual Storytelling",
+)
+
+private val JOURNEY_LABELS = mapOf(
+    "journey.animal_artist" to "Animal Artist",
+    "journey.character_creator" to "Character Creator",
+    "journey.first_shapes_to_pictures" to "First Shapes to Pictures",
+    "journey.space_artist" to "Space Artist",
+)
+
 enum class CatalogTaxonomyKind {
     CATEGORY,
     SKILL,
@@ -71,53 +111,13 @@ class CatalogTaxonomyRegistry(definitions: List<CatalogTaxonomyDefinition>) {
         private fun definition(kind: CatalogTaxonomyKind, id: String) = CatalogTaxonomyDefinition(
             kind = kind,
             id = id,
-            displayLabel = CatalogTaxonomyV2.acceptedLabel(kind, id),
+            displayLabel = taxonomyDisplayLabel(kind, id),
         )
     }
 }
 
 /** Frozen V2.2 vocabulary inventoried from the 24 accepted release lessons. */
 object CatalogTaxonomyV2 {
-    private val CATEGORY_LABELS = mapOf(
-        "animals" to "Animals",
-        "characters" to "People & Characters",
-        "design" to "Design & Invent",
-        "everyday" to "Everyday Things",
-        "food" to "Food",
-        "foundations" to "Drawing Basics",
-        "imagination" to "Fantasy & Imagination",
-        "nature" to "Nature",
-        "portrait" to "Portraits",
-        "scenes" to "Stories & Scenes",
-        "space" to "Space & Science",
-        "vehicles" to "Vehicles & Machines",
-    )
-
-    private val SKILL_LABELS = mapOf(
-        "line.control" to "Line Control",
-        "curves" to "Curves",
-        "shape.construction" to "Shape Construction",
-        "shape_construction" to "Shape Construction",
-        "placement" to "Placement",
-        "placement.symmetry" to "Symmetry",
-        "proportion" to "Proportion",
-        "proportion.basic" to "Basic Proportion",
-        "overlap.basic" to "Overlap & Depth",
-        "pattern" to "Texture & Pattern",
-        "expression.face" to "Facial Expression",
-        "pose.simple" to "Pose & Gesture",
-        "perspective.one_point" to "One-Point Perspective",
-        "composition.balance" to "Composition",
-        "storytelling.character" to "Visual Storytelling",
-    )
-
-    private val JOURNEY_LABELS = mapOf(
-        "journey.animal_artist" to "Animal Artist",
-        "journey.character_creator" to "Character Creator",
-        "journey.first_shapes_to_pictures" to "First Shapes to Pictures",
-        "journey.space_artist" to "Space Artist",
-    )
-
     val registry: CatalogTaxonomyRegistry = CatalogTaxonomyRegistry.fromIds(
         categories = setOf(
             "animals",
@@ -217,20 +217,20 @@ object CatalogTaxonomyV2 {
         collections = emptySet(),
         contentFamilies = emptySet(),
     )
+}
 
-    internal fun acceptedLabel(kind: CatalogTaxonomyKind, id: String): String {
-        val overrides = when (kind) {
-            CatalogTaxonomyKind.CATEGORY -> CATEGORY_LABELS
-            CatalogTaxonomyKind.SKILL -> SKILL_LABELS
-            CatalogTaxonomyKind.JOURNEY -> JOURNEY_LABELS
-            CatalogTaxonomyKind.COLLECTION,
-            CatalogTaxonomyKind.CONTENT_FAMILY,
-            -> emptyMap()
-        }
-        return overrides[id] ?: id
-            .substringAfterLast('.')
-            .split('-', '_')
-            .filter(String::isNotBlank)
-            .joinToString(" ") { token -> token.replaceFirstChar { it.uppercaseChar() } }
+private fun taxonomyDisplayLabel(kind: CatalogTaxonomyKind, id: String): String {
+    val overrides = when (kind) {
+        CatalogTaxonomyKind.CATEGORY -> CATEGORY_LABELS
+        CatalogTaxonomyKind.SKILL -> SKILL_LABELS
+        CatalogTaxonomyKind.JOURNEY -> JOURNEY_LABELS
+        CatalogTaxonomyKind.COLLECTION,
+        CatalogTaxonomyKind.CONTENT_FAMILY,
+        -> emptyMap()
     }
+    return overrides[id] ?: id
+        .substringAfterLast('.')
+        .split('-', '_')
+        .filter(String::isNotBlank)
+        .joinToString(" ") { token -> token.replaceFirstChar { it.uppercaseChar() } }
 }

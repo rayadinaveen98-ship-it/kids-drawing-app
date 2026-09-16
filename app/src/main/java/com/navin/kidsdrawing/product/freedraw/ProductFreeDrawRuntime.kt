@@ -11,6 +11,8 @@ import com.navin.kidsdrawing.gallery.domain.GalleryArtworkSource
 import com.navin.kidsdrawing.gallery.domain.GalleryCompletionKind
 import com.navin.kidsdrawing.product.gallery.ProductGalleryRuntime
 import com.navin.kidsdrawing.product.lesson.ProductLessonRuntime
+import com.navin.kidsdrawing.product.quality.ProductTimingEvidence
+import com.navin.kidsdrawing.product.quality.ProductTimingMetric
 import java.io.File
 
 sealed interface FreeDrawFinishResult {
@@ -42,7 +44,10 @@ class ProductFreeDrawRuntime(
     val documentEngine get() = core.documentEngine
     val toolEngine get() = core.toolEngine
 
-    suspend fun recover(): FreeDrawRecoveryOutcome = core.recover()
+    suspend fun recover(): FreeDrawRecoveryOutcome =
+        ProductTimingEvidence.measure(ProductTimingMetric.FREE_DRAW_RECOVERY) {
+            core.recover()
+        }
 
     suspend fun commitChildStroke(stroke: InkStrokeRecord) = core.commitChildStroke(stroke)
 

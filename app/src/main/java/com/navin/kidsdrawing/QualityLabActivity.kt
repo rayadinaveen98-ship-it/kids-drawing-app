@@ -47,15 +47,19 @@ import androidx.metrics.performance.JankStats
 import androidx.metrics.performance.PerformanceMetricsState
 import com.navin.kidsdrawing.drawing.domain.DrawingDocument
 import com.navin.kidsdrawing.drawing.domain.DrawingDocumentEngine
+import com.navin.kidsdrawing.drawing.domain.DrawingSurfaceContentRole
 import com.navin.kidsdrawing.drawing.domain.DrawingSurfaceMetrics
 import com.navin.kidsdrawing.drawing.domain.DrawingTool
 import com.navin.kidsdrawing.drawing.domain.DrawingToolEngine
 import com.navin.kidsdrawing.drawing.infrastructure.persistence.AtomicDrawingDocumentStore
 import com.navin.kidsdrawing.drawing.quality.ArtLabQualityWorkloadFactory
+import com.navin.kidsdrawing.drawing.quality.ColoringQualityWorkloadFactory
 import com.navin.kidsdrawing.drawing.quality.DurationPerformanceMonitor
 import com.navin.kidsdrawing.drawing.quality.DurationPerformanceSnapshot
 import com.navin.kidsdrawing.drawing.quality.FramePerformanceMonitor
 import com.navin.kidsdrawing.drawing.quality.FramePerformanceSnapshot
+import com.navin.kidsdrawing.drawing.quality.RasterMemoryEvidence
+import com.navin.kidsdrawing.drawing.quality.RasterMemoryEstimate
 import com.navin.kidsdrawing.drawing.ui.DrawingSurface
 import com.navin.kidsdrawing.drawing.ui.DrawingSurfaceController
 import java.io.File
@@ -188,14 +192,17 @@ private fun QualityLabScreen(
     val saveMonitor = remember { DurationPerformanceMonitor() }
     val loadMonitor = remember { DurationPerformanceMonitor() }
     val historyMonitor = remember { DurationPerformanceMonitor() }
+    val projectionMonitor = remember { DurationPerformanceMonitor() }
     var surfaceMetrics by remember { mutableStateOf(DrawingSurfaceMetrics()) }
     var frameStats by remember { mutableStateOf(framePerformanceMonitor.snapshot()) }
     var inputStats by remember { mutableStateOf(inputDispatchMonitor.snapshot()) }
     var saveStats by remember { mutableStateOf(saveMonitor.snapshot()) }
     var loadStats by remember { mutableStateOf(loadMonitor.snapshot()) }
     var historyStats by remember { mutableStateOf(historyMonitor.snapshot()) }
+    var projectionStats by remember { mutableStateOf(projectionMonitor.snapshot()) }
     var memoryStats by remember { mutableStateOf(currentMemorySnapshot()) }
     var workloadStatus by remember { mutableStateOf("Blank manual workload") }
+    var contentRole by remember { mutableStateOf(DrawingSurfaceContentRole.LINE_ART) }
     var busy by remember { mutableStateOf(false) }
     var lastReconcileToFrameMillis by remember { mutableStateOf<Double?>(null) }
 
@@ -207,16 +214,23 @@ private fun QualityLabScreen(
             saveStats = saveMonitor.snapshot()
             loadStats = loadMonitor.snapshot()
             historyStats = historyMonitor.snapshot()
+            projectionStats = projectionMonitor.snapshot()
             memoryStats = currentMemorySnapshot()
         }
     }
 
-    fun installDocument(label: String, stateLabel: String, producer: suspend () -> DrawingDocument) {
+    fun installDocument(
+        label: String,
+        stateLabel: String,
+        role: DrawingSurfaceContentRole = DrawingSurfaceContentRole.LINE_ART,
+        producer: suspend () -> DrawingDocument,
+    ) {
         if (busy) return
         scope.launch {
             busy = true
             workloadStatus = "Generating $label…"
             val document = producer()
+            contentRole = role
             documentEngine.replaceDocument(document)
             onWorkloadChanged(stateLabel)
             val started = SystemClock.elapsedRealtimeNanos()
@@ -292,19 +306,41 @@ private fun QualityLabScreen(
             historyMonitor.reset()
             repeat(BENCHMARK_SAMPLE_COUNT) {
                 val undoStarted = SystemClock.elapsedRealtimeNanos()
-                check(documentEngine.undo())
+                check(if (contentRole == DrawingSurfaceContentRole.COLORING) documentEngine.undoColoring() else documentEngine.undo())
                 controller.reconcileDocument(documentEngine.state.value.document)
                 withFrameNanos { }
                 historyMonitor.record(SystemClock.elapsedRealtimeNanos() - undoStarted)
 
                 val redoStarted = SystemClock.elapsedRealtimeNanos()
-                check(documentEngine.redo())
+                check(if (contentRole == DrawingSurfaceContentRole.COLORING) documentEngine.redoColoring() else documentEngine.redo())
                 controller.reconcileDocument(documentEngine.state.value.document)
                 withFrameNanos { }
                 historyMonitor.record(SystemClock.elapsedRealtimeNanos() - redoStarted)
             }
             historyStats = historyMonitor.snapshot()
             workloadStatus = "Visible Undo/Redo×20 complete"
+            busy = false
+        }
+    }
+
+    fun runProjection20() {
+        if (busy) return
+        scope.launch {
+            busy = true
+            workloadStatus = "Forced projection rebuild×20 running…"
+            projectionMonitor.reset()
+            val source = documentEngine.state.value.document
+            repeat(BENCHMARK_SAMPLE_COUNT) { index ->
+                val candidate = source.copy(documentId = "${source.documentId}-projection-$index")
+                val started = SystemClock.elapsedRealtimeNanos()
+                controller.reconcileDocument(candidate)
+                withFrameNanos { }
+                projectionMonitor.record(SystemClock.elapsedRealtimeNanos() - started)
+            }
+            controller.reconcileDocument(source)
+            withFrameNanos { }
+            projectionStats = projectionMonitor.snapshot()
+            workloadStatus = "Forced projection rebuild×20 complete"
             busy = false
         }
     }
@@ -344,6 +380,7 @@ private fun QualityLabScreen(
         if (busy) return
         scope.launch {
             busy = true
+            contentRole = DrawingSurfaceContentRole.LINE_ART
             onWorkloadChanged("Soak30m")
             workloadStatus = "SOAK preparing W2…"
 
@@ -424,6 +461,8 @@ private fun QualityLabScreen(
         }
     }
 
+    val rasterEstimate = RasterMemoryEvidence.estimate(documentState.document.logicalSize)
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color(0xFFFFFDF8),
@@ -441,7 +480,7 @@ private fun QualityLabScreen(
                 color = Color(0xFF242321),
             )
             Text(
-                text = "P1.7 physical performance harness · measurements are evidence, not automatic PASS",
+                text = "P6.5 physical performance harness · measurements are evidence, not automatic PASS",
                 fontSize = 11.sp,
                 color = Color(0xFF4E4A45),
             )
@@ -477,6 +516,42 @@ private fun QualityLabScreen(
                         }
                     },
                 ) { Text("Load W3 · 5k", maxLines = 1) }
+                Button(
+                    enabled = !busy,
+                    onClick = {
+                        installDocument(
+                            label = "C1 coloring normal",
+                            stateLabel = "C1",
+                            role = DrawingSurfaceContentRole.COLORING,
+                        ) {
+                            withContext(Dispatchers.Default) { ColoringQualityWorkloadFactory.c1() }
+                        }
+                    },
+                ) { Text("Load C1 · 500", maxLines = 1) }
+                Button(
+                    enabled = !busy,
+                    onClick = {
+                        installDocument(
+                            label = "C2 coloring heavy",
+                            stateLabel = "C2",
+                            role = DrawingSurfaceContentRole.COLORING,
+                        ) {
+                            withContext(Dispatchers.Default) { ColoringQualityWorkloadFactory.c2() }
+                        }
+                    },
+                ) { Text("Load C2 · 2k", maxLines = 1) }
+                Button(
+                    enabled = !busy,
+                    onClick = {
+                        installDocument(
+                            label = "C3 coloring stress",
+                            stateLabel = "C3",
+                            role = DrawingSurfaceContentRole.COLORING,
+                        ) {
+                            withContext(Dispatchers.Default) { ColoringQualityWorkloadFactory.c3() }
+                        }
+                    },
+                ) { Text("Load C3 · 5k", maxLines = 1) }
                 OutlinedButton(
                     enabled = !busy,
                     onClick = {
@@ -512,6 +587,9 @@ private fun QualityLabScreen(
                 ) {
                     Text("W1 Frame×600", maxLines = 1)
                 }
+                OutlinedButton(enabled = !busy, onClick = ::runProjection20) {
+                    Text("Projection×20", maxLines = 1)
+                }
                 OutlinedButton(enabled = !busy, onClick = ::runSoak30m) {
                     Text("Soak 30m", maxLines = 1)
                 }
@@ -531,13 +609,16 @@ private fun QualityLabScreen(
                 workloadStatus = workloadStatus,
                 operationCount = documentState.document.operations.size,
                 activeInk = documentState.document.activeInkStrokes().size,
+                contentRole = contentRole,
                 surfaceMetrics = surfaceMetrics,
                 frameStats = frameStats,
                 inputStats = inputStats,
                 saveStats = saveStats,
                 loadStats = loadStats,
                 historyStats = historyStats,
+                projectionStats = projectionStats,
                 memoryStats = memoryStats,
+                rasterEstimate = rasterEstimate,
                 reconcileMillis = lastReconcileToFrameMillis,
             )
 
@@ -553,15 +634,24 @@ private fun QualityLabScreen(
                     modifier = Modifier.fillMaxSize(),
                     controller = controller,
                     toolSettings = toolSettings,
+                    contentRole = contentRole,
                     onStrokeCommitted = { stroke ->
                         scope.launch {
-                            documentEngine.commitChildStroke(stroke)
+                            if (contentRole == DrawingSurfaceContentRole.COLORING) {
+                                documentEngine.commitColorStroke(stroke)
+                            } else {
+                                documentEngine.commitChildStroke(stroke)
+                            }
                             controller.reconcileDocument(documentEngine.state.value.document)
                         }
                     },
                     onEraseMaskCommitted = { mask ->
                         scope.launch {
-                            documentEngine.commitEraseMask(mask)
+                            if (contentRole == DrawingSurfaceContentRole.COLORING) {
+                                documentEngine.commitColorEraseMask(mask)
+                            } else {
+                                documentEngine.commitEraseMask(mask)
+                            }
                             controller.reconcileDocument(documentEngine.state.value.document)
                         }
                     },
@@ -569,6 +659,12 @@ private fun QualityLabScreen(
                 )
             }
 
+            Text(
+                text = "Color baseline: load C2 or C3, then Projection×20. Each sample changes document identity to force authoritative line+color projection rebuild before the frame boundary. Record profile-build device identity with the numeric result.",
+                fontSize = 10.sp,
+                lineHeight = 13.sp,
+                color = Color(0xFF4E4A45),
+            )
             Text(
                 text = "W1 committed-frame gate: Load W1, then tap W1 Frame×600. Do not draw or press controls while it runs. Acceptance requires at least 500 sampled ViewRoot frames; continuous AndroidX Ink drawing remains diagnostic because its wet-stroke path is not fully represented by JankStats.",
                 fontSize = 10.sp,
@@ -608,13 +704,16 @@ private fun QualityMetricsCard(
     workloadStatus: String,
     operationCount: Int,
     activeInk: Int,
+    contentRole: DrawingSurfaceContentRole,
     surfaceMetrics: DrawingSurfaceMetrics,
     frameStats: FramePerformanceSnapshot,
     inputStats: DurationPerformanceSnapshot,
     saveStats: DurationPerformanceSnapshot,
     loadStats: DurationPerformanceSnapshot,
     historyStats: DurationPerformanceSnapshot,
+    projectionStats: DurationPerformanceSnapshot,
     memoryStats: QualityMemorySnapshot,
+    rasterEstimate: RasterMemoryEstimate,
     reconcileMillis: Double?,
 ) {
     Surface(
@@ -626,22 +725,26 @@ private fun QualityMetricsCard(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            QualityLine("workload", "$workloadStatus · ops=$operationCount ink=$activeInk")
+            QualityLine("workload", "$workloadStatus · role=$contentRole · ops=$operationCount ink=$activeInk")
             QualityLine(
                 "frames",
                 "n=${frameStats.frameCount} nativeJank=${frameStats.jankFrameCount} (${format(frameStats.jankRatePercent)}%) >16.7=${frameStats.over16_7FrameCount} (${format(frameStats.over16_7RatePercent)}%) p95=${frameStats.p95UiMillis ?: "—"}ms p99=${frameStats.p99UiMillis ?: "—"}ms max=${frameStats.maxUiMillis?.let(::format) ?: "—"}ms",
             )
             QualityLine(
                 "input upper",
-                "n=${inputStats.sampleCount} p95=${inputStats.p95Millis ?: "—"}ms p99=${inputStats.p99Millis ?: "—"}ms max=${inputStats.maxMillis?.let(::format) ?: "—"}ms",
+                "n=${inputStats.sampleCount} med=${inputStats.medianMillis ?: "—"}ms p95=${inputStats.p95Millis ?: "—"}ms p99=${inputStats.p99Millis ?: "—"}ms max=${inputStats.maxMillis?.let(::format) ?: "—"}ms",
             )
             QualityLine(
                 "W2 bench",
-                "save20 p95=${saveStats.p95Millis ?: "—"} p99=${saveStats.p99Millis ?: "—"}ms · load20 p95=${loadStats.p95Millis ?: "—"} p99=${loadStats.p99Millis ?: "—"}ms",
+                "save20 med=${saveStats.medianMillis ?: "—"} p95=${saveStats.p95Millis ?: "—"}ms · load20 med=${loadStats.medianMillis ?: "—"} p95=${loadStats.p95Millis ?: "—"}ms",
             )
             QualityLine(
                 "history",
-                "n=${historyStats.sampleCount} p95=${historyStats.p95Millis ?: "—"} p99=${historyStats.p99Millis ?: "—"}ms",
+                "n=${historyStats.sampleCount} med=${historyStats.medianMillis ?: "—"}ms p95=${historyStats.p95Millis ?: "—"}ms p99=${historyStats.p99Millis ?: "—"}ms",
+            )
+            QualityLine(
+                "projection",
+                "n=${projectionStats.sampleCount} med=${projectionStats.medianMillis ?: "—"}ms p95=${projectionStats.p95Millis ?: "—"}ms p99=${projectionStats.p99Millis ?: "—"}ms",
             )
             QualityLine(
                 "surface",
@@ -650,6 +753,10 @@ private fun QualityMetricsCard(
             QualityLine(
                 "memory",
                 "java=${format(memoryStats.javaUsedMiB)}MiB native=${format(memoryStats.nativeAllocatedMiB)}MiB",
+            )
+            QualityLine(
+                "raster est",
+                "base=${format(bytesToMiB(rasterEstimate.baseArgbRasterBytes))}MiB line≤${format(bytesToMiB(rasterEstimate.lineProjectionUpperBoundBytes))}MiB color=${format(bytesToMiB(rasterEstimate.colorProjectionBytes))}MiB combined≤${format(bytesToMiB(rasterEstimate.combinedProjectionUpperBoundBytes))}MiB",
             )
         }
     }
@@ -690,6 +797,8 @@ private fun currentMemorySnapshot(): QualityMemorySnapshot {
 
 private fun elapsedMillisSince(startedNanos: Long): Double =
     (SystemClock.elapsedRealtimeNanos() - startedNanos) / 1_000_000.0
+
+private fun bytesToMiB(bytes: Long): Double = bytes / BYTES_PER_MIB.toDouble()
 
 private fun format(value: Double): String = "%.1f".format(value)
 

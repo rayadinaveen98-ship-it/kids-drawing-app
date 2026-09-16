@@ -60,5 +60,5 @@ fun accessibleColorName(argb: Int): String = when (argb) {
     0xFF78A86B.toInt() -> "Green"
     0xFF6C9CB8.toInt() -> "Blue"
     0xFF9A83B8.toInt() -> "Purple"
-    else -> "Drawing color"
+    else -> "Custom color"
 }

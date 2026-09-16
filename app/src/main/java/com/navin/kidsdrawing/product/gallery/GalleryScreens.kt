@@ -42,8 +42,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.navin.kidsdrawing.drawing.domain.DrawingDocument
 import com.navin.kidsdrawing.drawing.domain.DrawingSurfaceContentRole
@@ -54,6 +57,7 @@ import com.navin.kidsdrawing.gallery.domain.GalleryCompletionKind
 import com.navin.kidsdrawing.gallery.domain.GalleryDeleteResult
 import com.navin.kidsdrawing.gallery.domain.GalleryListResult
 import com.navin.kidsdrawing.gallery.domain.GalleryReopenResult
+import com.navin.kidsdrawing.product.accessibility.AccessibilityPolicy
 import com.navin.kidsdrawing.product.design.StudioColors
 import java.text.DateFormat
 import java.util.Date
@@ -66,6 +70,8 @@ fun GalleryScreen(
     onBack: () -> Unit,
 ) {
     var result by remember(runtime) { mutableStateOf<GalleryListResult?>(null) }
+    val accessibilityLayout = AccessibilityPolicy.layout(LocalDensity.current.fontScale)
+    val minimumCardWidth = if (accessibilityLayout.avoidFixedTwoColumnCards) 220.dp else 150.dp
     LaunchedEffect(runtime) { result = runtime.listArtwork() }
 
     Surface(modifier = Modifier.fillMaxSize(), color = StudioColors.Paper50) {
@@ -95,7 +101,7 @@ fun GalleryScreen(
                 GalleryListResult.Empty -> GalleryEmptyState()
                 is GalleryListResult.Unavailable -> GalleryMessage(loaded.message)
                 is GalleryListResult.Ready -> LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 150.dp),
+                    columns = GridCells.Adaptive(minSize = minimumCardWidth),
                     modifier = Modifier.fillMaxSize(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -337,7 +343,11 @@ private fun ReadOnlyArtworkCanvas(document: DrawingDocument) {
     LaunchedEffect(document) { controller.reconcileDocument(document) }
     Box(modifier = Modifier.fillMaxSize()) {
         DrawingSurface(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .semantics {
+                    contentDescription = "Read-only saved artwork preview"
+                },
             controller = controller,
             contentRole = DrawingSurfaceContentRole.COLORING,
         )

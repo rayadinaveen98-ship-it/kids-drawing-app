@@ -84,17 +84,17 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload P6.4 QA content quality reports
+      - name: Upload P6.5 QA content quality reports
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-0.6.0-family-readiness-p6.4-qa1-content-quality
+          name: kids-drawing-0.6.0-family-readiness-p6.5-qa1-content-quality
           path: |
             app/build/reports/content-quality/catalog-report.txt
             app/build/reports/content-quality/catalog-report.json
           if-no-files-found: error
           retention-days: 30
 
-      - name: Verify P6.4 QA APK permission allowlist
+      - name: Verify P6.5 QA APK permission allowlist
         shell: bash
         run: |
           set -euo pipefail
@@ -115,15 +115,15 @@ jobs:
 
             for permission in "${REQUESTED_PERMISSIONS[@]}"; do
               if [[ "$permission" != "$ALLOWED_PERMISSION" ]]; then
-                echo "Unexpected Android permission detected in P6.4 QA APK: $permission"
+                echo "Unexpected Android permission detected in P6.5 QA APK: $permission"
                 exit 1
               fi
             done
           done
 
-          echo "Permission allowlist passed for P6.4 QA debug and profile APKs."
+          echo "Permission allowlist passed for P6.5 QA debug and profile APKs."
 
-      - name: Verify P6.4 QA APK identity
+      - name: Verify P6.5 QA APK identity
         shell: bash
         run: |
           set -euo pipefail
@@ -134,59 +134,59 @@ jobs:
             BADGING=$("$AAPT2" dump badging "$APK")
             echo "$BADGING" | head -n 1
             echo "$BADGING" | grep -F "package: name='com.navin.kidsdrawing'"
-            echo "$BADGING" | grep -F "versionCode='30'"
-            echo "$BADGING" | grep -F "versionName='0.6.0-family-readiness-p6.4-qa1'"
+            echo "$BADGING" | grep -F "versionCode='31'"
+            echo "$BADGING" | grep -F "versionName='0.6.0-family-readiness-p6.5-qa1'"
           done
-          echo "P6.4 QA APK identity is 0.6.0-family-readiness-p6.4-qa1 / versionCode 30."
+          echo "P6.5 QA APK identity is 0.6.0-family-readiness-p6.5-qa1 / versionCode 31."
 
-      - name: Package P6.4 QA APK evidence
+      - name: Package P6.5 QA APK evidence
         shell: bash
         run: |
           set -euo pipefail
-          EVIDENCE_DIR="app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1"
+          EVIDENCE_DIR="app/build/outputs/milestone/0.6.0-family-readiness-p6.5-qa1"
           mkdir -p "$EVIDENCE_DIR"
           cp app/build/outputs/apk/debug/app-debug.apk \
-            "$EVIDENCE_DIR/Kids_Drawing_0.6.0_Family_Readiness_P6.4_QA1-debug.apk"
+            "$EVIDENCE_DIR/Kids_Drawing_0.6.0_Family_Readiness_P6.5_QA1-debug.apk"
           cp app/build/outputs/apk/profile/app-profile.apk \
-            "$EVIDENCE_DIR/Kids_Drawing_0.6.0_Family_Readiness_P6.4_QA1-profile.apk"
+            "$EVIDENCE_DIR/Kids_Drawing_0.6.0_Family_Readiness_P6.5_QA1-profile.apk"
           (
             cd "$EVIDENCE_DIR"
             sha256sum \
-              Kids_Drawing_0.6.0_Family_Readiness_P6.4_QA1-debug.apk \
-              Kids_Drawing_0.6.0_Family_Readiness_P6.4_QA1-profile.apk \
+              Kids_Drawing_0.6.0_Family_Readiness_P6.5_QA1-debug.apk \
+              Kids_Drawing_0.6.0_Family_Readiness_P6.5_QA1-profile.apk \
               | tee SHA256SUMS.txt
             stat -c '%n %s bytes' \
-              Kids_Drawing_0.6.0_Family_Readiness_P6.4_QA1-debug.apk \
-              Kids_Drawing_0.6.0_Family_Readiness_P6.4_QA1-profile.apk \
+              Kids_Drawing_0.6.0_Family_Readiness_P6.5_QA1-debug.apk \
+              Kids_Drawing_0.6.0_Family_Readiness_P6.5_QA1-profile.apk \
               | tee APK_SIZES.txt
             {
-              echo "versionName=0.6.0-family-readiness-p6.4-qa1"
-              echo "versionCode=30"
+              echo "versionName=0.6.0-family-readiness-p6.5-qa1"
+              echo "versionCode=31"
               echo "workflow_sha=${GITHUB_SHA}"
               echo "source_head_sha=${{ github.event.pull_request.head.sha || github.sha }}"
             } | tee RELEASE_IDENTITY.txt
           )
 
-      - name: Upload P6.4 QA debug APK
+      - name: Upload P6.5 QA debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-0.6.0-family-readiness-p6.4-qa1-debug
+          name: kids-drawing-0.6.0-family-readiness-p6.5-qa1-debug
           path: |
-            app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1/Kids_Drawing_0.6.0_Family_Readiness_P6.4_QA1-debug.apk
-            app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1/SHA256SUMS.txt
-            app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1/APK_SIZES.txt
-            app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1/RELEASE_IDENTITY.txt
+            app/build/outputs/milestone/0.6.0-family-readiness-p6.5-qa1/Kids_Drawing_0.6.0_Family_Readiness_P6.5_QA1-debug.apk
+            app/build/outputs/milestone/0.6.0-family-readiness-p6.5-qa1/SHA256SUMS.txt
+            app/build/outputs/milestone/0.6.0-family-readiness-p6.5-qa1/APK_SIZES.txt
+            app/build/outputs/milestone/0.6.0-family-readiness-p6.5-qa1/RELEASE_IDENTITY.txt
           if-no-files-found: error
           retention-days: 30
 
-      - name: Upload P6.4 QA release-like profile APK
+      - name: Upload P6.5 QA release-like profile APK
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-0.6.0-family-readiness-p6.4-qa1-profile
+          name: kids-drawing-0.6.0-family-readiness-p6.5-qa1-profile
           path: |
-            app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1/Kids_Drawing_0.6.0_Family_Readiness_P6.4_QA1-profile.apk
-            app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1/SHA256SUMS.txt
-            app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1/APK_SIZES.txt
-            app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1/RELEASE_IDENTITY.txt
+            app/build/outputs/milestone/0.6.0-family-readiness-p6.5-qa1/Kids_Drawing_0.6.0_Family_Readiness_P6.5_QA1-profile.apk
+            app/build/outputs/milestone/0.6.0-family-readiness-p6.5-qa1/SHA256SUMS.txt
+            app/build/outputs/milestone/0.6.0-family-readiness-p6.5-qa1/APK_SIZES.txt
+            app/build/outputs/milestone/0.6.0-family-readiness-p6.5-qa1/RELEASE_IDENTITY.txt
           if-no-files-found: error
           retention-days: 30

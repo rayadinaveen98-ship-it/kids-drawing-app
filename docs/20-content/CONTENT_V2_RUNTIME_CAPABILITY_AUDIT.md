@@ -48,12 +48,14 @@ Release packages already author teacher-step, Help, completion and coloring narr
 
 However, storing a key is not the same as presenting its lesson-specific message to the child. The production lesson companion historically relied mainly on generic age/mode copy.
 
-Content V2 therefore adds:
-- `LessonAuthoredTextPolicy` — pure mapping from accepted lesson/session state to the exact authored key that belongs in that state;
-- `ProductLessonTextRepository` — local-only default-locale string resolver with safe null fallback;
-- JVM coverage for teacher demonstrations, exact Help levels, final drawing completion, visual-only Help, normal child turns and mismatched state/content identity.
+Content V2 now provides the full local presentation path:
+- `LessonAuthoredTextPolicy` maps accepted lesson/session state to the exact authored key that belongs in that state;
+- `ProductLessonTextRepository` resolves the validated default-locale lesson string locally with safe null fallback;
+- `GuidedLessonScreen` presents resolved authored teacher, active-Help and drawing-completion guidance in the companion instruction surface;
+- generic age-aware guidance remains the fallback whenever the current state has no authored text or a safe resolution returns null;
+- JVM coverage verifies teacher demonstrations, exact Help levels, final drawing completion, visual-only Help, normal child turns and mismatched state/content identity.
 
-UI integration of the resolved lesson-specific text is the next implementation step. Generic age-aware guidance remains the fallback and is not removed.
+This closes the prior presentation gap without turning visual-only Help into invented text and without changing lesson/session ownership.
 
 Audio declarations remain **UNSUPPORTED AS A WORKING VOICE CAPABILITY** until playback, narration preference, lifecycle, accessibility and missing-audio behavior are implemented and tested end-to-end.
 

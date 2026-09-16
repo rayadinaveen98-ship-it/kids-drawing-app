@@ -22,6 +22,8 @@ import com.navin.kidsdrawing.product.adaptive.AdaptiveEvent
 import com.navin.kidsdrawing.product.adaptive.LocalAdaptiveStateRepository
 import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
 import com.navin.kidsdrawing.product.lesson.ProductLessonRuntime
+import com.navin.kidsdrawing.product.quality.ProductTimingEvidence
+import com.navin.kidsdrawing.product.quality.ProductTimingMetric
 import java.io.File
 
 /** Production/offline adapter for completion + local Gallery orchestration. */
@@ -102,9 +104,15 @@ class ProductGalleryRuntime private constructor(
         title: String,
     ): ArtworkCompletionResult = completionCoordinator.complete(port, title)
 
-    suspend fun listArtwork(): GalleryListResult = repository.listArtwork()
+    suspend fun listArtwork(): GalleryListResult =
+        ProductTimingEvidence.measure(ProductTimingMetric.GALLERY_LIST) {
+            repository.listArtwork()
+        }
 
-    suspend fun reopen(entryId: String): GalleryReopenResult = repository.reopen(entryId)
+    suspend fun reopen(entryId: String): GalleryReopenResult =
+        ProductTimingEvidence.measure(ProductTimingMetric.GALLERY_REOPEN) {
+            repository.reopen(entryId)
+        }
 
     suspend fun delete(entryId: String, confirmed: Boolean): GalleryDeleteResult =
         repository.delete(entryId, confirmed)

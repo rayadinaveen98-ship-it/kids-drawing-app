@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -56,6 +58,7 @@ import com.navin.kidsdrawing.product.accessibility.AccessibilityPolicy
 import com.navin.kidsdrawing.product.accessibility.accessibleColorName
 import com.navin.kidsdrawing.product.design.StudioColors
 import com.navin.kidsdrawing.product.design.densityPolicyFor
+import com.navin.kidsdrawing.product.device.currentDeviceLayoutPolicy
 import com.navin.kidsdrawing.product.profile.AgeBand
 import kotlinx.coroutines.launch
 import kotlin.math.abs
@@ -74,6 +77,8 @@ fun ColoringWorkspaceScreen(
     val density = densityPolicyFor(ageBand)
     val workspaceTarget = density.minimumTouchTarget.coerceAtMost(58.dp)
     val accessibilityLayout = AccessibilityPolicy.layout(LocalDensity.current.fontScale)
+    val deviceLayout = currentDeviceLayoutPolicy()
+    val lowerControlsScrollState = rememberScrollState()
     val surfaceController = remember { DrawingSurfaceController() }
     val documentState by runtime.documentEngine.state.collectAsState()
     val toolSettings by runtime.toolEngine.state.collectAsState()
@@ -145,18 +150,20 @@ fun ColoringWorkspaceScreen(
                 ?.takeIf(String::isNotBlank)
                 ?.let { "Color $it" }
                 ?: "Color your drawing"
+            val constrainedHeight = deviceLayout.preferBoundedArtControls
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .safeDrawingPadding()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(7.dp),
+                    .padding(horizontal = 12.dp, vertical = if (constrainedHeight) 5.dp else 8.dp),
+                verticalArrangement = Arrangement.spacedBy(if (constrainedHeight) 5.dp else 7.dp),
             ) {
                 ColoringTopBar(
                     title = title,
                     minimumControlHeight = workspaceTarget,
                     stackActions = accessibilityLayout.preferSingleColumnActions,
+                    compactHeight = constrainedHeight,
                     onSaveAndLeave = {
                         scope.launch {
                             runtime.saveNow()
@@ -165,7 +172,10 @@ fun ColoringWorkspaceScreen(
                     },
                 )
 
-                ColoringCompanionCard(companion)
+                ColoringCompanionCard(
+                    presentation = companion,
+                    compactHeight = constrainedHeight,
+                )
 
                 Surface(
                     modifier = Modifier
@@ -256,49 +266,61 @@ fun ColoringWorkspaceScreen(
                 }
 
                 if (semantic?.phase == ColoringSessionPhase.ACTIVE) {
-                    ColorPalette(
-                        selectedColorArgb = semantic.selectedColorArgb,
-                        minimumTarget = workspaceTarget,
-                        onSelect = { color -> scope.launch { runtime.selectColor(color) } },
-                    )
-                    ColoringTools(
-                        selectedTool = semantic.selectedTool,
-                        brushWidth = semantic.brushWidth,
-                        ageBand = ageBand,
-                        fillAvailable = fillAvailableNow,
-                        canUndo = documentState.canUndoColoring,
-                        canRedo = documentState.canRedoColoring,
-                        minimumTarget = workspaceTarget,
-                        stackActions = accessibilityLayout.preferSingleColumnActions,
-                        onBrush = { scope.launch { runtime.selectTool(ColoringSessionTool.BRUSH) } },
-                        onFill = { scope.launch { runtime.selectTool(ColoringSessionTool.FILL) } },
-                        onEraser = { scope.launch { runtime.selectTool(ColoringSessionTool.ERASER) } },
-                        onSize = { width -> scope.launch { runtime.setBrushWidth(width) } },
-                        onUndo = { scope.launch { runtime.undo() } },
-                        onRedo = { scope.launch { runtime.redo() } },
-                    )
-                    finishMessage?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = StudioColors.Ink700,
-                        )
-                    }
-                    ColoringActionButton(
-                        label = if (finishing) "Saving artwork…" else "Finish coloring",
-                        primary = true,
-                        enabled = !finishing,
-                        minimumHeight = workspaceTarget,
-                        modifier = Modifier.fillMaxWidth(),
+                    Column(
+                        modifier = if (constrainedHeight) {
+                            Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = CONSTRAINED_COLORING_CONTROLS_MAX_HEIGHT)
+                                .verticalScroll(lowerControlsScrollState)
+                        } else {
+                            Modifier.fillMaxWidth()
+                        },
+                        verticalArrangement = Arrangement.spacedBy(if (constrainedHeight) 5.dp else 7.dp),
                     ) {
-                        if (finishing) return@ColoringActionButton
-                        finishing = true
-                        finishMessage = null
-                        scope.launch {
-                            val saved = runCatching { onFinishColoring() }.getOrDefault(false)
-                            if (!saved) {
-                                finishing = false
-                                finishMessage = "We couldn’t save yet. Your coloring is still safe."
+                        ColorPalette(
+                            selectedColorArgb = semantic.selectedColorArgb,
+                            minimumTarget = workspaceTarget,
+                            onSelect = { color -> scope.launch { runtime.selectColor(color) } },
+                        )
+                        ColoringTools(
+                            selectedTool = semantic.selectedTool,
+                            brushWidth = semantic.brushWidth,
+                            ageBand = ageBand,
+                            fillAvailable = fillAvailableNow,
+                            canUndo = documentState.canUndoColoring,
+                            canRedo = documentState.canRedoColoring,
+                            minimumTarget = workspaceTarget,
+                            stackActions = accessibilityLayout.preferSingleColumnActions,
+                            onBrush = { scope.launch { runtime.selectTool(ColoringSessionTool.BRUSH) } },
+                            onFill = { scope.launch { runtime.selectTool(ColoringSessionTool.FILL) } },
+                            onEraser = { scope.launch { runtime.selectTool(ColoringSessionTool.ERASER) } },
+                            onSize = { width -> scope.launch { runtime.setBrushWidth(width) } },
+                            onUndo = { scope.launch { runtime.undo() } },
+                            onRedo = { scope.launch { runtime.redo() } },
+                        )
+                        finishMessage?.let {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = StudioColors.Ink700,
+                            )
+                        }
+                        ColoringActionButton(
+                            label = if (finishing) "Saving artwork…" else "Finish coloring",
+                            primary = true,
+                            enabled = !finishing,
+                            minimumHeight = workspaceTarget,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            if (finishing) return@ColoringActionButton
+                            finishing = true
+                            finishMessage = null
+                            scope.launch {
+                                val saved = runCatching { onFinishColoring() }.getOrDefault(false)
+                                if (!saved) {
+                                    finishing = false
+                                    finishMessage = "We couldn’t save yet. Your coloring is still safe."
+                                }
                             }
                         }
                     }
@@ -313,12 +335,13 @@ private fun ColoringTopBar(
     title: String,
     minimumControlHeight: Dp,
     stackActions: Boolean,
+    compactHeight: Boolean,
     onSaveAndLeave: () -> Unit,
 ) {
     if (stackActions) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(if (compactHeight) 3.dp else 6.dp),
         ) {
             Text(
                 text = title,
@@ -356,27 +379,37 @@ private fun ColoringTopBar(
             style = MaterialTheme.typography.titleLarge,
             color = StudioColors.Ink900,
         )
-        Surface(
-            modifier = Modifier.size(42.dp),
-            shape = CircleShape,
-            color = StudioColors.Sun500.copy(alpha = 0.18f),
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text("✦", color = StudioColors.Ink900)
+        if (!compactHeight) {
+            Surface(
+                modifier = Modifier.size(42.dp),
+                shape = CircleShape,
+                color = StudioColors.Sun500.copy(alpha = 0.18f),
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text("✦", color = StudioColors.Ink900)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun ColoringCompanionCard(presentation: ColoringCompanionPresentation) {
+private fun ColoringCompanionCard(
+    presentation: ColoringCompanionPresentation,
+    compactHeight: Boolean,
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(18.dp),
         color = StudioColors.Paper100,
         border = BorderStroke(1.dp, StudioColors.Line200),
     ) {
-        Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)) {
+        Column(
+            modifier = Modifier.padding(
+                horizontal = if (compactHeight) 10.dp else 14.dp,
+                vertical = if (compactHeight) 5.dp else 8.dp,
+            ),
+        ) {
             Text(
                 text = presentation.eyebrow,
                 style = MaterialTheme.typography.bodyMedium,
@@ -698,3 +731,5 @@ private fun ColoringStartupMessage(message: String, onBack: () -> Unit) {
         }
     }
 }
+
+private val CONSTRAINED_COLORING_CONTROLS_MAX_HEIGHT = 200.dp

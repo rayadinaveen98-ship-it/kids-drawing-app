@@ -84,3 +84,10 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.compose.ui.test.manifest)
 }
+
+// Repository CI treats Content Studio as build-time tooling, not child runtime code. Running the
+// normal app unit-test gate also runs the isolated JVM Studio gate so its deterministic evidence is
+// available to the existing content-quality verification step.
+tasks.matching { it.name == "testDebugUnitTest" }.configureEach {
+    dependsOn(":content-studio:test")
+}

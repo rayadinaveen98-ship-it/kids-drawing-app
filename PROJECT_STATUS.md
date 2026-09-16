@@ -11,7 +11,8 @@
 **P6.3:** COMPLETE  
 **P6.4:** COMPLETE  
 **Current slice:** **P6.5 — Device & Performance Hardening #100**  
-**Current P6.5 state:** **ACTIVE — SOURCE AUDIT / CONTRACT GATE NEXT**  
+**Current P6.5 state:** **QA1 BUILT / EXACT ARTIFACT VERIFIED / PHYSICAL QA READY**  
+**Current QA candidate:** `0.6.0-family-readiness-p6.5-qa1`, versionCode **31**  
 **Last updated:** 2026-09-16
 
 Git is authoritative when chat memory and repository state disagree.
@@ -107,42 +108,70 @@ The physically accepted P6.4 executable remains artifact 10434518471 from `fec85
 
 ## Current slice — P6.5 Device & Performance Hardening
 
-Authoritative issue: **#100 OPEN / ACTIVE**.
+Authoritative issue: **#100 OPEN / ACTIVE**.  
+Draft PR: **#102 OPEN / DRAFT**.
 
 Verified dependency baseline:
 - P6.4 squash merge `d4efa03341b86641b1cf2342c857ad2021e9005a`;
-- merged-main Android CI #654 / run `35070272716` GREEN.
+- merged-main Android CI #654 / run `35070272716` GREEN;
+- P6.5 working baseline `c49434ab6acd32e8153164e46f86a58ec09bca0a` / CI #655 GREEN.
 
-### Planned scope
+### Contract and stabilization
 
-- small-screen and tablet layout validation/adaptation;
-- configuration/process recreation and low-memory resilience;
-- startup and key-flow runtime performance baselines;
-- large drawing/canvas stress and repeated undo/redo/save stress;
-- Gallery/storage-pressure and safe failure behavior;
-- Android API/device-class compatibility matrix;
-- lifecycle/background/return stress for child and Parent Zone boundaries;
-- focused automated regression/performance instrumentation where practical;
-- exact monotonic QA APK and focused physical device matrix before merge.
+- contract head `bc91432f670e29e33f19fecc8b100424fdd382b0`;
+- contract CI #656 / run `35072570970` GREEN;
+- specification audit **80/80 PASS**;
+- complete versionCode-30 stabilization head `881f98f92690e2d9330e59ce54077cce12f33565`;
+- stabilization Android CI #693 / run `35079771772` GREEN.
 
-### Frozen P6.5 constraints
+### Delivered P6.5 hardening
 
-- preserve Drawing/Lesson/Coloring/Gallery/adaptive truth and ownership semantics;
-- preserve P6.1 Parent Gate/session rules and P6.4 accessibility behavior;
-- no account/cloud/network dependency or new permission;
-- no data loss hidden behind performance optimizations;
-- no speculative engine rewrite absent a concrete measured defect;
-- core stays offline-first and deterministic;
-- versionCode stays **30** during source audit, contract and implementation stabilization; reserve >30 only after the complete P6.5 implementation is automated-green.
+- pure geometry policy using compact `<600dp` / expanded `>=600dp` width and constrained `<600dp` / regular `>=600dp` height bands;
+- targeted constrained-height and expanded-width layout hardening without model-specific branches;
+- Gallery preview decode moved off the Compose/UI-thread path while authoritative artwork reopen remains independent;
+- Quality Lab coloring-heavy workloads/raster evidence extensions;
+- local monotonic product timing for profile/Home/Gallery/lesson/coloring/Free Draw boundaries;
+- coloring persistence I/O failures keep in-memory work retryable and expose calm local failure state;
+- strict durable completion boundary prevents false Gallery success after failed persistence;
+- no new account/cloud/network dependency, telemetry upload or Android permission.
 
-### Immediate execution gate
+### Immutable P6.5 QA1 physical target
 
-1. audit current screen-size/adaptive-layout behavior;
-2. audit lifecycle/configuration/process-recreation and low-memory paths;
-3. audit current performance instrumentation and startup/key-flow hotspots;
-4. audit canvas/undo/save/Gallery/storage-pressure stress boundaries;
-5. freeze a measurable P6.5 device/performance contract and acceptance matrix;
-6. require contract CI GREEN before optimization/production changes.
+- executable source head `cbe31b2b24c43fe3a06ed60e0f917a270f67449f`;
+- versionName `0.6.0-family-readiness-p6.5-qa1`;
+- versionCode **31**;
+- candidate Android CI #695 / run `35080612216` **GREEN**;
+- profile artifact **10439774674**;
+- profile artifact digest `sha256:a8b582bab46c3fb9b7c2e4bb28906312a7e9e04cab2ffbda1f81d9da6259406f`;
+- profile APK size **16,459,363 bytes**;
+- profile APK SHA256 `da939a0057391497cf0eacde524ac14409215d06f7ba573ec68920430138a51e`;
+- debug artifact **10440550942**;
+- debug APK size **20,773,409 bytes**;
+- debug APK SHA256 `969879fb515fa923c9995e794cfe49052dec530bcc871fe48223245722f33336`;
+- content-quality artifact **10440232384**;
+- exact ZIP/APK hashes and sizes independently recomputed and matched CI evidence.
+
+### Current QA gate
+
+- `docs/10-execution/P6_5_FINAL_QA.md`: **PHYSICAL QA READY**;
+- focused core physical matrix: **0/30 PASS, 0 FAIL, 30 NOT RUN**;
+- tester device/model/API/RAM not provided and not inferred;
+- Class L/M/S numeric performance, unavailable API bands, tablet/expanded-width physical coverage, cold-start and physical product-timing evidence remain explicitly **PENDING-HARDWARE/TOOLING** until actually measured;
+- PR #102 remains DRAFT / **DO NOT MERGE YET**.
+
+The immutable physical target is `cbe31b2...` / artifact **10439774674**. Later documentation commits do not replace it. Any executable change after physical QA starts requires versionCode >31 and a fresh exact-binary physical cycle.
+
+### Next gate
+
+1. install/test exact profile artifact 10439774674;
+2. complete focused P01–P30 core physical matrix;
+3. record only real identified hardware/API/performance evidence; leave unavailable classes/bands pending;
+4. finalize acceptance/release docs;
+5. require acceptance-documentation CI GREEN;
+6. mark PR #102 ready and squash-merge;
+7. require merged-main Android CI GREEN;
+8. close #100 completed;
+9. activate P6.6 only from the verified merged-main baseline.
 
 ## Remaining Phase-6 roadmap
 

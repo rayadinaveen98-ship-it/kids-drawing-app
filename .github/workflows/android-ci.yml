@@ -141,6 +141,8 @@ jobs:
               "enforcedSuggestedColorsReleaseBlockedUsages=0",
               "audioDeclarations=0",
               "promotionRequiresReadyValidation=true",
+              "promotionRequiresExplicitRevisionDecision=true",
+              "promotionRequiresReleaseStatus=true",
               "promotionIncludesRegeneratedIndex=true",
               "invalidCandidateMutationPlan=false",
           ):

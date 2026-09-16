@@ -20,3 +20,5 @@ grep -F 'CatalogIndexV2Loader' "$HOME_FILE" > /dev/null
 grep -F 'CatalogSelectedLessonLoader' "$RUNTIME_FILE" > /dev/null
 
 echo "Catalog Index V2 boundary passed: Home is metadata-only and selected lesson execution is lazy."
+
+bash scripts/verify-content-studio-boundary.sh

@@ -1,8 +1,11 @@
 package com.navin.kidsdrawing.lesson.authoring
 
 import com.navin.kidsdrawing.lesson.content.LessonCatalogSource
+import com.navin.kidsdrawing.lesson.content.LessonLoadResult
+import com.navin.kidsdrawing.lesson.content.LessonPackageLoader
 import com.navin.kidsdrawing.lesson.content.LessonPackageSource
 import com.navin.kidsdrawing.lesson.model.ChildCompletionPolicy
+import com.navin.kidsdrawing.lesson.model.TeachingMode
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -11,6 +14,56 @@ import org.junit.Test
 class ContentStudioPackageCodecTest {
     private val baseSource = FileAssetCatalogSource(File("src/main/assets"))
     private val importer = ContentStudioPackageImporter(baseSource)
+
+    @Test
+    fun minimalValidDraftExportsDeterministicallyAndReloadsThroughProductionLoader() {
+        val sourceDraft = (importer.import("lessons/cute-cat") as ContentStudioImportResult.Success).draft
+        val sourceStep = sourceDraft.lesson.drawing.steps.first()
+        val minimalStep = sourceStep.copy(
+            help = emptyList(),
+            completionNarrationKey = null,
+        )
+        val requiredStrokeIds = (
+            minimalStep.teacher.strokeRefs + minimalStep.childTurn.expectedStrokeRefs
+        ).toSet()
+        val minimalStrokeCatalog = sourceDraft.strokeCatalog.copy(
+            strokes = sourceDraft.strokeCatalog.strokes.filter { it.id in requiredStrokeIds },
+            guides = emptyList(),
+        )
+        val requiredStringKeys = buildSet {
+            add(sourceDraft.lesson.metadata.titleKey)
+            add(sourceDraft.lesson.metadata.summaryKey)
+            minimalStep.teacher.narrationKey?.let(::add)
+        }
+        val english = checkNotNull(sourceDraft.stringsByLocale["en"])
+            .filterKeys(requiredStringKeys::contains)
+        val minimalLesson = sourceDraft.lesson.copy(
+            supportedModes = listOf(TeachingMode.DRAW_WITH_ME),
+            assets = sourceDraft.lesson.assets.copy(coloringRegions = null),
+            drawing = sourceDraft.lesson.drawing.copy(steps = listOf(minimalStep)),
+            coloring = null,
+        )
+        val minimalDraft = sourceDraft.copy(
+            lesson = minimalLesson,
+            strokeCatalog = minimalStrokeCatalog,
+            stringsByLocale = mapOf("en" to english),
+            coloringRegionCatalog = null,
+        )
+
+        val first = ContentStudioCanonicalExporter.export(minimalDraft)
+        val second = ContentStudioCanonicalExporter.export(minimalDraft)
+        assertTrue(first is ContentStudioExportResult.Success)
+        assertTrue(second is ContentStudioExportResult.Success)
+        val firstStaged = (first as ContentStudioExportResult.Success).stagedPackage
+        val secondStaged = (second as ContentStudioExportResult.Success).stagedPackage
+        assertEquals(firstStaged.files, secondStaged.files)
+
+        val reloaded = LessonPackageLoader(LessonPackageSource(firstStaged::readText)).load("lessons/cute-cat")
+        assertTrue("Minimal normal package failed production reload: $reloaded", reloaded is LessonLoadResult.Success)
+        val packageData = (reloaded as LessonLoadResult.Success).packageData
+        assertEquals(minimalLesson, packageData.lesson)
+        assertEquals(minimalStrokeCatalog, packageData.strokeCatalog)
+    }
 
     @Test
     fun acceptedCuteCatRoundTripsDeterministicallyThroughNormalPackageFormat() {
@@ -73,6 +126,11 @@ class ContentStudioPackageCodecTest {
             it.code == ContentStudioDiagnosticCode.CATALOG_INVALID &&
                 it.message.contains("missing authored key", ignoreCase = true)
         })
+        val catalogGate = blocked.evidence.gateEvidence.single {
+            it.gate == ContentStudioValidationGate.CATALOG_INTEGRITY
+        }
+        assertTrue(catalogGate.status == ContentStudioGateStatus.BLOCKED)
+        assertTrue(catalogGate.diagnostics.any { it.sourceCode == "MISSING_LOCALIZATION_KEY" })
     }
 
     @Test

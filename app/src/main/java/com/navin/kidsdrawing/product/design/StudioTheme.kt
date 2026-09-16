@@ -18,6 +18,9 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -32,11 +35,13 @@ object StudioColors {
     val Ink800 = Ink900
     val Ink700 = Color(0xFF4E4A45)
     val Ink600 = Ink700
-    val Ink500 = Color(0xFF79736C)
+    // P6.4: >=4.5:1 on Paper100/white for normal supporting text.
+    val Ink500 = Color(0xFF746E67)
     val Line200 = Color(0xFFE8E0D4)
     val Studio600 = Color(0xFF5C6F52)
     val Studio700 = Studio600
-    val Studio500 = Color(0xFF718567)
+    // P6.4: darkened enough for normal text use on light product surfaces.
+    val Studio500 = Color(0xFF64755C)
     val Studio100 = Color(0xFFEAF0E5)
     val Sun500 = Color(0xFFE9A94A)
     val Coral500 = Color(0xFFE47C68)
@@ -153,10 +158,19 @@ fun StudioChoiceCard(
     ageBand: AgeBand? = null,
 ) {
     val density = densityPolicyFor(ageBand)
+    val selectionModifier = if (selected) {
+        Modifier.semantics {
+            this.selected = true
+            stateDescription = "Selected"
+        }
+    } else {
+        Modifier
+    }
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = density.minimumTouchTarget)
+            .then(selectionModifier)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         color = if (selected) StudioColors.Studio100 else StudioColors.Paper100,
@@ -177,6 +191,15 @@ fun StudioChoiceCard(
                     modifier = Modifier.padding(top = 4.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = StudioColors.Ink700,
+                )
+            }
+            if (selected) {
+                Text(
+                    text = "✓ Selected",
+                    modifier = Modifier.padding(top = 6.dp),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = StudioColors.Studio600,
+                    fontWeight = FontWeight.Bold,
                 )
             }
         }

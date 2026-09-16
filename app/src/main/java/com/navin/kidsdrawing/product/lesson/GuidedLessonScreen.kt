@@ -38,8 +38,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.progressBarRangeInfo
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -64,6 +69,7 @@ import com.navin.kidsdrawing.lesson.session.ReplayDemonstration
 import com.navin.kidsdrawing.lesson.session.RetryRecoverable
 import com.navin.kidsdrawing.lesson.session.SkipOverview
 import com.navin.kidsdrawing.lesson.session.SkipStep
+import com.navin.kidsdrawing.product.accessibility.AccessibilityPolicy
 import com.navin.kidsdrawing.product.adaptive.ProductAdaptiveHelpCoordinator
 import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
 import com.navin.kidsdrawing.product.coloring.ProductColoringStartResult
@@ -90,6 +96,7 @@ fun GuidedLessonScreen(
     val adaptiveHelpCoordinator = remember(context) { ProductAdaptiveHelpCoordinator(context) }
     val lifecycleOwner = LocalLifecycleOwner.current
     val layout = lessonLayoutPolicyFor(ageBand)
+    val accessibilityLayout = AccessibilityPolicy.layout(LocalDensity.current.fontScale)
     val surfaceController = remember { DrawingSurfaceController() }
     val documentState by runtime.documentEngine.state.collectAsState()
     val toolSettings by runtime.toolEngine.state.collectAsState()
@@ -149,6 +156,8 @@ fun GuidedLessonScreen(
     val teacherFrame = teacherState.frame
     LaunchedEffect(teacherFrame?.status, teacherState.sequenceId) {
         if (teacherFrame?.status != TeacherPlaybackStatus.PLAYING) return@LaunchedEffect
+        // Teacher playback is authored instructional content. Accessibility Reduce motion must not
+        // silently skip or accelerate it; P6.4 only simplifies decorative/transition motion.
         var previousFrameNanos = withFrameNanos { it }
         while (true) {
             val frameNanos = withFrameNanos { it }
@@ -187,6 +196,7 @@ fun GuidedLessonScreen(
                 WorkspaceTopBar(
                     presentation = presentation,
                     minimumControlHeight = layout.minimumControlHeight,
+                    stackActions = accessibilityLayout.preferSingleColumnActions,
                     onSaveAndExit = {
                         scope.launch {
                             runtime.saveNow()
@@ -215,7 +225,11 @@ fun GuidedLessonScreen(
                         )
                     } else {
                         DrawingSurface(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .semantics {
+                                    contentDescription = "Lesson drawing canvas. Freehand drawing uses touch or stylus."
+                                },
                             controller = surfaceController,
                             toolSettings = toolSettings,
                             onStrokeCommitted = { stroke ->
@@ -254,6 +268,7 @@ fun GuidedLessonScreen(
                         minimumControlHeight = layout.minimumControlHeight,
                         message = coloringMessage,
                         enabled = !coloringStarting,
+                        stackActions = accessibilityLayout.preferSingleColumnActions,
                         onColorWithMe = {
                             coloringStarting = true
                             coloringMessage = null
@@ -293,7 +308,11 @@ fun GuidedLessonScreen(
                         presentation = presentation,
                         currentPace = (sessionState as? LessonSessionState.Contextual)?.context?.pace ?: startPace,
                         minimumControlHeight = layout.minimumControlHeight,
-                        maxColumns = layout.maxCompactActionColumns,
+                        maxColumns = if (accessibilityLayout.preferSingleColumnActions) {
+                            1
+                        } else {
+                            layout.maxCompactActionColumns
+                        },
                         onHelpRequested = {
                             scope.launch {
                                 adaptiveHelpCoordinator.onChildHelpRequested(runtime, ageBand)
@@ -304,6 +323,7 @@ fun GuidedLessonScreen(
                         runtime = runtime,
                         childCanDraw = childCanDraw,
                         minimumControlHeight = layout.minimumControlHeight,
+                        stackActions = accessibilityLayout.preferSingleColumnActions,
                     )
                 }
             }
@@ -324,8 +344,33 @@ private fun Modifier.consumeDrawingInput(): Modifier = pointerInput(Unit) {
 private fun WorkspaceTopBar(
     presentation: LessonWorkspacePresentation,
     minimumControlHeight: Dp,
+    stackActions: Boolean,
     onSaveAndExit: () -> Unit,
 ) {
+    if (stackActions) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                text = presentation.stepLabel ?: "Drawing",
+                style = MaterialTheme.typography.titleLarge,
+                color = StudioColors.Ink900,
+            )
+            LessonProgress(presentation)
+            TextButton(
+                onClick = onSaveAndExit,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = minimumControlHeight)
+                    .semantics { contentDescription = "Save drawing and return to studio" },
+            ) {
+                Text("← Save & leave", color = StudioColors.Ink700)
+            }
+        }
+        return
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -349,14 +394,7 @@ private fun WorkspaceTopBar(
                 style = MaterialTheme.typography.titleLarge,
                 color = StudioColors.Ink900,
             )
-            LinearProgressIndicator(
-                progress = { presentation.progress },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 5.dp),
-                color = StudioColors.Studio600,
-                trackColor = StudioColors.Studio100,
-            )
+            LessonProgress(presentation)
         }
         Surface(
             modifier = Modifier.size(42.dp),
@@ -368,6 +406,25 @@ private fun WorkspaceTopBar(
             }
         }
     }
+}
+
+@Composable
+private fun LessonProgress(presentation: LessonWorkspacePresentation) {
+    LinearProgressIndicator(
+        progress = { presentation.progress },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 5.dp)
+            .semantics {
+                contentDescription = "${presentation.stepLabel ?: "Drawing"} progress"
+                progressBarRangeInfo = ProgressBarRangeInfo(
+                    current = presentation.progress,
+                    range = 0f..1f,
+                )
+            },
+        color = StudioColors.Studio600,
+        trackColor = StudioColors.Studio100,
+    )
 }
 
 @Composable
@@ -417,7 +474,7 @@ private fun CompanionInstruction(
                 }
             }
             if (!isolationPass) {
-                Text("!", color = StudioColors.Coral500, fontWeight = FontWeight.Bold)
+                Text("!", color = StudioColors.Ink700, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -474,7 +531,11 @@ private fun WorkspaceActionGrid(
 ) {
     if (actions.isEmpty()) return
     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        val columns = if (maxWidth < 420.dp) 2 else maxColumns.coerceAtLeast(2)
+        val columns = when {
+            maxColumns <= 1 -> 1
+            maxWidth < 420.dp -> 2
+            else -> maxColumns.coerceAtLeast(2)
+        }
         Column(verticalArrangement = Arrangement.spacedBy(7.dp)) {
             actions.chunked(columns).forEach { rowActions ->
                 Row(
@@ -526,22 +587,51 @@ private fun DrawingToolControls(
     runtime: ProductLessonRuntime,
     childCanDraw: Boolean,
     minimumControlHeight: Dp,
+    stackActions: Boolean,
 ) {
     val settings by runtime.toolEngine.state.collectAsState()
+    val pencilSelected = settings.tool == DrawingTool.PENCIL
+    val eraserSelected = settings.tool == DrawingTool.ERASER
+
+    if (stackActions) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            WorkspaceButton(
+                label = if (pencilSelected) "✓ Pencil" else "Pencil",
+                modifier = Modifier.fillMaxWidth(),
+                enabled = childCanDraw,
+                selected = pencilSelected,
+                minimumHeight = minimumControlHeight,
+            ) { runtime.toolEngine.selectTool(DrawingTool.PENCIL) }
+            WorkspaceButton(
+                label = if (eraserSelected) "✓ Eraser" else "Eraser",
+                modifier = Modifier.fillMaxWidth(),
+                enabled = childCanDraw,
+                selected = eraserSelected,
+                minimumHeight = minimumControlHeight,
+            ) { runtime.toolEngine.selectTool(DrawingTool.ERASER) }
+        }
+        return
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         WorkspaceButton(
-            label = if (settings.tool == DrawingTool.PENCIL) "✓ Pencil" else "Pencil",
+            label = if (pencilSelected) "✓ Pencil" else "Pencil",
             modifier = Modifier.weight(1f),
             enabled = childCanDraw,
+            selected = pencilSelected,
             minimumHeight = minimumControlHeight,
         ) { runtime.toolEngine.selectTool(DrawingTool.PENCIL) }
         WorkspaceButton(
-            label = if (settings.tool == DrawingTool.ERASER) "✓ Eraser" else "Eraser",
+            label = if (eraserSelected) "✓ Eraser" else "Eraser",
             modifier = Modifier.weight(1f),
             enabled = childCanDraw,
+            selected = eraserSelected,
             minimumHeight = minimumControlHeight,
         ) { runtime.toolEngine.selectTool(DrawingTool.ERASER) }
     }
@@ -553,6 +643,7 @@ private fun PostDrawingBoundary(
     minimumControlHeight: Dp,
     message: String?,
     enabled: Boolean,
+    stackActions: Boolean,
     onColorWithMe: () -> Unit,
     onColorMyself: () -> Unit,
     onFinish: () -> Unit,
@@ -587,16 +678,13 @@ private fun PostDrawingBoundary(
                 Text(
                     text = message,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = StudioColors.Coral500,
+                    color = StudioColors.Ink700,
                 )
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
+            if (stackActions) {
                 WorkspaceButton(
                     label = "Color with me",
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                     primary = true,
                     enabled = enabled,
                     minimumHeight = minimumControlHeight,
@@ -604,11 +692,32 @@ private fun PostDrawingBoundary(
                 )
                 WorkspaceButton(
                     label = "Color myself",
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                     enabled = enabled,
                     minimumHeight = minimumControlHeight,
                     onClick = onColorMyself,
                 )
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    WorkspaceButton(
+                        label = "Color with me",
+                        modifier = Modifier.weight(1f),
+                        primary = true,
+                        enabled = enabled,
+                        minimumHeight = minimumControlHeight,
+                        onClick = onColorWithMe,
+                    )
+                    WorkspaceButton(
+                        label = "Color myself",
+                        modifier = Modifier.weight(1f),
+                        enabled = enabled,
+                        minimumHeight = minimumControlHeight,
+                        onClick = onColorMyself,
+                    )
+                }
             }
             WorkspaceButton(
                 label = "Finish for now",
@@ -627,13 +736,23 @@ private fun WorkspaceButton(
     modifier: Modifier = Modifier,
     primary: Boolean = false,
     enabled: Boolean = true,
+    selected: Boolean = false,
     minimumHeight: Dp = 52.dp,
     onClick: () -> Unit,
 ) {
+    val selectionModifier = if (selected) {
+        Modifier.semantics {
+            this.selected = true
+            stateDescription = "Selected"
+        }
+    } else {
+        Modifier
+    }
     if (primary) {
         Surface(
             modifier = modifier
                 .heightIn(min = minimumHeight)
+                .then(selectionModifier)
                 .clip(RoundedCornerShape(16.dp))
                 .background(if (enabled) StudioColors.Studio600 else StudioColors.Line200),
             color = Color.Transparent,
@@ -652,7 +771,9 @@ private fun WorkspaceButton(
         OutlinedButton(
             onClick = onClick,
             enabled = enabled,
-            modifier = modifier.heightIn(min = minimumHeight),
+            modifier = modifier
+                .heightIn(min = minimumHeight)
+                .then(selectionModifier),
             shape = RoundedCornerShape(16.dp),
             border = BorderStroke(1.dp, StudioColors.Line200),
         ) {

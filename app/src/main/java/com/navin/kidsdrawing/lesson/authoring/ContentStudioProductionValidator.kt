@@ -27,6 +27,7 @@ sealed interface ContentStudioValidationResult {
     data class Ready(
         val stagedPackage: ContentStudioStagedPackage,
         val evidence: ContentStudioValidationEvidence,
+        val projectedIndexText: String,
     ) : ContentStudioValidationResult
 
     data class Blocked(
@@ -105,6 +106,7 @@ class ContentStudioProductionValidator(
             }
 
         var projectedEntryCount: Int? = null
+        var projectedIndexText: String? = null
         when (val projection = CatalogIndexV2Projector.project(catalog)) {
             is CatalogIndexV2ProjectionResult.Failure -> projection.messages.forEach { message ->
                 diagnostics += ContentStudioDiagnostic(
@@ -116,6 +118,7 @@ class ContentStudioProductionValidator(
             is CatalogIndexV2ProjectionResult.Success -> {
                 projectedEntryCount = projection.index.entries.size
                 val rendered = CatalogIndexV2Projector.render(projection.index)
+                projectedIndexText = rendered
                 val indexSource = com.navin.kidsdrawing.lesson.content.LessonPackageSource { path ->
                     if (path == CatalogIndexV2Loader.DEFAULT_INDEX_PATH) rendered else overlay.readText(path)
                 }
@@ -145,7 +148,11 @@ class ContentStudioProductionValidator(
             .distinct()
             .sortedBy { "${it.code}:${it.path}:${it.message}" }
         return if (stableDiagnostics.isEmpty()) {
-            ContentStudioValidationResult.Ready(staged, evidence)
+            ContentStudioValidationResult.Ready(
+                stagedPackage = staged,
+                evidence = evidence,
+                projectedIndexText = checkNotNull(projectedIndexText),
+            )
         } else {
             ContentStudioValidationResult.Blocked(staged, stableDiagnostics, evidence)
         }
@@ -175,13 +182,14 @@ internal class ContentStudioOverlayCatalogSource(
 
     override fun list(path: String): List<String>? {
         val normalized = path.trim('/')
-        val baseChildren = base.list(normalized).orEmpty()
+        val baseListing = base.list(normalized)
+        val baseChildren = baseListing.orEmpty()
         val stagedChildren = staged.files.keys.mapNotNull { file ->
             val prefix = "$normalized/"
             if (!file.startsWith(prefix)) return@mapNotNull null
             file.removePrefix(prefix).substringBefore('/').takeIf(String::isNotBlank)
         }
-        if (baseChildren.isEmpty() && stagedChildren.isEmpty() && base.list(normalized) == null) return null
+        if (baseChildren.isEmpty() && stagedChildren.isEmpty() && baseListing == null) return null
         return (baseChildren + stagedChildren).distinct().sorted()
     }
 }

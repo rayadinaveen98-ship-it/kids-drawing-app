@@ -65,6 +65,6 @@ class AccessibilityPolicyTest {
 
     @Test
     fun unknownColorHasHonestFallbackName() {
-        assertEquals("Drawing color", accessibleColorName(0xFF123456.toInt()))
+        assertEquals("Custom color", accessibleColorName(0xFF123456.toInt()))
     }
 }

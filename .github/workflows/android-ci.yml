@@ -80,14 +80,29 @@ jobs:
           from pathlib import Path
 
           report = json.loads(Path("app/build/reports/content-quality/catalog-report.json").read_text())
-          assert report["lessonCount"] == 28, report
+          assert report["lessonCount"] == 36, report
           assert report["errorCount"] == 0, report
           assert report["warningCount"] == 6, report
           index = json.loads(Path("app/build/reports/content-quality/generated-lesson-index-v2.json").read_text())
-          assert len(index["entries"]) == 28, len(index["entries"])
+          assert len(index["entries"]) == 36, len(index["entries"])
           health = Path("app/build/reports/content-quality/catalog-index-v2-health.txt").read_text()
           for expected in (
-              "releaseEntries=28",
+              "releaseEntries=36",
+              "difficulty.1=8",
+              "difficulty.2=12",
+              "difficulty.3=9",
+              "difficulty.4=6",
+              "difficulty.5=1",
+              "mode.draw_with_me=35",
+              "mode.watch_then_draw=26",
+              "mode.trace_and_learn=10",
+              "helpReady=36",
+              "traceReady=10",
+              "coloring.none=26",
+              "coloring.freehand=4",
+              "coloring.prepared_only=0",
+              "coloring.guided_prepared=6",
+              "journey.journey.animal_artist.size=14",
               "unknownTaxonomyReferences=0",
               "duplicateIdentities=0",
               "prerequisiteGraphFailures=0",
@@ -111,7 +126,7 @@ jobs:
           assert studio["traceReady"] is True, studio
           assert studio["coloringCapability"] == "FREEHAND", studio
           assert studio["qualityWarningCount"] == 6, studio
-          assert studio["projectedIndexEntryCount"] == 28, studio
+          assert studio["projectedIndexEntryCount"] == 36, studio
           assert studio["diagnostics"] == [], studio
           assert len(studio["gates"]) == 6, studio
           assert all(gate["status"] == "PASSED" for gate in studio["gates"]), studio["gates"]
@@ -128,14 +143,14 @@ jobs:
 
           studio_health = Path("app/build/reports/content-quality/content-studio-v1-health.txt").read_text()
           for expected in (
-              "releasePackages=28",
-              "roundTripPassed=28/28",
+              "releasePackages=36",
+              "roundTripPassed=36/36",
               "representativeValidation=READY",
               "evidenceSchema=1.1",
               "packageLoaderPassed=true",
               "validationGatesPassed=6/6",
               "evidenceQualityWarnings=6",
-              "projectedIndexEntries=28",
+              "projectedIndexEntries=36",
               "projectedEntry=cute-cat@1",
               "authoredSignalReleaseBlockedUsages=0",
               "enforcedSuggestedColorsReleaseBlockedUsages=0",
@@ -149,20 +164,20 @@ jobs:
               assert expected in studio_health, expected
 
           print(
-              "Content V2.4 curriculum quality: "
+              "Content V2.5 curriculum quality: "
               f"lessons={report['lessonCount']} "
               f"errors={report['errorCount']} "
               f"warnings={report['warningCount']}"
           )
-          print(f"Content V2.4 generated catalog index: entries={len(index['entries'])}, drift=0")
-          print("Content Studio: roundTrip=28/28 evidence=1.1 gates=6/6 representative=READY projectedIndex=28")
+          print(f"Content V2.5 generated catalog index: entries={len(index['entries'])}, drift=0")
+          print("Content Studio: roundTrip=36/36 evidence=1.1 gates=6/6 representative=READY projectedIndex=36")
           PY
           cat "$REPORT_DIR/catalog-report.txt"
           cat "$REPORT_DIR/authoring-capability-inventory.txt"
           cat "$REPORT_DIR/catalog-index-v2-health.txt"
           cat "$REPORT_DIR/content-studio-v1-health.txt"
           {
-            echo "## Content V2.4 Curriculum Quality"
+            echo "## Content V2.5 Curriculum Quality"
             echo
             echo '```text'
             cat "$REPORT_DIR/catalog-report.txt"
@@ -174,7 +189,7 @@ jobs:
             cat "$REPORT_DIR/authoring-capability-inventory.txt"
             echo '```'
             echo
-            echo "## Content V2.4 Catalog Index Health"
+            echo "## Content V2.5 Catalog Index Health"
             echo
             echo '```text'
             cat "$REPORT_DIR/catalog-index-v2-health.txt"

@@ -8,7 +8,7 @@ enum class ProductTimingMetric(val childSafeLabel: String) {
     HOME_LOAD("Home load"),
     GALLERY_LIST("Gallery list"),
     GALLERY_REOPEN("Gallery reopen"),
-    LESSON_RECOVERY("Lesson recovery"),
+    LESSON_RECOVERY("Lesson recovery/start"),
     COLORING_RECOVERY("Coloring recovery"),
     FREE_DRAW_RECOVERY("Free Draw recovery"),
 }
@@ -54,6 +54,18 @@ object ProductTimingEvidence {
     suspend fun <T> measure(
         metric: ProductTimingMetric,
         block: suspend () -> T,
+    ): T {
+        val startedNanos = System.nanoTime()
+        return try {
+            block()
+        } finally {
+            ledger.record(metric, System.nanoTime() - startedNanos)
+        }
+    }
+
+    fun <T> measureBlocking(
+        metric: ProductTimingMetric,
+        block: () -> T,
     ): T {
         val startedNanos = System.nanoTime()
         return try {

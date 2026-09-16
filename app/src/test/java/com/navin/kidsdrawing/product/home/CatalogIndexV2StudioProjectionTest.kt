@@ -28,7 +28,7 @@ class CatalogIndexV2StudioProjectionTest {
         val index = (indexResult as CatalogIndexV2LoadResult.Success).snapshot
         assertEquals(legacy.entries.map { it.identity }, index.entries.map { it.identity })
 
-        val interestSets = listOf(emptySet()) + ChildInterest.entries.map { setOf(it) }
+        val interestSets = listOf<Set<ChildInterest>>(emptySet()) + ChildInterest.entries.map { setOf(it) }
         AgeBand.entries.forEach { ageBand ->
             TeachingMode.entries.forEach { preferredMode ->
                 interestSets.forEach { interests ->

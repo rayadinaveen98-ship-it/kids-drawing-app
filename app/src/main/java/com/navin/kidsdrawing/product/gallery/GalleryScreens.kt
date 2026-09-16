@@ -33,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -61,7 +62,9 @@ import com.navin.kidsdrawing.product.accessibility.AccessibilityPolicy
 import com.navin.kidsdrawing.product.design.StudioColors
 import java.text.DateFormat
 import java.util.Date
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun GalleryScreen(
@@ -305,12 +308,21 @@ private fun GalleryArtworkCard(
 
 @Composable
 private fun GalleryCardPreview(runtime: ProductGalleryRuntime, card: GalleryArtworkCardModel) {
-    val preview: ImageBitmap? = remember(card.usablePreviewReference) {
-        card.usablePreviewReference
-            ?.let(runtime::previewFile)
-            ?.takeIf { it.isFile }
-            ?.let { BitmapFactory.decodeFile(it.absolutePath) }
-            ?.asImageBitmap()
+    val reference = card.usablePreviewReference
+    val preview by produceState<ImageBitmap?>(
+        initialValue = null,
+        key1 = runtime,
+        key2 = reference,
+    ) {
+        value = withContext(Dispatchers.IO) {
+            runCatching {
+                reference
+                    ?.let(runtime::previewFile)
+                    ?.takeIf { it.isFile }
+                    ?.let { BitmapFactory.decodeFile(it.absolutePath) }
+                    ?.asImageBitmap()
+            }.getOrNull()
+        }
     }
     Box(
         modifier = Modifier
@@ -322,7 +334,7 @@ private fun GalleryCardPreview(runtime: ProductGalleryRuntime, card: GalleryArtw
     ) {
         if (preview != null) {
             Image(
-                bitmap = preview,
+                bitmap = preview!!,
                 contentDescription = "${card.record.title} preview",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,

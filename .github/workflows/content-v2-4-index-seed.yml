@@ -5,7 +5,7 @@ on:
     branches: [main]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   seed-index:
@@ -14,8 +14,10 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Checkout
+      - name: Checkout pilot branch
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -60,6 +62,23 @@ jobs:
           assert expected <= ids, expected - ids
           print("Generated validated V2.4 Catalog Index candidate: entries=28, butterflyPilot=4")
           PY
+
+      - name: Commit exact generated index to pilot branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp app/build/reports/content-quality/generated-lesson-index-v2.json \
+            app/src/main/assets/catalog/lesson-index-v2.json
+          git diff --check
+          if git diff --quiet -- app/src/main/assets/catalog/lesson-index-v2.json; then
+            echo "Catalog Index V2 is already exact; no seed commit needed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/src/main/assets/catalog/lesson-index-v2.json
+          git commit -m "content(v2.4): seed exact generated catalog index"
+          git push origin HEAD:${{ github.head_ref }}
 
       - name: Upload exact generated Catalog Index V2 candidate
         uses: actions/upload-artifact@v4

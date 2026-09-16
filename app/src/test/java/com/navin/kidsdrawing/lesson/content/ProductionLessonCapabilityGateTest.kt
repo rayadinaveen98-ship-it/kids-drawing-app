@@ -12,7 +12,7 @@ class ProductionLessonCapabilityGateTest {
         val snapshot = LessonCatalog(FileAssetCatalogSource(File("src/main/assets"))).load()
 
         assertTrue("Catalog diagnostics: ${snapshot.diagnostics}", snapshot.diagnostics.isEmpty())
-        assertEquals("Content Library V2 baseline changed unexpectedly.", 24, snapshot.entries.size)
+        assertEquals("Content V2.4 release catalog must contain exactly 28 lessons.", 28, snapshot.entries.size)
 
         val failures = snapshot.entries.flatMap { entry ->
             val packageData = snapshot.runtimePackage(entry.identity)

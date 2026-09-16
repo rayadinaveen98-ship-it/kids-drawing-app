@@ -151,8 +151,8 @@ class StudioHomeRepository(context: Context) {
             coloringResumeCandidate = primary.coloringResume,
             contentMessage = null,
             recommendations = ranked,
-            categories = StudioRecommendationPolicy.categories(ranked),
-            journeys = StudioRecommendationPolicy.journeys(ranked, activeLessonId),
+            categories = catalogCategories(ranked),
+            journeys = catalogJourneys(ranked, activeLessonId),
         )
     }
 

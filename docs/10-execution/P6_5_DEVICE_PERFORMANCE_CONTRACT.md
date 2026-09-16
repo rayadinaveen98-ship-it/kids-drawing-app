@@ -1,6 +1,6 @@
 # P6.5 Device & Performance Hardening Contract
 
-Status: **FROZEN CONTRACT — IMPLEMENTATION BLOCKED UNTIL CONTRACT CI GREEN**  
+Status: **FROZEN CONTRACT — CONTRACT CI #656 GREEN; IMPLEMENTATION ACTIVE**  
 Issue: #100  
 Parent epic: #91  
 Target: `0.6.0-family-readiness`  
@@ -234,12 +234,12 @@ It must not become child-facing or required for normal app use.
 ## 15. Android API / device compatibility matrix
 
 Build range:
-- minSdk 24;
+- minSdk 23;
 - targetSdk 36;
 - compileSdk 36.
 
 Representative runtime bands:
-- **Band A:** API 24–28;
+- **Band A:** API 23–28;
 - **Band B:** API 29–32;
 - **Band C:** API 33–35;
 - **Band D:** API 36.

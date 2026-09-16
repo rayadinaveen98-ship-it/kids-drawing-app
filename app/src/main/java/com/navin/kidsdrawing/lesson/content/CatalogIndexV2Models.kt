@@ -65,6 +65,10 @@ enum class CatalogVoiceAudioCapability {
     @SerialName("ready") READY,
 }
 
+/**
+ * Runtime discovery entry. Ordered authored metadata stays ordered so V2.2 does not change card,
+ * skill, mode or prerequisite semantics while removing full-package loading from discovery.
+ */
 data class CatalogIndexV2Entry(
     val identity: LessonCatalogIdentity,
     val status: LessonStatus,
@@ -74,25 +78,25 @@ data class CatalogIndexV2Entry(
     val titleKey: String,
     val summary: String,
     val summaryKey: String,
-    val ageBands: Set<AgeBand>,
+    val ageBands: List<AgeBand>,
     val difficulty: Int,
     val estimatedMinutes: Int,
     val drawingStepCount: Int,
-    val categoryIds: Set<String>,
-    val skillIds: Set<String>,
-    val journeyIds: Set<String>,
-    val collectionIds: Set<String>,
-    val prerequisiteLessonIds: Set<String>,
-    val tags: Set<String>,
+    val categoryIds: List<String>,
+    val skillIds: List<String>,
+    val journeyIds: List<String>,
+    val collectionIds: List<String>,
+    val prerequisiteLessonIds: List<String>,
+    val tags: List<String>,
     val contentFamilyId: String?,
-    val supportedModes: Set<TeachingMode>,
+    val supportedModes: List<TeachingMode>,
     val capabilitySummary: CatalogCapabilitySummary,
     val thumbnailRef: String,
     val previewRef: String,
 )
 
 data class CatalogCapabilitySummary(
-    val teachingModes: Set<TeachingMode>,
+    val teachingModes: List<TeachingMode>,
     val helpAvailable: Boolean,
     val traceReady: Boolean,
     val coloring: CatalogColoringCapability,
@@ -107,6 +111,8 @@ enum class CatalogIndexV2DiagnosticCode {
     INVALID_ENTRY,
     DUPLICATE_IDENTITY,
     DUPLICATE_LESSON_ID,
+    DUPLICATE_TAXONOMY_ID,
+    MISSING_TAXONOMY_REFERENCE,
     MISSING_PREREQUISITE,
     PREREQUISITE_CYCLE,
 }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -43,6 +44,9 @@ import com.navin.kidsdrawing.product.accessibility.AccessibilityTextScaleBand
 import com.navin.kidsdrawing.product.design.StudioColors
 import com.navin.kidsdrawing.product.design.StudioPrimaryButton
 import com.navin.kidsdrawing.product.design.densityPolicyFor
+import com.navin.kidsdrawing.product.device.DeviceWidthBand
+import com.navin.kidsdrawing.product.device.currentDeviceLayoutPolicy
+import com.navin.kidsdrawing.product.device.limitGeneralContentWidth
 import com.navin.kidsdrawing.product.profile.AgeBand
 import com.navin.kidsdrawing.product.profile.ChildProfile
 import kotlin.math.absoluteValue
@@ -62,176 +66,186 @@ fun StudioHomeScreen(
     val presentation = StudioRecommendationPolicy.presentationFor(profile.ageBand)
     val density = densityPolicyFor(profile.ageBand)
     val accessibilityLayout = AccessibilityPolicy.layout(LocalDensity.current.fontScale)
+    val deviceLayout = currentDeviceLayoutPolicy()
     val standardText = accessibilityLayout.textScaleBand == AccessibilityTextScaleBand.STANDARD
     val scrollState = rememberScrollState()
+    val useTwoColumnSecondaryCards = !accessibilityLayout.avoidFixedTwoColumnCards &&
+        (presentation.twoColumnSecondaryCards || deviceLayout.widthBand == DeviceWidthBand.EXPANDED)
 
     Surface(
         modifier = modifier.fillMaxSize(),
         color = StudioColors.Paper50,
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .safeDrawingPadding()
-                .verticalScroll(scrollState)
-                .padding(horizontal = 22.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(density.contentGap),
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            StudioGreeting(
-                profile = profile,
-                stackParentAction = accessibilityLayout.preferSingleColumnActions,
-                onOpenParentZone = { onOpenDestination(StudioDestination.PARENT_ZONE) },
-            )
+            Column(
+                modifier = Modifier
+                    .limitGeneralContentWidth(deviceLayout)
+                    .fillMaxHeight()
+                    .fillMaxWidth()
+                    .safeDrawingPadding()
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 22.dp, vertical = 18.dp),
+                verticalArrangement = Arrangement.spacedBy(density.contentGap),
+            ) {
+                StudioGreeting(
+                    profile = profile,
+                    stackParentAction = accessibilityLayout.preferSingleColumnActions,
+                    onOpenParentZone = { onOpenDestination(StudioDestination.PARENT_ZONE) },
+                )
 
-            when {
-                model == null -> StudioHomeLoading()
-                model.recommendation == null -> StudioContentUnavailable(model.contentMessage)
-                else -> {
-                    PrimaryStudioHero(
-                        profile = profile,
-                        recommendation = model.recommendation,
-                        resume = model.resumeCandidate,
-                        coloringResume = model.coloringResumeCandidate,
-                        presentation = presentation,
-                        showDecorativePreview = standardText,
-                        onClick = {
-                            onPrimaryLessonAction(
-                                when {
-                                    model.coloringResumeCandidate != null -> StudioDestination.COLORING_RESUME
-                                    model.resumeCandidate != null -> StudioDestination.LESSON_RESUME
-                                    else -> StudioDestination.LESSON_START
-                                },
-                            )
-                        },
-                    )
-
-                    val visibleRecommendations = model.recommendations
-                        .take(presentation.recommendationLimit)
-                    if (visibleRecommendations.isNotEmpty()) {
-                        SectionHeader(
-                            title = "Picked for you",
-                            subtitle = when (profile.ageBand) {
-                                AgeBand.LITTLE_ARTIST -> "A few friendly places to begin"
-                                AgeBand.CREATIVE_EXPLORER -> "Lessons that fit your studio"
-                                else -> "Based on your age, interests and learning style"
+                when {
+                    model == null -> StudioHomeLoading()
+                    model.recommendation == null -> StudioContentUnavailable(model.contentMessage)
+                    else -> {
+                        PrimaryStudioHero(
+                            profile = profile,
+                            recommendation = model.recommendation,
+                            resume = model.resumeCandidate,
+                            coloringResume = model.coloringResumeCandidate,
+                            presentation = presentation,
+                            showDecorativePreview = standardText,
+                            onClick = {
+                                onPrimaryLessonAction(
+                                    when {
+                                        model.coloringResumeCandidate != null -> StudioDestination.COLORING_RESUME
+                                        model.resumeCandidate != null -> StudioDestination.LESSON_RESUME
+                                        else -> StudioDestination.LESSON_START
+                                    },
+                                )
                             },
                         )
-                        visibleRecommendations.forEach { recommendation ->
-                            RecommendationCard(
-                                profile = profile,
-                                recommendation = recommendation,
-                                presentation = presentation,
-                                allowReasonTruncation = standardText,
-                                onClick = {
-                                    if (onOpenLesson != null) onOpenLesson(recommendation)
-                                    else onOpenRecommendation()
+
+                        val visibleRecommendations = model.recommendations
+                            .take(presentation.recommendationLimit)
+                        if (visibleRecommendations.isNotEmpty()) {
+                            SectionHeader(
+                                title = "Picked for you",
+                                subtitle = when (profile.ageBand) {
+                                    AgeBand.LITTLE_ARTIST -> "A few friendly places to begin"
+                                    AgeBand.CREATIVE_EXPLORER -> "Lessons that fit your studio"
+                                    else -> "Based on your age, interests and learning style"
                                 },
+                            )
+                            visibleRecommendations.forEach { recommendation ->
+                                RecommendationCard(
+                                    profile = profile,
+                                    recommendation = recommendation,
+                                    presentation = presentation,
+                                    allowReasonTruncation = standardText,
+                                    onClick = {
+                                        if (onOpenLesson != null) onOpenLesson(recommendation)
+                                        else onOpenRecommendation()
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+
+                model?.journeys?.take(if (profile.ageBand == AgeBand.LITTLE_ARTIST) 2 else 4)?.let { journeys ->
+                    if (journeys.isNotEmpty()) {
+                        SectionHeader(
+                            title = "Art Journeys",
+                            subtitle = "Small steps that grow into bigger drawing skills",
+                        )
+                        journeys.forEach { journey ->
+                            StudioRouteCard(
+                                symbol = "✦",
+                                title = journey.title,
+                                subtitle = journey.progressLabel,
+                                accent = StudioColors.Sun500,
+                                onClick = { onOpenJourney(journey.journeyId) },
+                                minimumHeight = density.minimumTouchTarget,
                             )
                         }
                     }
                 }
-            }
 
-            model?.journeys?.take(if (profile.ageBand == AgeBand.LITTLE_ARTIST) 2 else 4)?.let { journeys ->
-                if (journeys.isNotEmpty()) {
-                    SectionHeader(
-                        title = "Art Journeys",
-                        subtitle = "Small steps that grow into bigger drawing skills",
-                    )
-                    journeys.forEach { journey ->
-                        StudioRouteCard(
-                            symbol = "✦",
-                            title = journey.title,
-                            subtitle = journey.progressLabel,
-                            accent = StudioColors.Sun500,
-                            onClick = { onOpenJourney(journey.journeyId) },
-                            minimumHeight = density.minimumTouchTarget,
+                model?.categories?.take(if (profile.ageBand == AgeBand.LITTLE_ARTIST) 3 else 6)?.let { categories ->
+                    if (categories.isNotEmpty()) {
+                        SectionHeader(
+                            title = "Explore by idea",
+                            subtitle = "Choose what sounds fun today",
                         )
+                        categories.forEachIndexed { index, category ->
+                            StudioRouteCard(
+                                symbol = categorySymbol(category.categoryId),
+                                title = category.title,
+                                subtitle = if (category.lessonCount == 1) "1 lesson" else "${category.lessonCount} lessons",
+                                accent = if (index % 2 == 0) StudioColors.Sky500 else StudioColors.Lavender500,
+                                onClick = { onOpenCategory(category.categoryId) },
+                                minimumHeight = density.minimumTouchTarget,
+                            )
+                        }
                     }
                 }
-            }
 
-            model?.categories?.take(if (profile.ageBand == AgeBand.LITTLE_ARTIST) 3 else 6)?.let { categories ->
-                if (categories.isNotEmpty()) {
-                    SectionHeader(
-                        title = "Explore by idea",
-                        subtitle = "Choose what sounds fun today",
-                    )
-                    categories.forEachIndexed { index, category ->
+                SectionHeader(
+                    title = "Explore your studio",
+                    subtitle = if (profile.ageBand == AgeBand.LITTLE_ARTIST) {
+                        "Choose what sounds fun"
+                    } else {
+                        "More ways to make art"
+                    },
+                )
+
+                if (useTwoColumnSecondaryCards) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
                         StudioRouteCard(
-                            symbol = categorySymbol(category.categoryId),
-                            title = category.title,
-                            subtitle = if (category.lessonCount == 1) "1 lesson" else "${category.lessonCount} lessons",
-                            accent = if (index % 2 == 0) StudioColors.Sky500 else StudioColors.Lavender500,
-                            onClick = { onOpenCategory(category.categoryId) },
-                            minimumHeight = density.minimumTouchTarget,
+                            symbol = "✎",
+                            title = "Free Draw",
+                            subtitle = "Blank paper, your ideas",
+                            accent = StudioColors.Sky500,
+                            onClick = { onOpenDestination(StudioDestination.FREE_DRAW) },
+                            modifier = Modifier.weight(1f),
+                            minimumHeight = density.minimumTouchTarget * 2,
+                        )
+                        StudioRouteCard(
+                            symbol = "▣",
+                            title = "My Gallery",
+                            subtitle = "See the art you finished",
+                            accent = StudioColors.Lavender500,
+                            onClick = { onOpenDestination(StudioDestination.GALLERY) },
+                            modifier = Modifier.weight(1f),
+                            minimumHeight = density.minimumTouchTarget * 2,
                         )
                     }
-                }
-            }
-
-            SectionHeader(
-                title = "Explore your studio",
-                subtitle = if (profile.ageBand == AgeBand.LITTLE_ARTIST) {
-                    "Choose what sounds fun"
                 } else {
-                    "More ways to make art"
-                },
-            )
-
-            if (presentation.twoColumnSecondaryCards && !accessibilityLayout.avoidFixedTwoColumnCards) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
                     StudioRouteCard(
                         symbol = "✎",
                         title = "Free Draw",
-                        subtitle = "Blank paper, your ideas",
+                        subtitle = "Start with a clean page",
                         accent = StudioColors.Sky500,
                         onClick = { onOpenDestination(StudioDestination.FREE_DRAW) },
-                        modifier = Modifier.weight(1f),
-                        minimumHeight = density.minimumTouchTarget * 2,
+                        minimumHeight = density.minimumTouchTarget,
                     )
                     StudioRouteCard(
                         symbol = "▣",
                         title = "My Gallery",
-                        subtitle = "See the art you finished",
+                        subtitle = "Your finished drawings live here",
                         accent = StudioColors.Lavender500,
                         onClick = { onOpenDestination(StudioDestination.GALLERY) },
-                        modifier = Modifier.weight(1f),
-                        minimumHeight = density.minimumTouchTarget * 2,
+                        minimumHeight = density.minimumTouchTarget,
                     )
                 }
-            } else {
-                StudioRouteCard(
-                    symbol = "✎",
-                    title = "Free Draw",
-                    subtitle = "Start with a clean page",
-                    accent = StudioColors.Sky500,
-                    onClick = { onOpenDestination(StudioDestination.FREE_DRAW) },
-                    minimumHeight = density.minimumTouchTarget,
-                )
-                StudioRouteCard(
-                    symbol = "▣",
-                    title = "My Gallery",
-                    subtitle = "Your finished drawings live here",
-                    accent = StudioColors.Lavender500,
-                    onClick = { onOpenDestination(StudioDestination.GALLERY) },
-                    minimumHeight = density.minimumTouchTarget,
-                )
-            }
 
-            model?.contentMessage?.let { message ->
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = StudioColors.Ink500,
-                    modifier = Modifier.padding(horizontal = 4.dp),
-                )
-            }
+                model?.contentMessage?.let { message ->
+                    Text(
+                        text = message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = StudioColors.Ink500,
+                        modifier = Modifier.padding(horizontal = 4.dp),
+                    )
+                }
 
-            Spacer(modifier = Modifier.size(10.dp))
+                Spacer(modifier = Modifier.size(10.dp))
+            }
         }
     }
 }
@@ -663,6 +677,7 @@ fun StudioPlaceholderRoute(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val deviceLayout = currentDeviceLayoutPolicy()
     val title = when (destination) {
         StudioDestination.LESSON_START,
         StudioDestination.LESSON_SELECTED,
@@ -682,24 +697,32 @@ fun StudioPlaceholderRoute(
         modifier = modifier.fillMaxSize(),
         color = StudioColors.Paper50,
     ) {
-        Column(
-            modifier = Modifier
-                .safeDrawingPadding()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineLarge,
-                color = StudioColors.Ink900,
-            )
-            Text(
-                text = "This studio space is getting ready.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = StudioColors.Ink700,
-            )
-            TextButton(onClick = onBack) {
-                Text("Back to studio")
+            Column(
+                modifier = Modifier
+                    .limitGeneralContentWidth(deviceLayout)
+                    .fillMaxHeight()
+                    .fillMaxWidth()
+                    .safeDrawingPadding()
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = StudioColors.Ink900,
+                )
+                Text(
+                    text = "This studio space is getting ready.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = StudioColors.Ink700,
+                )
+                TextButton(onClick = onBack) {
+                    Text("Back to studio")
+                }
             }
         }
     }

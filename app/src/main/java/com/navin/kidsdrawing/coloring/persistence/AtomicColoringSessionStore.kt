@@ -15,7 +15,14 @@ import kotlinx.coroutines.withContext
 class AtomicColoringSessionStore(
     private val rootDirectory: File,
     private val codec: ColoringSessionSnapshotCodec = ColoringSessionSnapshotCodec(),
+    private val faultInjector: (SaveStage) -> Unit = {},
 ) {
+    enum class SaveStage {
+        TEMP_SYNCED,
+        BACKUP_READY,
+        TARGET_REPLACED,
+    }
+
     enum class LoadSource {
         PRIMARY,
         BACKUP,
@@ -52,6 +59,8 @@ class AtomicColoringSessionStore(
                     output.flush()
                     output.fd.sync()
                 }
+                faultInjector(SaveStage.TEMP_SYNCED)
+
                 if (files.target.exists()) {
                     if (files.backup.exists() && !files.backup.delete()) {
                         throw IOException("Unable to rotate coloring-session backup.")
@@ -60,11 +69,14 @@ class AtomicColoringSessionStore(
                         throw IOException("Unable to preserve coloring-session backup.")
                     }
                 }
+                faultInjector(SaveStage.BACKUP_READY)
+
                 if (!files.temp.renameTo(files.target)) {
                     restoreBackupIfNeeded(files)
                     throw IOException("Unable to promote coloring-session temp file.")
                 }
                 latestSavedAt[snapshot.sessionId] = maxOf(remembered, snapshot.savedAtEpochMillis)
+                faultInjector(SaveStage.TARGET_REPLACED)
             } catch (failure: Throwable) {
                 files.temp.delete()
                 restoreBackupIfNeeded(files)

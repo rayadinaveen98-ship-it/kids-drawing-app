@@ -5,9 +5,11 @@ import com.navin.kidsdrawing.coloring.session.ColoringSessionMode
 import com.navin.kidsdrawing.coloring.session.ColoringSessionPhase
 import com.navin.kidsdrawing.coloring.session.ColoringSessionTool
 import java.io.File
+import java.io.IOException
 import java.util.UUID
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -78,6 +80,43 @@ class AtomicColoringSessionStoreTest {
                 AtomicColoringSessionStore.LoadResult.Missing,
                 store.load(snapshot.sessionId),
             )
+        }
+    }
+
+    @Test
+    fun failureAfterBackupRotationPreservesLastKnownGoodColoringSession() {
+        runBlocking {
+            withTempDirectory { root ->
+                val engine = ColoringSessionEngine.start(
+                    childDocumentId = "doc-storage-pressure",
+                    lessonId = "cute-cat",
+                    lessonRevision = 1,
+                    mode = ColoringSessionMode.COLOR_MYSELF,
+                )
+                engine.selectColor(0xFFE47C68.toInt())
+                val knownGood = engine.snapshot(12_000L)
+                AtomicColoringSessionStore(root).save(knownGood)
+
+                engine.selectColor(0xFF6C9CB8.toInt())
+                val newer = engine.snapshot(13_000L)
+                val failingStore = AtomicColoringSessionStore(
+                    rootDirectory = root,
+                    faultInjector = { stage ->
+                        if (stage == AtomicColoringSessionStore.SaveStage.BACKUP_READY) {
+                            throw IOException("Injected storage-pressure failure.")
+                        }
+                    },
+                )
+
+                assertThrows(IOException::class.java) {
+                    runBlocking { failingStore.save(newer) }
+                }
+
+                val recovered = AtomicColoringSessionStore(root).load(knownGood.sessionId)
+                assertTrue(recovered is AtomicColoringSessionStore.LoadResult.Loaded)
+                recovered as AtomicColoringSessionStore.LoadResult.Loaded
+                assertEquals(knownGood, recovered.snapshot)
+            }
         }
     }
 

@@ -53,6 +53,7 @@ import com.navin.kidsdrawing.drawing.ui.DrawingSurfaceController
 import com.navin.kidsdrawing.product.accessibility.AccessibilityPolicy
 import com.navin.kidsdrawing.product.accessibility.accessibleColorName
 import com.navin.kidsdrawing.product.design.StudioColors
+import com.navin.kidsdrawing.product.device.currentDeviceLayoutPolicy
 import com.navin.kidsdrawing.product.profile.AgeBand
 import kotlinx.coroutines.launch
 
@@ -72,7 +73,14 @@ fun FreeDrawScreen(
     val toolSettings by runtime.toolEngine.state.collectAsState()
     val policy = remember(ageBand) { freeDrawPresentationPolicyFor(ageBand) }
     val accessibilityLayout = AccessibilityPolicy.layout(LocalDensity.current.fontScale)
+    val deviceLayout = currentDeviceLayoutPolicy()
     val toolColumns = if (accessibilityLayout.preferSingleColumnActions) 1 else policy.toolColumns
+    val controlTrayMaxHeightDp = if (deviceLayout.preferBoundedArtControls) {
+        minOf(policy.maxControlTrayHeightDp, CONSTRAINED_CONTROL_TRAY_MAX_DP)
+    } else {
+        policy.maxControlTrayHeightDp
+    }
+    val verticalGap = if (deviceLayout.preferBoundedArtControls) 5.dp else 8.dp
     var recoveryReady by remember(runtime) { mutableStateOf(false) }
     var message by rememberSaveable { mutableStateOf<String?>(null) }
     var confirmClear by rememberSaveable { mutableStateOf(false) }
@@ -118,11 +126,12 @@ fun FreeDrawScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .safeDrawingPadding()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+                .padding(horizontal = 12.dp, vertical = if (deviceLayout.preferBoundedArtControls) 5.dp else 8.dp),
+            verticalArrangement = Arrangement.spacedBy(verticalGap),
         ) {
             FreeDrawTopBar(
                 stackActions = accessibilityLayout.preferSingleColumnActions,
+                compactHeight = deviceLayout.preferBoundedArtControls,
                 minimumControlHeightDp = policy.minimumControlHeightDp,
                 canSaveToGallery = runtime.hasVisibleArtwork() && !finishing,
                 finishing = finishing,
@@ -203,7 +212,7 @@ fun FreeDrawScreen(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = policy.maxControlTrayHeightDp.dp),
+                    .heightIn(max = controlTrayMaxHeightDp.dp),
                 shape = RoundedCornerShape(22.dp),
                 color = StudioColors.Paper100,
                 border = BorderStroke(1.dp, StudioColors.Line200),
@@ -218,7 +227,7 @@ fun FreeDrawScreen(
                     ToolGrid(
                         columns = toolColumns,
                         minimumHeightDp = policy.minimumControlHeightDp,
-                        showDescriptions = policy.showToolDescriptions,
+                        showDescriptions = policy.showToolDescriptions && !deviceLayout.preferBoundedArtControls,
                         selectedTool = toolSettings.tool,
                         selectedPreset = toolSettings.brushPreset,
                         onPreset = { preset -> scope.launch { runtime.selectBrush(preset) } },
@@ -399,6 +408,7 @@ fun FreeDrawScreen(
 @Composable
 private fun FreeDrawTopBar(
     stackActions: Boolean,
+    compactHeight: Boolean,
     minimumControlHeightDp: Int,
     canSaveToGallery: Boolean,
     finishing: Boolean,
@@ -408,18 +418,20 @@ private fun FreeDrawTopBar(
     if (stackActions) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(if (compactHeight) 3.dp else 6.dp),
         ) {
             Text(
                 text = "Free Draw",
                 style = MaterialTheme.typography.titleLarge,
                 color = StudioColors.Ink900,
             )
-            Text(
-                text = "Make anything you imagine",
-                style = MaterialTheme.typography.bodySmall,
-                color = StudioColors.Ink600,
-            )
+            if (!compactHeight) {
+                Text(
+                    text = "Make anything you imagine",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = StudioColors.Ink600,
+                )
+            }
             TextButton(
                 onClick = onSaveAndLeave,
                 modifier = Modifier
@@ -460,11 +472,13 @@ private fun FreeDrawTopBar(
                 style = MaterialTheme.typography.titleLarge,
                 color = StudioColors.Ink900,
             )
-            Text(
-                text = "Make anything you imagine",
-                style = MaterialTheme.typography.bodySmall,
-                color = StudioColors.Ink600,
-            )
+            if (!compactHeight) {
+                Text(
+                    text = "Make anything you imagine",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = StudioColors.Ink600,
+                )
+            }
         }
         Button(
             enabled = canSaveToGallery,
@@ -579,3 +593,5 @@ private data class ToolChoice(
     val description: String,
     val preset: DrawingBrushPreset?,
 )
+
+private const val CONSTRAINED_CONTROL_TRAY_MAX_DP = 180

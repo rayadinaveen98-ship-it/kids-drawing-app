@@ -14,8 +14,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -74,6 +76,7 @@ import com.navin.kidsdrawing.product.adaptive.ProductAdaptiveHelpCoordinator
 import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
 import com.navin.kidsdrawing.product.coloring.ProductColoringStartResult
 import com.navin.kidsdrawing.product.design.StudioColors
+import com.navin.kidsdrawing.product.device.currentDeviceLayoutPolicy
 import com.navin.kidsdrawing.product.profile.AgeBand
 import kotlinx.coroutines.launch
 
@@ -97,6 +100,8 @@ fun GuidedLessonScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val layout = lessonLayoutPolicyFor(ageBand)
     val accessibilityLayout = AccessibilityPolicy.layout(LocalDensity.current.fontScale)
+    val deviceLayout = currentDeviceLayoutPolicy()
+    val lowerControlsScrollState = rememberScrollState()
     val surfaceController = remember { DrawingSurfaceController() }
     val documentState by runtime.documentEngine.state.collectAsState()
     val toolSettings by runtime.toolEngine.state.collectAsState()
@@ -175,6 +180,8 @@ fun GuidedLessonScreen(
     )
     val childCanDraw = sessionState is LessonSessionState.AwaitingChild ||
         sessionState is LessonSessionState.HelpActive
+    val constrainedHeight = deviceLayout.preferBoundedArtControls
+    val verticalGap = if (constrainedHeight) 5.dp else 8.dp
 
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -190,13 +197,14 @@ fun GuidedLessonScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .safeDrawingPadding()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                    .padding(horizontal = 12.dp, vertical = if (constrainedHeight) 5.dp else 8.dp),
+                verticalArrangement = Arrangement.spacedBy(verticalGap),
             ) {
                 WorkspaceTopBar(
                     presentation = presentation,
                     minimumControlHeight = layout.minimumControlHeight,
                     stackActions = accessibilityLayout.preferSingleColumnActions,
+                    compactHeight = constrainedHeight,
                     onSaveAndExit = {
                         scope.launch {
                             runtime.saveNow()
@@ -208,6 +216,7 @@ fun GuidedLessonScreen(
                 CompanionInstruction(
                     presentation = presentation,
                     isolationPass = diagnostics.overlayIsolationPass,
+                    compactHeight = constrainedHeight,
                 )
 
                 Box(
@@ -262,69 +271,82 @@ fun GuidedLessonScreen(
                     }
                 }
 
-                if (presentation.showPostDrawingChoices) {
-                    PostDrawingBoundary(
-                        reflectionPrompt = presentation.reflectionPrompt,
-                        minimumControlHeight = layout.minimumControlHeight,
-                        message = coloringMessage,
-                        enabled = !coloringStarting,
-                        stackActions = accessibilityLayout.preferSingleColumnActions,
-                        onColorWithMe = {
-                            coloringStarting = true
-                            coloringMessage = null
-                            scope.launch {
-                                when (val result = coloringRuntime.beginFromLesson(ColoringSessionMode.COLOR_WITH_ME)) {
-                                    is ProductColoringStartResult.Ready -> onColoringReady()
-                                    is ProductColoringStartResult.Failed -> {
-                                        coloringStarting = false
-                                        coloringMessage = result.message
+                Column(
+                    modifier = if (constrainedHeight) {
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = CONSTRAINED_LESSON_CONTROLS_MAX_HEIGHT)
+                            .verticalScroll(lowerControlsScrollState)
+                    } else {
+                        Modifier.fillMaxWidth()
+                    },
+                    verticalArrangement = Arrangement.spacedBy(if (constrainedHeight) 5.dp else 8.dp),
+                ) {
+                    if (presentation.showPostDrawingChoices) {
+                        PostDrawingBoundary(
+                            reflectionPrompt = presentation.reflectionPrompt,
+                            minimumControlHeight = layout.minimumControlHeight,
+                            message = coloringMessage,
+                            enabled = !coloringStarting,
+                            stackActions = accessibilityLayout.preferSingleColumnActions,
+                            compactHeight = constrainedHeight,
+                            onColorWithMe = {
+                                coloringStarting = true
+                                coloringMessage = null
+                                scope.launch {
+                                    when (val result = coloringRuntime.beginFromLesson(ColoringSessionMode.COLOR_WITH_ME)) {
+                                        is ProductColoringStartResult.Ready -> onColoringReady()
+                                        is ProductColoringStartResult.Failed -> {
+                                            coloringStarting = false
+                                            coloringMessage = result.message
+                                        }
                                     }
                                 }
-                            }
-                        },
-                        onColorMyself = {
-                            coloringStarting = true
-                            coloringMessage = null
-                            scope.launch {
-                                when (val result = coloringRuntime.beginFromLesson(ColoringSessionMode.COLOR_MYSELF)) {
-                                    is ProductColoringStartResult.Ready -> onColoringReady()
-                                    is ProductColoringStartResult.Failed -> {
-                                        coloringStarting = false
-                                        coloringMessage = result.message
+                            },
+                            onColorMyself = {
+                                coloringStarting = true
+                                coloringMessage = null
+                                scope.launch {
+                                    when (val result = coloringRuntime.beginFromLesson(ColoringSessionMode.COLOR_MYSELF)) {
+                                        is ProductColoringStartResult.Ready -> onColoringReady()
+                                        is ProductColoringStartResult.Failed -> {
+                                            coloringStarting = false
+                                            coloringMessage = result.message
+                                        }
                                     }
                                 }
-                            }
-                        },
-                        onFinish = {
-                            scope.launch {
-                                runtime.dispatch(FinishForNow)
-                                onFinishedForNow()
-                            }
-                        },
-                    )
-                } else {
-                    EssentialLessonControls(
-                        runtime = runtime,
-                        presentation = presentation,
-                        currentPace = (sessionState as? LessonSessionState.Contextual)?.context?.pace ?: startPace,
-                        minimumControlHeight = layout.minimumControlHeight,
-                        maxColumns = if (accessibilityLayout.preferSingleColumnActions) {
-                            1
-                        } else {
-                            layout.maxCompactActionColumns
-                        },
-                        onHelpRequested = {
-                            scope.launch {
-                                adaptiveHelpCoordinator.onChildHelpRequested(runtime, ageBand)
-                            }
-                        },
-                    )
-                    DrawingToolControls(
-                        runtime = runtime,
-                        childCanDraw = childCanDraw,
-                        minimumControlHeight = layout.minimumControlHeight,
-                        stackActions = accessibilityLayout.preferSingleColumnActions,
-                    )
+                            },
+                            onFinish = {
+                                scope.launch {
+                                    runtime.dispatch(FinishForNow)
+                                    onFinishedForNow()
+                                }
+                            },
+                        )
+                    } else {
+                        EssentialLessonControls(
+                            runtime = runtime,
+                            presentation = presentation,
+                            currentPace = (sessionState as? LessonSessionState.Contextual)?.context?.pace ?: startPace,
+                            minimumControlHeight = layout.minimumControlHeight,
+                            maxColumns = if (accessibilityLayout.preferSingleColumnActions) {
+                                1
+                            } else {
+                                layout.maxCompactActionColumns
+                            },
+                            onHelpRequested = {
+                                scope.launch {
+                                    adaptiveHelpCoordinator.onChildHelpRequested(runtime, ageBand)
+                                }
+                            },
+                        )
+                        DrawingToolControls(
+                            runtime = runtime,
+                            childCanDraw = childCanDraw,
+                            minimumControlHeight = layout.minimumControlHeight,
+                            stackActions = accessibilityLayout.preferSingleColumnActions,
+                        )
+                    }
                 }
             }
         }
@@ -345,19 +367,20 @@ private fun WorkspaceTopBar(
     presentation: LessonWorkspacePresentation,
     minimumControlHeight: Dp,
     stackActions: Boolean,
+    compactHeight: Boolean,
     onSaveAndExit: () -> Unit,
 ) {
     if (stackActions) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(if (compactHeight) 3.dp else 6.dp),
         ) {
             Text(
                 text = presentation.stepLabel ?: "Drawing",
                 style = MaterialTheme.typography.titleLarge,
                 color = StudioColors.Ink900,
             )
-            LessonProgress(presentation)
+            LessonProgress(presentation, compactHeight)
             TextButton(
                 onClick = onSaveAndExit,
                 modifier = Modifier
@@ -394,27 +417,32 @@ private fun WorkspaceTopBar(
                 style = MaterialTheme.typography.titleLarge,
                 color = StudioColors.Ink900,
             )
-            LessonProgress(presentation)
+            LessonProgress(presentation, compactHeight)
         }
-        Surface(
-            modifier = Modifier.size(42.dp),
-            shape = CircleShape,
-            color = StudioColors.Studio100,
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text("✦", color = StudioColors.Studio600)
+        if (!compactHeight) {
+            Surface(
+                modifier = Modifier.size(42.dp),
+                shape = CircleShape,
+                color = StudioColors.Studio100,
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text("✦", color = StudioColors.Studio600)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun LessonProgress(presentation: LessonWorkspacePresentation) {
+private fun LessonProgress(
+    presentation: LessonWorkspacePresentation,
+    compactHeight: Boolean,
+) {
     LinearProgressIndicator(
         progress = { presentation.progress },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 5.dp)
+            .padding(top = if (compactHeight) 2.dp else 5.dp)
             .semantics {
                 contentDescription = "${presentation.stepLabel ?: "Drawing"} progress"
                 progressBarRangeInfo = ProgressBarRangeInfo(
@@ -431,6 +459,7 @@ private fun LessonProgress(presentation: LessonWorkspacePresentation) {
 private fun CompanionInstruction(
     presentation: LessonWorkspacePresentation,
     isolationPass: Boolean,
+    compactHeight: Boolean,
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -443,14 +472,19 @@ private fun CompanionInstruction(
         border = BorderStroke(1.dp, StudioColors.Line200),
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            modifier = Modifier.padding(
+                horizontal = if (compactHeight) 10.dp else 14.dp,
+                vertical = if (compactHeight) 6.dp else 10.dp,
+            ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            CompanionPreviewFace(modifier = Modifier.size(44.dp))
+            if (!compactHeight) {
+                CompanionPreviewFace(modifier = Modifier.size(44.dp))
+            }
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(start = 12.dp),
+                    .padding(start = if (compactHeight) 0.dp else 12.dp),
             ) {
                 Text(
                     text = presentation.eyebrow,
@@ -464,7 +498,7 @@ private fun CompanionInstruction(
                     style = MaterialTheme.typography.bodyMedium,
                     color = StudioColors.Ink700,
                 )
-                if (!presentation.secondaryCue.isNullOrBlank()) {
+                if (!compactHeight && !presentation.secondaryCue.isNullOrBlank()) {
                     Text(
                         text = presentation.secondaryCue,
                         modifier = Modifier.padding(top = 4.dp),
@@ -644,6 +678,7 @@ private fun PostDrawingBoundary(
     message: String?,
     enabled: Boolean,
     stackActions: Boolean,
+    compactHeight: Boolean,
     onColorWithMe: () -> Unit,
     onColorMyself: () -> Unit,
     onFinish: () -> Unit,
@@ -654,25 +689,27 @@ private fun PostDrawingBoundary(
         color = StudioColors.Studio100,
     ) {
         Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(if (compactHeight) 12.dp else 18.dp),
+            verticalArrangement = Arrangement.spacedBy(if (compactHeight) 5.dp else 8.dp),
         ) {
             Text(
                 text = "Your drawing is ready",
                 style = MaterialTheme.typography.headlineSmall,
                 color = StudioColors.Ink900,
             )
-            Text(
-                text = "Choose what happens next: add color now, or save this drawing for later.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = StudioColors.Ink700,
-            )
-            if (!reflectionPrompt.isNullOrBlank()) {
+            if (!compactHeight) {
                 Text(
-                    text = "Optional thought: $reflectionPrompt",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = StudioColors.Ink500,
+                    text = "Choose what happens next: add color now, or save this drawing for later.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = StudioColors.Ink700,
                 )
+                if (!reflectionPrompt.isNullOrBlank()) {
+                    Text(
+                        text = "Optional thought: $reflectionPrompt",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = StudioColors.Ink500,
+                    )
+                }
             }
             if (!message.isNullOrBlank()) {
                 Text(
@@ -827,3 +864,5 @@ private fun TeachingPace.childLabel(): String = when (this) {
     TeachingPace.FAST -> "fast"
     TeachingPace.VERY_FAST -> "very fast"
 }
+
+private val CONSTRAINED_LESSON_CONTROLS_MAX_HEIGHT = 190.dp

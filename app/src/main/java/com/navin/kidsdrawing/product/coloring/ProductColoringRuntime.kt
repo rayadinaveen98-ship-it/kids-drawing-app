@@ -21,7 +21,11 @@ import com.navin.kidsdrawing.lesson.session.ChooseColorWithMe
 import com.navin.kidsdrawing.lesson.session.ColoringHandoffMode
 import com.navin.kidsdrawing.lesson.session.LessonCommandResult
 import com.navin.kidsdrawing.product.lesson.ProductLessonRuntime
+import com.navin.kidsdrawing.product.quality.ProductTimingEvidence
+import com.navin.kidsdrawing.product.quality.ProductTimingMetric
 import java.io.File
+import java.io.IOException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -74,6 +78,8 @@ class ProductColoringRuntime(
     private var engine: ColoringSessionEngine? = null
     private val _sessionState = MutableStateFlow<ColoringSessionState?>(null)
     val sessionState: StateFlow<ColoringSessionState?> = _sessionState.asStateFlow()
+    private val _persistenceMessage = MutableStateFlow<String?>(null)
+    val persistenceMessage: StateFlow<String?> = _persistenceMessage.asStateFlow()
 
     val documentEngine
         get() = lessonRuntime.documentEngine
@@ -164,15 +170,17 @@ class ProductColoringRuntime(
             _sessionState.value = coloringEngine.state.value
             syncToolEngine(coloringEngine.state.value)
 
-            persistColoringState()
+            persistColoringStateOrThrow()
             initializedSessionId = coloringEngine.state.value.sessionId
 
             lessonRuntime.acknowledgeColoringInitialized()
             handoffAcknowledged = true
 
             runCatching { lessonRuntime.saveNow() }
+            _persistenceMessage.value = null
             ProductColoringStartResult.Ready(coloringEngine.state.value)
         } catch (failure: Throwable) {
+            if (failure is CancellationException) throw failure
             if (!handoffAcknowledged) {
                 initializedSessionId?.let { sessionId ->
                     runCatching { coloringStore.delete(sessionId) }
@@ -199,7 +207,12 @@ class ProductColoringRuntime(
         }
     }
 
-    suspend fun recoverActive(): ProductColoringRecoveryResult {
+    suspend fun recoverActive(): ProductColoringRecoveryResult =
+        ProductTimingEvidence.measure(ProductTimingMetric.COLORING_RECOVERY) {
+            recoverActiveUntimed()
+        }
+
+    private suspend fun recoverActiveUntimed(): ProductColoringRecoveryResult {
         val sessionId = ColoringSessionEngine.sessionIdFor(lessonRuntime.runtimeIdentity.documentId)
         return when (val loaded = coloringStore.load(sessionId)) {
             AtomicColoringSessionStore.LoadResult.Missing -> ProductColoringRecoveryResult.MISSING
@@ -231,6 +244,7 @@ class ProductColoringRuntime(
                 }
                 _sessionState.value = restored.state.value
                 syncToolEngine(restored.state.value)
+                _persistenceMessage.value = null
                 ProductColoringRecoveryResult.RESTORED
             }
         }
@@ -242,7 +256,7 @@ class ProductColoringRuntime(
             "Freehand color strokes require the Brush tool."
         }
         lessonRuntime.documentEngine.commitColorStroke(stroke)
-        persistArtworkAndSession()
+        persistArtworkAndSessionSafely()
     }
 
     suspend fun commitColorEraseMask(mask: EraseMaskRecord) {
@@ -251,7 +265,7 @@ class ProductColoringRuntime(
             "Color erase masks require the Eraser tool."
         }
         lessonRuntime.documentEngine.commitColorEraseMask(mask)
-        persistArtworkAndSession()
+        persistArtworkAndSessionSafely()
     }
 
     suspend fun fillAtDocumentPoint(x: Float, y: Float): ProductColorFillResult {
@@ -273,21 +287,21 @@ class ProductColoringRuntime(
             ?: return ProductColorFillResult.Miss
         val fill = regionEngine.fillRecord(region, current.selectedColorArgb)
         lessonRuntime.documentEngine.commitColorRegionFill(fill)
-        persistArtworkAndSession()
+        persistArtworkAndSessionSafely()
         return ProductColorFillResult.Filled(region.id)
     }
 
     suspend fun undo(): Boolean {
         requireActive()
         val changed = lessonRuntime.documentEngine.undoColoring()
-        if (changed) persistArtworkAndSession()
+        if (changed) persistArtworkAndSessionSafely()
         return changed
     }
 
     suspend fun redo(): Boolean {
         requireActive()
         val changed = lessonRuntime.documentEngine.redoColoring()
-        if (changed) persistArtworkAndSession()
+        if (changed) persistArtworkAndSessionSafely()
         return changed
     }
 
@@ -296,7 +310,7 @@ class ProductColoringRuntime(
         val changed = coloringEngine.selectColor(colorArgb)
         if (changed) {
             publishAndSync(coloringEngine)
-            persistColoringState()
+            persistColoringStateSafely()
         }
         return changed
     }
@@ -307,7 +321,7 @@ class ProductColoringRuntime(
         val changed = coloringEngine.selectTool(tool)
         if (changed) {
             publishAndSync(coloringEngine)
-            persistColoringState()
+            persistColoringStateSafely()
         }
         return changed
     }
@@ -317,15 +331,25 @@ class ProductColoringRuntime(
         val changed = coloringEngine.setBrushWidth(width)
         if (changed) {
             publishAndSync(coloringEngine)
-            persistColoringState()
+            persistColoringStateSafely()
         }
         return changed
     }
 
+    /** Child-facing save boundary: expected I/O failure keeps the workspace open and reports locally. */
     suspend fun saveNow() {
-        val current = engine ?: return
-        drawingStore.save(lessonRuntime.documentEngine.state.value.document)
-        coloringStore.save(current.snapshot(clockMillis()))
+        runPersistenceSafely { persistArtworkAndSessionOrThrow() }
+    }
+
+    /** Authoritative completion boundary: caller must observe failure before claiming Gallery success. */
+    suspend fun saveNowOrThrow() {
+        try {
+            persistArtworkAndSessionOrThrow()
+            _persistenceMessage.value = null
+        } catch (failure: IOException) {
+            reportPersistenceFailure()
+            throw failure
+        }
     }
 
     suspend fun onBackground() = saveNow()
@@ -376,14 +400,35 @@ class ProductColoringRuntime(
         }
     }
 
-    private suspend fun persistArtworkAndSession() {
-        drawingStore.save(lessonRuntime.documentEngine.state.value.document)
-        persistColoringState()
+    private suspend fun persistArtworkAndSessionSafely() {
+        runPersistenceSafely { persistArtworkAndSessionOrThrow() }
     }
 
-    private suspend fun persistColoringState() {
+    private suspend fun persistColoringStateSafely() {
+        runPersistenceSafely { persistColoringStateOrThrow() }
+    }
+
+    private suspend fun persistArtworkAndSessionOrThrow() {
+        drawingStore.save(lessonRuntime.documentEngine.state.value.document)
+        persistColoringStateOrThrow()
+    }
+
+    private suspend fun persistColoringStateOrThrow() {
         val current = engine ?: return
         coloringStore.save(current.snapshot(clockMillis()))
+    }
+
+    private suspend fun runPersistenceSafely(block: suspend () -> Unit) {
+        try {
+            block()
+            _persistenceMessage.value = null
+        } catch (failure: IOException) {
+            reportPersistenceFailure()
+        }
+    }
+
+    private fun reportPersistenceFailure() {
+        _persistenceMessage.value = PERSISTENCE_FAILURE_MESSAGE
     }
 
     private fun publishAndSync(coloringEngine: ColoringSessionEngine) {
@@ -430,5 +475,7 @@ class ProductColoringRuntime(
 
     companion object {
         const val COLORING_SESSION_DIRECTORY = "coloring-sessions"
+        const val PERSISTENCE_FAILURE_MESSAGE =
+            "Your coloring could not save yet. Keep coloring and try again."
     }
 }

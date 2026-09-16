@@ -10,6 +10,8 @@ import com.navin.kidsdrawing.lesson.content.LessonLoadResult
 import com.navin.kidsdrawing.lesson.lab.LessonLabRuntimeCore
 import com.navin.kidsdrawing.lesson.lab.LessonRuntimeIdentity
 import com.navin.kidsdrawing.lesson.model.LessonRuntimePackage
+import com.navin.kidsdrawing.product.quality.ProductTimingEvidence
+import com.navin.kidsdrawing.product.quality.ProductTimingMetric
 import java.io.File
 
 /**
@@ -74,9 +76,9 @@ class ProductLessonRuntime private constructor(
         fun forLesson(
             context: Context,
             identity: LessonCatalogIdentity,
-        ): ProductLessonRuntime {
+        ): ProductLessonRuntime = ProductTimingEvidence.measureBlocking(ProductTimingMetric.LESSON_RECOVERY) {
             val appContext = context.applicationContext
-            return ProductLessonRuntime(
+            ProductLessonRuntime(
                 context = appContext,
                 selection = resolveSelection(appContext, requestedIdentity = identity),
             )

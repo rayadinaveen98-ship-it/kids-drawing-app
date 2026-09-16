@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -59,9 +61,13 @@ import com.navin.kidsdrawing.gallery.domain.GalleryListResult
 import com.navin.kidsdrawing.gallery.domain.GalleryReopenResult
 import com.navin.kidsdrawing.product.accessibility.AccessibilityPolicy
 import com.navin.kidsdrawing.product.design.StudioColors
+import com.navin.kidsdrawing.product.device.currentDeviceLayoutPolicy
+import com.navin.kidsdrawing.product.device.limitGeneralContentWidth
 import java.text.DateFormat
 import java.util.Date
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun GalleryScreen(
@@ -71,47 +77,59 @@ fun GalleryScreen(
 ) {
     var result by remember(runtime) { mutableStateOf<GalleryListResult?>(null) }
     val accessibilityLayout = AccessibilityPolicy.layout(LocalDensity.current.fontScale)
-    val minimumCardWidth = if (accessibilityLayout.avoidFixedTwoColumnCards) 220.dp else 150.dp
+    val deviceLayout = currentDeviceLayoutPolicy()
+    val minimumCardWidth = when {
+        accessibilityLayout.avoidFixedTwoColumnCards -> 220.dp
+        deviceLayout.preferExpandedGalleryCards -> 220.dp
+        else -> 150.dp
+    }
     LaunchedEffect(runtime) { result = runtime.listArtwork() }
 
     Surface(modifier = Modifier.fillMaxSize(), color = StudioColors.Paper50) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .safeDrawingPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            GalleryHeader(onBack = onBack)
-            Text(
-                text = "My Gallery",
-                style = MaterialTheme.typography.headlineMedium,
-                color = StudioColors.Ink900,
-            )
-            Text(
-                text = "Your finished drawings live here.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = StudioColors.Ink600,
-            )
+            Column(
+                modifier = Modifier
+                    .limitGeneralContentWidth(deviceLayout)
+                    .fillMaxHeight()
+                    .fillMaxWidth()
+                    .safeDrawingPadding()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                GalleryHeader(onBack = onBack)
+                Text(
+                    text = "My Gallery",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = StudioColors.Ink900,
+                )
+                Text(
+                    text = "Your finished drawings live here.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = StudioColors.Ink600,
+                )
 
-            when (val loaded = result) {
-                null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = StudioColors.Studio600)
-                }
-                GalleryListResult.Empty -> GalleryEmptyState()
-                is GalleryListResult.Unavailable -> GalleryMessage(loaded.message)
-                is GalleryListResult.Ready -> LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = minimumCardWidth),
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    items(loaded.cards, key = { it.record.entryId }) { card ->
-                        GalleryArtworkCard(
-                            runtime = runtime,
-                            card = card,
-                            onClick = { onOpenArtwork(card.record.entryId) },
-                        )
+                when (val loaded = result) {
+                    null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = StudioColors.Studio600)
+                    }
+                    GalleryListResult.Empty -> GalleryEmptyState()
+                    is GalleryListResult.Unavailable -> GalleryMessage(loaded.message)
+                    is GalleryListResult.Ready -> LazyVerticalGrid(
+                        columns = GridCells.Adaptive(minSize = minimumCardWidth),
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        items(loaded.cards, key = { it.record.entryId }) { card ->
+                            GalleryArtworkCard(
+                                runtime = runtime,
+                                card = card,
+                                onClick = { onOpenArtwork(card.record.entryId) },
+                            )
+                        }
                     }
                 }
             }
@@ -127,6 +145,7 @@ fun GalleryArtworkDetailScreen(
     onDeleted: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    val deviceLayout = currentDeviceLayoutPolicy()
     var result by remember(runtime, entryId) { mutableStateOf<GalleryReopenResult?>(null) }
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     var message by rememberSaveable { mutableStateOf<String?>(null) }
@@ -137,39 +156,46 @@ fun GalleryArtworkDetailScreen(
             null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = StudioColors.Studio600)
             }
-            is GalleryReopenResult.Ready -> Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .safeDrawingPadding()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+            is GalleryReopenResult.Ready -> Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.TopCenter,
             ) {
-                GalleryHeader(onBack = onBack)
-                Text(
-                    text = loaded.record.title,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = StudioColors.Ink900,
-                )
-                Text(
-                    text = detailLabel(loaded.record.completionKind, loaded.record.completedAtEpochMillis),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = StudioColors.Ink600,
-                )
-                Surface(
+                Column(
                     modifier = Modifier
+                        .limitGeneralContentWidth(deviceLayout)
+                        .fillMaxHeight()
                         .fillMaxWidth()
-                        .weight(1f),
-                    shape = RoundedCornerShape(24.dp),
-                    color = androidx.compose.ui.graphics.Color.White,
+                        .safeDrawingPadding()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    ReadOnlyArtworkCanvas(document = loaded.document)
-                }
-                message?.let { GalleryMessage(it) }
-                OutlinedButton(
-                    onClick = { confirmDelete = true },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text("Delete artwork")
+                    GalleryHeader(onBack = onBack)
+                    Text(
+                        text = loaded.record.title,
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = StudioColors.Ink900,
+                    )
+                    Text(
+                        text = detailLabel(loaded.record.completionKind, loaded.record.completedAtEpochMillis),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = StudioColors.Ink600,
+                    )
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        shape = RoundedCornerShape(24.dp),
+                        color = androidx.compose.ui.graphics.Color.White,
+                    ) {
+                        ReadOnlyArtworkCanvas(document = loaded.document)
+                    }
+                    message?.let { GalleryMessage(it) }
+                    OutlinedButton(
+                        onClick = { confirmDelete = true },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text("Delete artwork")
+                    }
                 }
             }
             GalleryReopenResult.EntryMissing -> GallerySafeError(
@@ -224,6 +250,7 @@ fun ArtworkCompletionScreen(
     onSeeGallery: () -> Unit,
     onBackToStudio: () -> Unit,
 ) {
+    val deviceLayout = currentDeviceLayoutPolicy()
     var result by remember(runtime, entryId) { mutableStateOf<GalleryReopenResult?>(null) }
     LaunchedEffect(runtime, entryId) { result = runtime.reopen(entryId) }
 
@@ -232,41 +259,48 @@ fun ArtworkCompletionScreen(
             null -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = StudioColors.Studio600)
             }
-            is GalleryReopenResult.Ready -> Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .safeDrawingPadding()
-                    .padding(18.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(14.dp),
+            is GalleryReopenResult.Ready -> Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.TopCenter,
             ) {
-                Text(
-                    text = "You finished your artwork",
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = StudioColors.Ink900,
-                )
-                Text(
-                    text = "${loaded.record.title} is saved in your Gallery.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = StudioColors.Ink600,
-                )
-                Surface(
+                Column(
                     modifier = Modifier
+                        .limitGeneralContentWidth(deviceLayout)
+                        .fillMaxHeight()
                         .fillMaxWidth()
-                        .weight(1f),
-                    shape = RoundedCornerShape(26.dp),
-                    color = androidx.compose.ui.graphics.Color.White,
+                        .safeDrawingPadding()
+                        .padding(18.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(14.dp),
                 ) {
-                    ReadOnlyArtworkCanvas(loaded.document)
+                    Text(
+                        text = "You finished your artwork",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = StudioColors.Ink900,
+                    )
+                    Text(
+                        text = "${loaded.record.title} is saved in your Gallery.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = StudioColors.Ink600,
+                    )
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        shape = RoundedCornerShape(26.dp),
+                        color = androidx.compose.ui.graphics.Color.White,
+                    ) {
+                        ReadOnlyArtworkCanvas(loaded.document)
+                    }
+                    Button(
+                        onClick = onSeeGallery,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("See in My Gallery") }
+                    OutlinedButton(
+                        onClick = onBackToStudio,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) { Text("Back to studio") }
                 }
-                Button(
-                    onClick = onSeeGallery,
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Text("See in My Gallery") }
-                OutlinedButton(
-                    onClick = onBackToStudio,
-                    modifier = Modifier.fillMaxWidth(),
-                ) { Text("Back to studio") }
             }
             else -> GallerySafeError(
                 "Your artwork was saved, but this celebration view could not reopen it right now.",
@@ -305,12 +339,21 @@ private fun GalleryArtworkCard(
 
 @Composable
 private fun GalleryCardPreview(runtime: ProductGalleryRuntime, card: GalleryArtworkCardModel) {
-    val preview: ImageBitmap? = remember(card.usablePreviewReference) {
-        card.usablePreviewReference
-            ?.let(runtime::previewFile)
-            ?.takeIf { it.isFile }
-            ?.let { BitmapFactory.decodeFile(it.absolutePath) }
-            ?.asImageBitmap()
+    val reference = card.usablePreviewReference
+    val preview by produceState<ImageBitmap?>(
+        initialValue = null,
+        key1 = runtime,
+        key2 = reference,
+    ) {
+        value = withContext(Dispatchers.IO) {
+            runCatching {
+                reference
+                    ?.let(runtime::previewFile)
+                    ?.takeIf { it.isFile }
+                    ?.let { BitmapFactory.decodeFile(it.absolutePath) }
+                    ?.asImageBitmap()
+            }.getOrNull()
+        }
     }
     Box(
         modifier = Modifier
@@ -322,7 +365,7 @@ private fun GalleryCardPreview(runtime: ProductGalleryRuntime, card: GalleryArtw
     ) {
         if (preview != null) {
             Image(
-                bitmap = preview,
+                bitmap = preview!!,
                 contentDescription = "${card.record.title} preview",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,

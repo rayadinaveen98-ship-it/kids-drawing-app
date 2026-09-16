@@ -4,6 +4,7 @@
 **Authoritative repository:** `rayadinaveen98-ship-it/kids-drawing-app`  
 **Latest full product release:** `0.5.0-curriculum-expansion`, versionCode **27**  
 **Latest physically verified Phase-6 milestone:** `0.6.0-family-readiness-p6.3-qa1`, versionCode **29**  
+**Latest automated-green Phase-6 candidate:** `0.6.0-family-readiness-p6.4-qa1`, versionCode **30** — physical QA pending  
 **Phase 5:** **COMPLETE**  
 **Current phase:** Phase 6 — Parent Zone + Accessibility + Device Hardening / `0.6.0-family-readiness` — **ACTIVE**  
 **Phase-6 epic:** #91  
@@ -11,8 +12,8 @@
 **P6.2:** **COMPLETE**  
 **P6.3:** **COMPLETE**  
 **Current slice:** **P6.4 — Accessibility System V2 #98**  
-**Current P6.4 state:** **BASELINE AUDIT / CONTRACT GATE ACTIVE**  
-**Last updated:** 2026-09-15
+**Current P6.4 state:** **QA1 AUTOMATED GREEN / PHYSICAL ACCEPTANCE PENDING**  
+**Last updated:** 2026-09-16
 
 Git is authoritative when chat memory and repository state disagree.
 
@@ -88,41 +89,95 @@ The physically accepted P6.3 executable remains artifact `10387978868` built fro
 
 ## Current slice — P6.4 Accessibility System V2
 
-Authoritative issue: **#98**.  
-Verified dependency baseline: P6.3 merge `fc81703b57419d14c9baf50a0fb4fb91554652f0` / merged-main Android CI #617 GREEN.
+Authoritative issue: **#98 OPEN**.  
+PR: **#99 OPEN / DRAFT / mergeable**.  
+Verified dependency baseline: `56a5b99bee65bec8bb6acf687587a6ac7fc62cf7` / Android CI #622 GREEN.
 
-### Verified baseline observations
+### Contract evidence
 
-- shared `StudioTheme` already uses scalable `sp` typography and age-aware effective targets around 54–68dp;
-- there is no centralized reduced-motion/accessibility policy yet;
-- Parent Gate visual hold progress animates across the frozen 2.5-second policy interval; reduced-motion work may simplify visual feedback but cannot shorten/bypass the timing;
-- some palette combinations need usage-level contrast correction (`Ink500` on `Paper100` ≈ 4.34:1; `Studio500` on white ≈ 4.0:1);
-- older-age Home layouts place Free Draw + Gallery side-by-side and several supporting texts cap at two lines, creating large-font reflow risk;
-- selectable choice cards need explicit selected semantics/non-color-only state;
-- screen-reader naming/state/focus needs a systematic critical-flow audit;
-- left-handed behavior must be based on the actual drawing/tool layout, not speculative mirroring.
+- frozen contract head `7935348bfe3378b363cd7d5753c8f2e6b98d006c`;
+- Android CI #623 GREEN;
+- contract audit **74/74 PASS**;
+- authoritative docs:
+  - `docs/10-execution/P6_4_ACCESSIBILITY_V2_AUDIT.md`;
+  - `docs/10-execution/P6_4_ACCESSIBILITY_V2_CONTRACT.md`;
+  - `docs/10-execution/P6_4_ACCEPTANCE_CHECKLIST.md`.
 
-Authoritative pre-contract notes:
-- `docs/10-execution/P6_4_BASELINE_AUDIT_NOTES.md`;
-- `docs/10-execution/P6_4_TRANSITION_NOTE.md`.
+Frozen P6.4 rules include one local Reduce-motion preference outside ChildProfile, Android/system font scale as the only text-size authority, 1.30×/1.60× layout bands, no weakening of the 2.5-second Parent Gate, no silent acceleration/skipping of authored teacher demonstrations, explicit non-color selected state, human-readable palette names, honest direct-touch canvas limitations, targeted contrast fixes and no speculative handedness mirroring.
 
-### P6.4 frozen inherited constraints
+### Implementation stabilization
 
-- critical effective touch targets remain >=48×48dp;
-- no color-only critical state;
-- large text and small screens must keep critical actions reachable through reflow/scroll;
-- no mandatory multi-finger, precision, shake or rapid-tap critical interaction;
-- reduced motion cannot weaken Parent Gate timing/session rules;
-- accessibility behavior cannot change child/adult ownership boundaries;
-- no new account/cloud/network dependency or Android permission;
-- accepted Drawing/Lesson/Coloring/Gallery/adaptive truth semantics remain unchanged absent an explicit defect/contract amendment;
-- versionCode stays **29** through contract and initial implementation stabilization; reserve >29 only after the complete P6.4 implementation is automated-green.
+Complete implementation stabilized at versionCode **29** before any QA bump:
+- stabilization head `701d29e465a12f9e6d6f2a3331e82a8725fbd11a`;
+- Android CI #647 / run `35067693656` **GREEN**.
 
-### Current execution gate
+Delivered:
+- device-local `AccessibilityPreferencesStore` with real `reduceMotion` persistence;
+- deterministic standard/large/extra-large font-scale policy;
+- real Parent Accessibility & Audio surface;
+- static reduced-motion Parent Gate feedback with unchanged timing/fallback;
+- radio/checkbox/navigation choice semantics and visible `✓ Selected` cues;
+- named Free Draw/Coloring colors + selected-state semantics;
+- targeted `Ink500` / `Studio500` contrast hardening;
+- large-text/reachability adaptation across Home, onboarding, Guided Lesson, Coloring, Free Draw and Gallery;
+- honest lesson/free-draw/coloring canvas descriptions and read-only Gallery semantics;
+- truthful handedness copy without fake mirroring;
+- focused JVM + Compose/instrumentation-source accessibility coverage.
 
-Before production changes, complete the source-level audit and freeze:
-1. `P6_4_ACCESSIBILITY_V2_AUDIT.md`;
-2. `P6_4_ACCESSIBILITY_V2_CONTRACT.md`;
-3. `P6_4_ACCEPTANCE_CHECKLIST.md`.
+### Immutable P6.4 QA1 candidate
 
-Then require contract CI GREEN before production implementation starts.
+- executable source head `fec854c3321d1966dc05437c2c4a3651c2323ae1`;
+- versionName `0.6.0-family-readiness-p6.4-qa1`;
+- versionCode **30**;
+- candidate Android CI #648 / run `35068180162` **GREEN**;
+- frozen curriculum **24 lessons / 0 errors / exactly 6 reviewed warnings**;
+- permission allowlist GREEN;
+- exact APK identity/evidence packaging GREEN.
+
+Profile physical candidate:
+- artifact ID **10434518471**;
+- archive digest `sha256:28978533088b03435343844018d99ec9bd0db0ef6ebf1929db4ef82a77731125`;
+- APK size **16,426,590 bytes**;
+- SHA256 `2727d18d8f21c0e60612f8134aeb06b502941e816ea5390c757007f5dc31acce`.
+
+Debug evidence:
+- artifact ID **10435236575**;
+- APK size **20,724,127 bytes**;
+- SHA256 `e7d1bb3b0dc1f2dc70e39ead44f9bfae0ad834db4fe511d2a2a44f8e8aa5965f`.
+
+Content-quality artifact:
+- artifact ID **10434204389**.
+
+The profile/debug artifacts were independently downloaded and rehashed; sizes and SHA256 values match CI-packaged evidence exactly.
+
+### Physical QA gate
+
+Authoritative matrix: `docs/10-execution/P6_4_FINAL_QA.md`.
+
+Current physical status:
+- PASS **0/30**;
+- FAIL **0/30**;
+- NOT RUN **30/30**;
+- test date pending;
+- tester device/API **not provided and not inferred**;
+- automated release blockers **none**;
+- release decision **PENDING PHYSICAL ACCEPTANCE**.
+
+The exact physical candidate is **profile artifact 10434518471 built from `fec854c...`**. Later documentation-only commits/CI rebuilds do not replace that binary.
+
+Current QA docs:
+- `docs/10-execution/P6_4_FINAL_QA.md`;
+- `docs/10-execution/P6_4_RELEASE_REPORT.md`.
+
+### Closure gate
+
+Do **not** merge PR #99 yet. P6.4 closes only after:
+1. exact v30 profile candidate passes the focused physical matrix **30/30**;
+2. physical acceptance is recorded without inventing tester/device data;
+3. final acceptance-documentation head is CI GREEN;
+4. PR #99 is marked ready and squash-merged;
+5. merged-main Android CI is GREEN on the exact squash merge;
+6. issue #98 is closed completed;
+7. P6.5 Device & Performance Hardening begins only from that verified main baseline.
+
+Any executable change after the current QA1 candidate requires a new monotonic versionCode **>30** and a fresh exact-binary physical QA cycle.

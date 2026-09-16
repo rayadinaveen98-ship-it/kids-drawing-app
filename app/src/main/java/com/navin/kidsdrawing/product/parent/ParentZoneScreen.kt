@@ -43,6 +43,7 @@ import com.navin.kidsdrawing.drawing.domain.TeachingPace
 import com.navin.kidsdrawing.lesson.model.TeachingMode
 import com.navin.kidsdrawing.product.accessibility.AccessibilityPreferences
 import com.navin.kidsdrawing.product.design.StudioChoiceCard
+import com.navin.kidsdrawing.product.design.StudioChoiceSelectionMode
 import com.navin.kidsdrawing.product.design.StudioColors
 import com.navin.kidsdrawing.product.design.StudioPrimaryButton
 import com.navin.kidsdrawing.product.profile.AgeBand
@@ -353,6 +354,7 @@ private fun ParentZoneOverview(
                     selected = false,
                     onClick = { onOpenSection(item) },
                     ageBand = AgeBand.YOUNG_ARTIST,
+                    selectionMode = StudioChoiceSelectionMode.NAVIGATION,
                 )
             }
         }
@@ -440,6 +442,7 @@ private fun ParentProfileEditor(
                         saveError = null
                     },
                     ageBand = AgeBand.YOUNG_ARTIST,
+                    selectionMode = StudioChoiceSelectionMode.MULTIPLE,
                 )
             }
         }
@@ -470,7 +473,7 @@ private fun ParentProfileEditor(
             Text(
                 text = it,
                 style = MaterialTheme.typography.bodyMedium,
-                color = StudioColors.Coral500,
+                color = StudioColors.Ink700,
             )
         }
 

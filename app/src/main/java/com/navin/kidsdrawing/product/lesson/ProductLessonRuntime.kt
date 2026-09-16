@@ -2,11 +2,12 @@ package com.navin.kidsdrawing.product.lesson
 
 import android.content.Context
 import com.navin.kidsdrawing.lesson.content.AndroidAssetLessonSource
-import com.navin.kidsdrawing.lesson.content.LessonCatalog
+import com.navin.kidsdrawing.lesson.content.CatalogIndexV2Loader
+import com.navin.kidsdrawing.lesson.content.CatalogSelectedLessonLoader
 import com.navin.kidsdrawing.lesson.content.LessonCatalogIdentity
-import com.navin.kidsdrawing.lesson.content.LessonDiagnostic
-import com.navin.kidsdrawing.lesson.content.LessonDiagnosticCode
 import com.navin.kidsdrawing.lesson.content.LessonLoadResult
+import com.navin.kidsdrawing.lesson.content.LessonPackageLoader
+import com.navin.kidsdrawing.lesson.content.SelectedLessonLoadResult
 import com.navin.kidsdrawing.lesson.lab.LessonLabRuntimeCore
 import com.navin.kidsdrawing.lesson.lab.LessonRuntimeIdentity
 import com.navin.kidsdrawing.lesson.model.LessonRuntimePackage
@@ -15,8 +16,9 @@ import java.io.File
 /**
  * Production Android adapter over the verified lesson runtime core.
  *
- * P4.2 resolves a stable catalog identity first, then supplies a lesson-specific infrastructure
- * identity to the core. Cute Cat r1 intentionally keeps the exact Phase 3 storage IDs.
+ * Content V2.2 resolves lightweight catalog metadata first and loads only the selected full lesson
+ * package before execution. The package is identity- and capability-validated by
+ * [CatalogSelectedLessonLoader] before it reaches the Lesson Engine.
  */
 class ProductLessonRuntime private constructor(
     context: Context,
@@ -47,13 +49,7 @@ class ProductLessonRuntime private constructor(
     val packageData: LessonRuntimePackage?
         get() = (contentResult as? LessonLoadResult.Success)?.packageData
 
-    /**
-     * Product capability derived only from authored lesson content.
-     *
-     * Keeping this next to [packageData] gives every product surface the same answer and prevents
-     * the completion UI or coloring runtime from inventing coloring support for a lesson that did
-     * not author it.
-     */
+    /** Product capability derived only from the fully validated selected lesson package. */
     val coloringAvailable: Boolean
         get() = packageData?.lesson?.coloring?.enabled == true
 
@@ -90,32 +86,19 @@ class ProductLessonRuntime private constructor(
             requestedIdentity: LessonCatalogIdentity?,
         ): RuntimeSelection {
             val source = AndroidAssetLessonSource(context.assets)
-            val snapshot = LessonCatalog(source).load()
-            val entry = if (requestedIdentity == null) {
-                snapshot.entries.firstOrNull()
-            } else {
-                snapshot.entries.firstOrNull { it.identity == requestedIdentity }
-            }
+            val selected = CatalogSelectedLessonLoader(
+                indexLoader = CatalogIndexV2Loader(source),
+                packageLoader = LessonPackageLoader(source),
+            ).load(requestedIdentity)
 
-            val identity = entry?.identity
-                ?: requestedIdentity
-                ?: LessonCatalogIdentity(LEGACY_FALLBACK_LESSON_ID, LEGACY_FALLBACK_REVISION)
-            val packageData = entry?.let { snapshot.runtimePackage(it.identity) }
-            val contentResult = if (packageData != null) {
-                LessonLoadResult.Success(packageData)
-            } else {
-                LessonLoadResult.Failure(
-                    listOf(
-                        LessonDiagnostic(
-                            code = LessonDiagnosticCode.INVALID_VALUE,
-                            path = "catalog",
-                            message = requestedIdentity?.let {
-                                "Requested lesson ${it.lessonId} r${it.revision} is not available."
-                            } ?: snapshot.diagnostics.firstOrNull()?.message
-                                ?: "No release lesson is available.",
-                        ),
-                    ),
-                )
+            val identity = when (selected) {
+                is SelectedLessonLoadResult.Success -> selected.entry.identity
+                is SelectedLessonLoadResult.Failure -> requestedIdentity
+                    ?: LessonCatalogIdentity(LEGACY_FALLBACK_LESSON_ID, LEGACY_FALLBACK_REVISION)
+            }
+            val contentResult = when (selected) {
+                is SelectedLessonLoadResult.Success -> LessonLoadResult.Success(selected.packageData)
+                is SelectedLessonLoadResult.Failure -> LessonLoadResult.Failure(selected.diagnostics)
             }
             return RuntimeSelection(
                 identity = identity,

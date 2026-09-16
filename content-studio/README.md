@@ -37,6 +37,14 @@ accepted package / author draft
 
 A promotion plan always contains the full staged package, stale package-file deletions, and the regenerated `catalog/lesson-index-v2.json`. A BLOCKED candidate cannot invoke the mutation target.
 
+Release promotion also requires an explicit revision decision:
+
+- **NEW_LESSON** when no prior accepted package exists;
+- **REPLACE_SAME_REVISION** only when the reviewer intentionally replaces the same revision;
+- **INCREMENT_REVISION** when the candidate revision is the accepted prior revision plus one.
+
+The selected decision must match the candidate identity/revision exactly, and only lessons with `status=release` may be promoted. A mismatch is rejected before the mutation target is invoked. Git remains the durable review/audit boundary for applying the complete promotion changeset atomically.
+
 ## Capability truth
 
 Authoring reports use only:

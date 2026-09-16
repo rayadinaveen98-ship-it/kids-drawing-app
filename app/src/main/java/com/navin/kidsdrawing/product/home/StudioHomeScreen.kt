@@ -32,11 +32,14 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.navin.kidsdrawing.product.accessibility.AccessibilityPolicy
+import com.navin.kidsdrawing.product.accessibility.AccessibilityTextScaleBand
 import com.navin.kidsdrawing.product.design.StudioColors
 import com.navin.kidsdrawing.product.design.StudioPrimaryButton
 import com.navin.kidsdrawing.product.design.densityPolicyFor
@@ -58,6 +61,8 @@ fun StudioHomeScreen(
 ) {
     val presentation = StudioRecommendationPolicy.presentationFor(profile.ageBand)
     val density = densityPolicyFor(profile.ageBand)
+    val accessibilityLayout = AccessibilityPolicy.layout(LocalDensity.current.fontScale)
+    val standardText = accessibilityLayout.textScaleBand == AccessibilityTextScaleBand.STANDARD
     val scrollState = rememberScrollState()
 
     Surface(
@@ -74,6 +79,7 @@ fun StudioHomeScreen(
         ) {
             StudioGreeting(
                 profile = profile,
+                stackParentAction = accessibilityLayout.preferSingleColumnActions,
                 onOpenParentZone = { onOpenDestination(StudioDestination.PARENT_ZONE) },
             )
 
@@ -87,6 +93,7 @@ fun StudioHomeScreen(
                         resume = model.resumeCandidate,
                         coloringResume = model.coloringResumeCandidate,
                         presentation = presentation,
+                        showDecorativePreview = standardText,
                         onClick = {
                             onPrimaryLessonAction(
                                 when {
@@ -114,6 +121,7 @@ fun StudioHomeScreen(
                                 profile = profile,
                                 recommendation = recommendation,
                                 presentation = presentation,
+                                allowReasonTruncation = standardText,
                                 onClick = {
                                     if (onOpenLesson != null) onOpenLesson(recommendation)
                                     else onOpenRecommendation()
@@ -171,7 +179,7 @@ fun StudioHomeScreen(
                 },
             )
 
-            if (presentation.twoColumnSecondaryCards) {
+            if (presentation.twoColumnSecondaryCards && !accessibilityLayout.avoidFixedTwoColumnCards) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -231,8 +239,39 @@ fun StudioHomeScreen(
 @Composable
 private fun StudioGreeting(
     profile: ChildProfile,
+    stackParentAction: Boolean,
     onOpenParentZone: () -> Unit,
 ) {
+    if (stackParentAction) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "Hi ${profile.nickname}",
+                style = MaterialTheme.typography.headlineLarge,
+                color = StudioColors.Ink900,
+            )
+            Text(
+                text = greetingSubtitle(profile.ageBand),
+                modifier = Modifier.padding(top = 2.dp),
+                style = MaterialTheme.typography.bodyLarge,
+                color = StudioColors.Ink700,
+            )
+            TextButton(
+                onClick = onOpenParentZone,
+                modifier = Modifier
+                    .padding(top = 6.dp)
+                    .heightIn(min = 48.dp)
+                    .semantics { contentDescription = "Open grown-ups area" },
+            ) {
+                Text(
+                    text = "Grown-ups",
+                    color = StudioColors.Ink700,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+        }
+        return
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -337,6 +376,7 @@ private fun PrimaryStudioHero(
     resume: ResumeLessonCandidate?,
     coloringResume: ColoringResumeCandidate?,
     presentation: HomePresentationPolicy,
+    showDecorativePreview: Boolean,
     onClick: () -> Unit,
 ) {
     val continuing = resume != null || coloringResume != null
@@ -386,13 +426,15 @@ private fun PrimaryStudioHero(
                     )
                 }
 
-                LessonDecorativePreview(
-                    lessonId = recommendation.lessonId,
-                    modifier = Modifier
-                        .padding(start = 12.dp)
-                        .width(if (presentation.density == HomeCardDensity.SPACIOUS) 118.dp else 104.dp)
-                        .aspectRatio(1f),
-                )
+                if (showDecorativePreview) {
+                    LessonDecorativePreview(
+                        lessonId = recommendation.lessonId,
+                        modifier = Modifier
+                            .padding(start = 12.dp)
+                            .width(if (presentation.density == HomeCardDensity.SPACIOUS) 118.dp else 104.dp)
+                            .aspectRatio(1f),
+                    )
+                }
             }
 
             StudioPrimaryButton(
@@ -417,6 +459,7 @@ private fun RecommendationCard(
     profile: ChildProfile,
     recommendation: LessonRecommendation,
     presentation: HomePresentationPolicy,
+    allowReasonTruncation: Boolean,
     onClick: () -> Unit,
 ) {
     Surface(
@@ -452,8 +495,8 @@ private fun RecommendationCard(
                     modifier = Modifier.padding(top = 3.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = StudioColors.Ink700,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
+                    maxLines = if (allowReasonTruncation) 2 else Int.MAX_VALUE,
+                    overflow = if (allowReasonTruncation) TextOverflow.Ellipsis else TextOverflow.Clip,
                 )
                 Text(
                     text = heroMetadata(recommendation, presentation),
@@ -602,16 +645,12 @@ private fun StudioRouteCard(
                     text = title,
                     style = MaterialTheme.typography.titleLarge,
                     color = StudioColors.Ink900,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
                     text = subtitle,
                     modifier = Modifier.padding(top = 2.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = StudioColors.Ink700,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }

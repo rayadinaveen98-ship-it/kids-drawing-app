@@ -53,6 +53,9 @@ jobs:
       - name: Verify Catalog Index V2 production boundary
         run: bash scripts/verify-catalog-index-v2-boundary.sh
 
+      - name: Verify Content Studio child-runtime boundary
+        run: bash scripts/verify-content-studio-boundary.sh
+
       - name: Unit tests, lint, debug APK, instrumentation APK, and profile APK compile
         run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleProfile
 
@@ -66,8 +69,11 @@ jobs:
           test -s "$REPORT_DIR/authoring-capability-inventory.txt"
           test -s "$REPORT_DIR/generated-lesson-index-v2.json"
           test -s "$REPORT_DIR/catalog-index-v2-health.txt"
+          test -s "$REPORT_DIR/content-studio-v1-evidence.json"
+          test -s "$REPORT_DIR/content-studio-v1-health.txt"
           python -m json.tool "$REPORT_DIR/catalog-report.json" > /dev/null
           python -m json.tool "$REPORT_DIR/generated-lesson-index-v2.json" > /dev/null
+          python -m json.tool "$REPORT_DIR/content-studio-v1-evidence.json" > /dev/null
           cmp -s app/src/main/assets/catalog/lesson-index-v2.json "$REPORT_DIR/generated-lesson-index-v2.json"
           python - <<'PY'
           import json
@@ -88,6 +94,60 @@ jobs:
               "committedIndexDrift=0",
           ):
               assert expected in health, expected
+
+          studio = json.loads(Path("app/build/reports/content-quality/content-studio-v1-evidence.json").read_text())
+          assert studio["schemaVersion"] == "1.1", studio
+          assert studio["validationState"] == "ready", studio
+          assert studio["lessonId"] == "cute-cat", studio
+          assert studio["revision"] == 1, studio
+          assert studio["lessonStatus"] == "RELEASE", studio
+          assert studio["packageLoaderPassed"] is True, studio
+          assert studio["drawingStepCount"] == 4, studio
+          assert studio["strokeCount"] > 0, studio
+          assert studio["guideCount"] > 0, studio
+          assert studio["coloringRegionCount"] == 0, studio
+          assert set(studio["supportedModes"]) == {"DRAW_WITH_ME", "WATCH_THEN_DRAW", "TRACE_AND_LEARN"}, studio
+          assert studio["helpReady"] is True, studio
+          assert studio["traceReady"] is True, studio
+          assert studio["coloringCapability"] == "FREEHAND", studio
+          assert studio["qualityWarningCount"] == 6, studio
+          assert studio["projectedIndexEntryCount"] == 24, studio
+          assert studio["diagnostics"] == [], studio
+          assert len(studio["gates"]) == 6, studio
+          assert all(gate["status"] == "PASSED" for gate in studio["gates"]), studio["gates"]
+          projected = studio["projectedIndexEntry"]
+          assert projected["lessonId"] == "cute-cat", projected
+          assert projected["revision"] == 1, projected
+          assert projected["status"] == "release", projected
+          assert projected["capabilitySummary"]["helpAvailable"] is True, projected
+          assert projected["capabilitySummary"]["traceReady"] is True, projected
+          assert projected["capabilitySummary"]["coloring"] == "freehand", projected
+          reserved = {item["field"]: item for item in studio["reservedFields"]}
+          assert reserved["CHILD_TOOL_PRESET"]["disposition"] == "RESERVED_PRESERVE_ONLY", reserved
+          assert reserved["TEACHER_PLAY_AS_GROUP"]["disposition"] == "RESERVED_PRESERVE_ONLY", reserved
+
+          studio_health = Path("app/build/reports/content-quality/content-studio-v1-health.txt").read_text()
+          for expected in (
+              "releasePackages=24",
+              "roundTripPassed=24/24",
+              "representativeValidation=READY",
+              "evidenceSchema=1.1",
+              "packageLoaderPassed=true",
+              "validationGatesPassed=6/6",
+              "evidenceQualityWarnings=6",
+              "projectedIndexEntries=24",
+              "projectedEntry=cute-cat@1",
+              "authoredSignalReleaseBlockedUsages=0",
+              "enforcedSuggestedColorsReleaseBlockedUsages=0",
+              "audioDeclarations=0",
+              "promotionRequiresReadyValidation=true",
+              "promotionRequiresExplicitRevisionDecision=true",
+              "promotionRequiresReleaseStatus=true",
+              "promotionIncludesRegeneratedIndex=true",
+              "invalidCandidateMutationPlan=false",
+          ):
+              assert expected in studio_health, expected
+
           print(
               "Frozen curriculum content quality: "
               f"lessons={report['lessonCount']} "
@@ -95,10 +155,12 @@ jobs:
               f"warnings={report['warningCount']}"
           )
           print(f"Content V2.2 generated catalog index: entries={len(index['entries'])}, drift=0")
+          print("Content V2.3 Studio: roundTrip=24/24 evidence=1.1 gates=6/6 representative=READY projectedIndex=24")
           PY
           cat "$REPORT_DIR/catalog-report.txt"
           cat "$REPORT_DIR/authoring-capability-inventory.txt"
           cat "$REPORT_DIR/catalog-index-v2-health.txt"
+          cat "$REPORT_DIR/content-studio-v1-health.txt"
           {
             echo "## Frozen Curriculum Content Quality"
             echo
@@ -117,6 +179,12 @@ jobs:
             echo '```text'
             cat "$REPORT_DIR/catalog-index-v2-health.txt"
             echo '```'
+            echo
+            echo "## Content V2.3 Studio Health"
+            echo
+            echo '```text'
+            cat "$REPORT_DIR/content-studio-v1-health.txt"
+            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload P6.4 QA content quality reports
@@ -129,6 +197,8 @@ jobs:
             app/build/reports/content-quality/authoring-capability-inventory.txt
             app/build/reports/content-quality/generated-lesson-index-v2.json
             app/build/reports/content-quality/catalog-index-v2-health.txt
+            app/build/reports/content-quality/content-studio-v1-evidence.json
+            app/build/reports/content-quality/content-studio-v1-health.txt
           if-no-files-found: error
           retention-days: 30
 

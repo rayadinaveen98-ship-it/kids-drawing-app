@@ -30,4 +30,11 @@ tasks.test {
     // app/build/reports/content-quality. Keeping that working directory makes the shared release
     // corpus explicit without copying child assets into the tooling module.
     workingDir = rootProject.file("app")
+    testLogging {
+        events("failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+    }
 }

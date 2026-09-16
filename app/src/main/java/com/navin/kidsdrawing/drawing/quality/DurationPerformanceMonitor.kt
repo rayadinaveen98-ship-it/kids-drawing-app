@@ -4,6 +4,7 @@ import kotlin.math.max
 
 data class DurationPerformanceSnapshot(
     val sampleCount: Long = 0L,
+    val medianMillis: Int? = null,
     val p95Millis: Int? = null,
     val p99Millis: Int? = null,
     val maxMillis: Double? = null,
@@ -29,6 +30,7 @@ class DurationPerformanceMonitor {
         if (sampleCount == 0L) return DurationPerformanceSnapshot()
         return DurationPerformanceSnapshot(
             sampleCount = sampleCount,
+            medianMillis = percentileBucket(0.50),
             p95Millis = percentileBucket(0.95),
             p99Millis = percentileBucket(0.99),
             maxMillis = maxDurationNanos / NANOS_PER_MILLISECOND.toDouble(),

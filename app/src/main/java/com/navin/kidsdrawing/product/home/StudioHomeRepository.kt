@@ -12,6 +12,8 @@ import com.navin.kidsdrawing.product.adaptive.adaptiveFreshDecisions
 import com.navin.kidsdrawing.product.coloring.ProductColoringRuntime
 import com.navin.kidsdrawing.product.lesson.ProductLessonRuntime
 import com.navin.kidsdrawing.product.profile.ChildProfile
+import com.navin.kidsdrawing.product.quality.ProductTimingEvidence
+import com.navin.kidsdrawing.product.quality.ProductTimingMetric
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -37,7 +39,12 @@ class StudioHomeRepository(context: Context) {
         File(appContext.filesDir, LocalAdaptiveStateRepository.DIRECTORY_NAME),
     )
 
-    suspend fun load(profile: ChildProfile): StudioHomeModel = withContext(Dispatchers.IO) {
+    suspend fun load(profile: ChildProfile): StudioHomeModel =
+        ProductTimingEvidence.measure(ProductTimingMetric.HOME_LOAD) {
+            loadUntimed(profile)
+        }
+
+    private suspend fun loadUntimed(profile: ChildProfile): StudioHomeModel = withContext(Dispatchers.IO) {
         val catalogSnapshot = catalog.load()
         if (catalogSnapshot.entries.isEmpty()) {
             return@withContext StudioHomeModel(

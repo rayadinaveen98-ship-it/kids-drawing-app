@@ -240,10 +240,11 @@ jobs:
             "app/build/outputs/apk/debug/app-debug.apk" \
             "app/build/outputs/apk/profile/app-profile.apk"; do
             BADGING=$("$AAPT2" dump badging "$APK")
-            echo "$BADGING" | head -n 1
-            echo "$BADGING" | grep -F "package: name='com.navin.kidsdrawing'"
-            echo "$BADGING" | grep -F "versionCode='30'"
-            echo "$BADGING" | grep -F "versionName='0.6.0-family-readiness-p6.4-qa1'"
+            FIRST_LINE=${BADGING%%$'\n'*}
+            echo "$FIRST_LINE"
+            grep -Fq "package: name='com.navin.kidsdrawing'" <<< "$BADGING"
+            grep -Fq "versionCode='30'" <<< "$BADGING"
+            grep -Fq "versionName='0.6.0-family-readiness-p6.4-qa1'" <<< "$BADGING"
           done
           echo "P6.4 QA APK identity is 0.6.0-family-readiness-p6.4-qa1 / versionCode 30."
 

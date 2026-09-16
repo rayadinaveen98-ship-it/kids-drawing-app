@@ -105,6 +105,7 @@ fun GalleryAwareColoringWorkspace(
     onExitToHome: () -> Unit,
 ) {
     val semantic by coloringRuntime.sessionState.collectAsState()
+    val persistenceMessage by coloringRuntime.persistenceMessage.collectAsState()
     var completionInFlight by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -112,7 +113,12 @@ fun GalleryAwareColoringWorkspace(
             runtime = coloringRuntime,
             ageBand = ageBand,
             recoverRequested = recoverRequested,
-            onExitToHome = onExitToHome,
+            onExitToHome = {
+                // ColoringWorkspaceScreen saves before invoking this callback. A failed routine save
+                // leaves a local persistence notice instead of throwing; never navigate away while
+                // that notice is active because the latest in-memory coloring is not yet durable.
+                if (coloringRuntime.persistenceMessage.value == null) onExitToHome()
+            },
             onFinishColoring = {
                 if (completionInFlight) {
                     false
@@ -132,6 +138,13 @@ fun GalleryAwareColoringWorkspace(
             },
         )
 
+        persistenceMessage?.let { message ->
+            ColoringPersistenceNotice(
+                message = message,
+                modifier = Modifier.align(Alignment.TopCenter),
+            )
+        }
+
         if (semantic?.phase == ColoringSessionPhase.FINISHED && !completionInFlight) {
             ColoringCompletionOverlay(
                 galleryRuntime = galleryRuntime,
@@ -140,6 +153,29 @@ fun GalleryAwareColoringWorkspace(
                 modifier = Modifier.align(Alignment.BottomCenter),
             )
         }
+    }
+}
+
+@Composable
+private fun ColoringPersistenceNotice(
+    message: String,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier
+            .safeDrawingPadding()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = StudioColors.Paper50,
+        border = BorderStroke(1.dp, StudioColors.Coral500),
+        shadowElevation = 6.dp,
+    ) {
+        Text(
+            text = message,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+            style = MaterialTheme.typography.bodyMedium,
+            color = StudioColors.Ink700,
+        )
     }
 }
 
@@ -278,6 +314,7 @@ private fun ColoringCompletionOverlay(
             .padding(horizontal = 12.dp, vertical = 8.dp),
         color = StudioColors.Paper50,
         shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, StudioColors.Line200),
         shadowElevation = 6.dp,
     ) {
         Column(

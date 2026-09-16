@@ -90,7 +90,7 @@ class DualFamilyExpansionCapabilityTest {
                     assertTrue(lesson.coloring == null || !lesson.coloring.enabled)
                     assertTrue(lesson.assets.coloringRegions.isNullOrBlank())
                 }
-                CatalogColoringCapability.PREPARED_ONLY -> error("V2.5 does not declare PREPARED_ONLY lessons")
+                CatalogColoringCapability.PREPARED -> error("V2.5 does not declare PREPARED-only lessons")
             }
 
             assertTrue("Preview is missing for ${expectation.id}", File(assetRoot, lesson.assets.preview).isFile)
@@ -100,13 +100,7 @@ class DualFamilyExpansionCapabilityTest {
             }
         }
 
-        val projection = CatalogIndexV2Projector.project(snapshot)
-        assertTrue("Projection failed: $projection", projection is CatalogIndexV2ProjectionResult.Success)
-        val projected = (projection as CatalogIndexV2ProjectionResult.Success).index.entries
-            .filter { it.lessonId in expectedIds }
-            .associateBy { it.lessonId }
-        assertEquals(expectedIds, projected.keys)
-
+        val projected = projectedExpansion(snapshot, expectedIds)
         expected.forEach { expectation ->
             val entry = checkNotNull(projected[expectation.id])
             assertEquals(expectation.modes, entry.supportedModes)
@@ -121,20 +115,24 @@ class DualFamilyExpansionCapabilityTest {
     @Test
     fun v25FamiliesUseFrozenTaxonomyAndHaveMateriallyDistinctAuthoredAssetsPerAge() {
         val snapshot = LessonCatalog(source).load()
+        assertTrue("Catalog diagnostics: ${snapshot.diagnostics}", snapshot.diagnostics.isEmpty())
         val expected = expectedLessons()
+        val expectedIds = expected.map { it.id }.toSet()
+        val projected = projectedExpansion(snapshot, expectedIds)
 
         expected.forEach { expectation ->
             val entry = snapshot.byLessonId(expectation.id).single()
             val packageData = assertNotNullAndReturn(snapshot.runtimePackage(entry.identity))
             assertTrue(packageData.lesson.metadata.prerequisiteLessonIds.isEmpty())
             assertTrue(packageData.lesson.assets.audio.isEmpty())
-            assertTrue(entry.collectionIds.isEmpty())
-            assertTrue(entry.contentFamilyId == null)
+
+            val projectedEntry = checkNotNull(projected[expectation.id])
+            assertTrue(projectedEntry.collectionIds.isEmpty())
+            assertTrue(projectedEntry.contentFamilyId == null)
         }
         assertTrue("Frozen taxonomy registry itself must remain valid.", CatalogTaxonomyV2.registry.diagnostics.isEmpty())
 
-        val families = listOf("sea-turtle-", "robot-")
-        families.forEach { prefix ->
+        listOf("sea-turtle-", "robot-").forEach { prefix ->
             val family = expected.filter { it.id.startsWith(prefix) }
             assertEquals(4, family.size)
             assertEquals(setOf(1, 2, 3, 4), family.map { it.difficulty }.toSet())
@@ -155,6 +153,16 @@ class DualFamilyExpansionCapabilityTest {
             assertEquals("Each age variant must own distinct preview geometry for $prefix", 4, previews.distinct().size)
             assertEquals("Each age variant must own distinct thumbnail geometry for $prefix", 4, thumbnails.distinct().size)
         }
+    }
+
+    private fun projectedExpansion(snapshot: LessonCatalogSnapshot, expectedIds: Set<String>): Map<String, CatalogIndexV2Entry> {
+        val projection = CatalogIndexV2Projector.project(snapshot)
+        assertTrue("Projection failed: $projection", projection is CatalogIndexV2ProjectionResult.Success)
+        val projected = (projection as CatalogIndexV2ProjectionResult.Success).index.entries
+            .filter { it.lessonId in expectedIds }
+            .associateBy { it.lessonId }
+        assertEquals(expectedIds, projected.keys)
+        return projected
     }
 
     private fun expectedLessons(): List<ExpectedLesson> = listOf(

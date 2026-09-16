@@ -21,6 +21,8 @@ import com.navin.kidsdrawing.lesson.session.ChooseColorWithMe
 import com.navin.kidsdrawing.lesson.session.ColoringHandoffMode
 import com.navin.kidsdrawing.lesson.session.LessonCommandResult
 import com.navin.kidsdrawing.product.lesson.ProductLessonRuntime
+import com.navin.kidsdrawing.product.quality.ProductTimingEvidence
+import com.navin.kidsdrawing.product.quality.ProductTimingMetric
 import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -199,7 +201,12 @@ class ProductColoringRuntime(
         }
     }
 
-    suspend fun recoverActive(): ProductColoringRecoveryResult {
+    suspend fun recoverActive(): ProductColoringRecoveryResult =
+        ProductTimingEvidence.measure(ProductTimingMetric.COLORING_RECOVERY) {
+            recoverActiveUntimed()
+        }
+
+    private suspend fun recoverActiveUntimed(): ProductColoringRecoveryResult {
         val sessionId = ColoringSessionEngine.sessionIdFor(lessonRuntime.runtimeIdentity.documentId)
         return when (val loaded = coloringStore.load(sessionId)) {
             AtomicColoringSessionStore.LoadResult.Missing -> ProductColoringRecoveryResult.MISSING

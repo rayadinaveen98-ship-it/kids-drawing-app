@@ -11,6 +11,7 @@ class CatalogIndexV2Loader(
     private val indexPath: String = DEFAULT_INDEX_PATH,
     private val supportedContentApi: Int = LessonPackageLoader.CURRENT_CONTENT_API,
     private val json: Json = LessonPackageLoader.DEFAULT_JSON,
+    private val taxonomyRegistry: CatalogTaxonomyRegistry = CatalogTaxonomyV2.registry,
 ) {
     fun load(): CatalogIndexV2LoadResult {
         val text = source.readText(indexPath)
@@ -47,6 +48,16 @@ class CatalogIndexV2Loader(
     }
 
     internal fun validate(index: CatalogIndexV2Source): List<CatalogIndexV2Diagnostic> = buildList {
+        taxonomyRegistry.diagnostics.forEach { registryDiagnostic ->
+            add(
+                diagnostic(
+                    CatalogIndexV2DiagnosticCode.DUPLICATE_TAXONOMY_ID,
+                    "taxonomy.${registryDiagnostic.kind.name.lowercase()}.${registryDiagnostic.id}",
+                    registryDiagnostic.message,
+                ),
+            )
+        }
+
         if (index.schemaVersion != SCHEMA_VERSION) {
             add(
                 diagnostic(
@@ -68,12 +79,14 @@ class CatalogIndexV2Loader(
 
         index.entries.forEachIndexed { entryIndex, entry ->
             validateEntry(entry, entryIndex).forEach(::add)
+            validateTaxonomyReferences(entry, entryIndex).forEach(::add)
         }
 
         val releaseEntries = index.entries.filter { it.status == LessonStatus.RELEASE }
         releaseEntries
             .groupBy { it.lessonId to it.revision }
             .filterValues { it.size > 1 }
+            .toSortedMap(compareBy<Pair<String, Int>>({ it.first }, { it.second }))
             .forEach { (identity, _) ->
                 add(
                     diagnostic(
@@ -86,6 +99,7 @@ class CatalogIndexV2Loader(
         releaseEntries
             .groupBy(CatalogIndexV2EntrySource::lessonId)
             .filterValues { it.size > 1 }
+            .toSortedMap()
             .forEach { (lessonId, _) ->
                 add(
                     diagnostic(
@@ -121,7 +135,13 @@ class CatalogIndexV2Loader(
                 ),
             )
         }
-    }
+    }.sortedWith(
+        compareBy<CatalogIndexV2Diagnostic>(
+            { it.code.name },
+            { it.path },
+            { it.message },
+        ),
+    )
 
     private fun validateEntry(
         entry: CatalogIndexV2EntrySource,
@@ -146,8 +166,8 @@ class CatalogIndexV2Loader(
         if (entry.skillIds.isEmpty()) add(invalid(base, "at least one skillId is required."))
         if (entry.supportedModes.isEmpty()) add(invalid(base, "at least one supported teaching mode is required."))
         if (entry.supportedModes.size != entry.supportedModes.distinct().size) add(invalid(base, "supportedModes must be unique."))
-        if (entry.capabilitySummary.teachingModes.toSet() != entry.supportedModes.toSet()) {
-            add(invalid(base, "capabilitySummary.teachingModes must exactly match supportedModes."))
+        if (entry.capabilitySummary.teachingModes != entry.supportedModes) {
+            add(invalid(base, "capabilitySummary.teachingModes must exactly match supportedModes, including authored order."))
         }
         if (entry.capabilitySummary.traceReady != (TeachingMode.TRACE_AND_LEARN in entry.supportedModes)) {
             add(invalid(base, "traceReady must exactly reflect validated Trace & Learn availability."))
@@ -174,6 +194,34 @@ class CatalogIndexV2Loader(
         if (entry.lessonId in entry.prerequisiteLessonIds) add(invalid(base, "a lesson cannot require itself."))
     }
 
+    private fun validateTaxonomyReferences(
+        entry: CatalogIndexV2EntrySource,
+        index: Int,
+    ): List<CatalogIndexV2Diagnostic> = buildList {
+        val base = "entries[$index]"
+        fun requireRegistered(kind: CatalogTaxonomyKind, ids: List<String>, field: String) {
+            ids.forEach { id ->
+                if (!taxonomyRegistry.contains(kind, id)) {
+                    add(
+                        diagnostic(
+                            CatalogIndexV2DiagnosticCode.MISSING_TAXONOMY_REFERENCE,
+                            "$base.$field",
+                            "${entry.lessonId} references unregistered ${kind.name.lowercase()} '$id'.",
+                        ),
+                    )
+                }
+            }
+        }
+
+        requireRegistered(CatalogTaxonomyKind.CATEGORY, entry.categoryIds, "categoryIds")
+        requireRegistered(CatalogTaxonomyKind.SKILL, entry.skillIds, "skillIds")
+        requireRegistered(CatalogTaxonomyKind.JOURNEY, entry.journeyIds, "journeyIds")
+        requireRegistered(CatalogTaxonomyKind.COLLECTION, entry.collectionIds, "collectionIds")
+        entry.contentFamilyId?.let { id ->
+            requireRegistered(CatalogTaxonomyKind.CONTENT_FAMILY, listOf(id), "contentFamilyId")
+        }
+    }
+
     private fun toEntry(source: CatalogIndexV2EntrySource): CatalogIndexV2Entry = CatalogIndexV2Entry(
         identity = LessonCatalogIdentity(source.lessonId, source.revision),
         status = source.status,
@@ -183,20 +231,20 @@ class CatalogIndexV2Loader(
         titleKey = source.titleKey,
         summary = source.summary,
         summaryKey = source.summaryKey,
-        ageBands = source.ageBands.toSet(),
+        ageBands = source.ageBands.toList(),
         difficulty = source.difficulty,
         estimatedMinutes = source.estimatedMinutes,
         drawingStepCount = source.drawingStepCount,
-        categoryIds = source.categoryIds.toSet(),
-        skillIds = source.skillIds.toSet(),
-        journeyIds = source.journeyIds.toSet(),
-        collectionIds = source.collectionIds.toSet(),
-        prerequisiteLessonIds = source.prerequisiteLessonIds.toSet(),
-        tags = source.tags.toSet(),
+        categoryIds = source.categoryIds.toList(),
+        skillIds = source.skillIds.toList(),
+        journeyIds = source.journeyIds.toList(),
+        collectionIds = source.collectionIds.toList(),
+        prerequisiteLessonIds = source.prerequisiteLessonIds.toList(),
+        tags = source.tags.toList(),
         contentFamilyId = source.contentFamilyId,
-        supportedModes = source.supportedModes.toSet(),
+        supportedModes = source.supportedModes.toList(),
         capabilitySummary = CatalogCapabilitySummary(
-            teachingModes = source.capabilitySummary.teachingModes.toSet(),
+            teachingModes = source.capabilitySummary.teachingModes.toList(),
             helpAvailable = source.capabilitySummary.helpAvailable,
             traceReady = source.capabilitySummary.traceReady,
             coloring = source.capabilitySummary.coloring,

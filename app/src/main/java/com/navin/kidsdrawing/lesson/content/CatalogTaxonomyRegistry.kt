@@ -78,6 +78,46 @@ class CatalogTaxonomyRegistry(definitions: List<CatalogTaxonomyDefinition>) {
 
 /** Frozen V2.2 vocabulary inventoried from the 24 accepted release lessons. */
 object CatalogTaxonomyV2 {
+    private val CATEGORY_LABELS = mapOf(
+        "animals" to "Animals",
+        "characters" to "People & Characters",
+        "design" to "Design & Invent",
+        "everyday" to "Everyday Things",
+        "food" to "Food",
+        "foundations" to "Drawing Basics",
+        "imagination" to "Fantasy & Imagination",
+        "nature" to "Nature",
+        "portrait" to "Portraits",
+        "scenes" to "Stories & Scenes",
+        "space" to "Space & Science",
+        "vehicles" to "Vehicles & Machines",
+    )
+
+    private val SKILL_LABELS = mapOf(
+        "line.control" to "Line Control",
+        "curves" to "Curves",
+        "shape.construction" to "Shape Construction",
+        "shape_construction" to "Shape Construction",
+        "placement" to "Placement",
+        "placement.symmetry" to "Symmetry",
+        "proportion" to "Proportion",
+        "proportion.basic" to "Basic Proportion",
+        "overlap.basic" to "Overlap & Depth",
+        "pattern" to "Texture & Pattern",
+        "expression.face" to "Facial Expression",
+        "pose.simple" to "Pose & Gesture",
+        "perspective.one_point" to "One-Point Perspective",
+        "composition.balance" to "Composition",
+        "storytelling.character" to "Visual Storytelling",
+    )
+
+    private val JOURNEY_LABELS = mapOf(
+        "journey.animal_artist" to "Animal Artist",
+        "journey.character_creator" to "Character Creator",
+        "journey.first_shapes_to_pictures" to "First Shapes to Pictures",
+        "journey.space_artist" to "Space Artist",
+    )
+
     val registry: CatalogTaxonomyRegistry = CatalogTaxonomyRegistry.fromIds(
         categories = setOf(
             "animals",
@@ -193,44 +233,4 @@ object CatalogTaxonomyV2 {
             .filter(String::isNotBlank)
             .joinToString(" ") { token -> token.replaceFirstChar { it.uppercaseChar() } }
     }
-
-    private val CATEGORY_LABELS = mapOf(
-        "animals" to "Animals",
-        "characters" to "People & Characters",
-        "design" to "Design & Invent",
-        "everyday" to "Everyday Things",
-        "food" to "Food",
-        "foundations" to "Drawing Basics",
-        "imagination" to "Fantasy & Imagination",
-        "nature" to "Nature",
-        "portrait" to "Portraits",
-        "scenes" to "Stories & Scenes",
-        "space" to "Space & Science",
-        "vehicles" to "Vehicles & Machines",
-    )
-
-    private val SKILL_LABELS = mapOf(
-        "line.control" to "Line Control",
-        "curves" to "Curves",
-        "shape.construction" to "Shape Construction",
-        "shape_construction" to "Shape Construction",
-        "placement" to "Placement",
-        "placement.symmetry" to "Symmetry",
-        "proportion" to "Proportion",
-        "proportion.basic" to "Basic Proportion",
-        "overlap.basic" to "Overlap & Depth",
-        "pattern" to "Texture & Pattern",
-        "expression.face" to "Facial Expression",
-        "pose.simple" to "Pose & Gesture",
-        "perspective.one_point" to "One-Point Perspective",
-        "composition.balance" to "Composition",
-        "storytelling.character" to "Visual Storytelling",
-    )
-
-    private val JOURNEY_LABELS = mapOf(
-        "journey.animal_artist" to "Animal Artist",
-        "journey.character_creator" to "Character Creator",
-        "journey.first_shapes_to_pictures" to "First Shapes to Pictures",
-        "journey.space_artist" to "Space Artist",
-    )
 }

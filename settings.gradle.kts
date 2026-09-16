@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "KidsDrawingApp"
 include(":app")
+include(":content-studio")

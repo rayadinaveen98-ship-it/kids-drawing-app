@@ -172,7 +172,7 @@ class ProductGalleryRuntime private constructor(
             get() = runtime.documentEngine.state.value.document
 
         override suspend fun saveBeforeFinish() {
-            runtime.saveNow()
+            runtime.saveNowOrThrow()
         }
 
         override suspend fun finishSemanticState(): Boolean {
@@ -181,7 +181,7 @@ class ProductGalleryRuntime private constructor(
         }
 
         override suspend fun saveAfterFinish() {
-            runtime.saveNow()
+            runtime.saveNowOrThrow()
         }
     }
 

@@ -173,6 +173,13 @@ fun GuidedLessonScreen(
         packageData = runtime.packageData,
         ageBand = ageBand,
     )
+    val postDrawingCapabilities = postDrawingCapabilityPolicy(runtime.coloringAvailable)
+    val lessonTextRepository = remember(context, runtime.packageData) {
+        ProductLessonTextRepository(context, runtime.packageData)
+    }
+    val authoredInstruction = lessonTextRepository.resolve(
+        LessonAuthoredTextPolicy.keyFor(sessionState, runtime.packageData),
+    )
     val childCanDraw = sessionState is LessonSessionState.AwaitingChild ||
         sessionState is LessonSessionState.HelpActive
 
@@ -207,6 +214,7 @@ fun GuidedLessonScreen(
 
                 CompanionInstruction(
                     presentation = presentation,
+                    authoredInstruction = authoredInstruction,
                     isolationPass = diagnostics.overlayIsolationPass,
                 )
 
@@ -264,9 +272,10 @@ fun GuidedLessonScreen(
 
                 if (presentation.showPostDrawingChoices) {
                     PostDrawingBoundary(
+                        capabilityPolicy = postDrawingCapabilities,
                         reflectionPrompt = presentation.reflectionPrompt,
                         minimumControlHeight = layout.minimumControlHeight,
-                        message = coloringMessage,
+                        message = coloringMessage.takeIf { postDrawingCapabilities.showColoringChoices },
                         enabled = !coloringStarting,
                         stackActions = accessibilityLayout.preferSingleColumnActions,
                         onColorWithMe = {
@@ -430,6 +439,7 @@ private fun LessonProgress(presentation: LessonWorkspacePresentation) {
 @Composable
 private fun CompanionInstruction(
     presentation: LessonWorkspacePresentation,
+    authoredInstruction: String?,
     isolationPass: Boolean,
 ) {
     Surface(
@@ -459,7 +469,7 @@ private fun CompanionInstruction(
                     color = StudioColors.Studio600,
                 )
                 Text(
-                    text = presentation.instruction,
+                    text = authoredInstruction ?: presentation.instruction,
                     modifier = Modifier.padding(top = 2.dp),
                     style = MaterialTheme.typography.bodyMedium,
                     color = StudioColors.Ink700,
@@ -639,6 +649,7 @@ private fun DrawingToolControls(
 
 @Composable
 private fun PostDrawingBoundary(
+    capabilityPolicy: PostDrawingCapabilityPolicy,
     reflectionPrompt: String?,
     minimumControlHeight: Dp,
     message: String?,
@@ -663,7 +674,7 @@ private fun PostDrawingBoundary(
                 color = StudioColors.Ink900,
             )
             Text(
-                text = "Choose what happens next: add color now, or save this drawing for later.",
+                text = capabilityPolicy.guidanceCopy,
                 style = MaterialTheme.typography.bodyLarge,
                 color = StudioColors.Ink700,
             )
@@ -681,30 +692,11 @@ private fun PostDrawingBoundary(
                     color = StudioColors.Ink700,
                 )
             }
-            if (stackActions) {
-                WorkspaceButton(
-                    label = "Color with me",
-                    modifier = Modifier.fillMaxWidth(),
-                    primary = true,
-                    enabled = enabled,
-                    minimumHeight = minimumControlHeight,
-                    onClick = onColorWithMe,
-                )
-                WorkspaceButton(
-                    label = "Color myself",
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = enabled,
-                    minimumHeight = minimumControlHeight,
-                    onClick = onColorMyself,
-                )
-            } else {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
+            if (capabilityPolicy.showColoringChoices) {
+                if (stackActions) {
                     WorkspaceButton(
                         label = "Color with me",
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.fillMaxWidth(),
                         primary = true,
                         enabled = enabled,
                         minimumHeight = minimumControlHeight,
@@ -712,11 +704,32 @@ private fun PostDrawingBoundary(
                     )
                     WorkspaceButton(
                         label = "Color myself",
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.fillMaxWidth(),
                         enabled = enabled,
                         minimumHeight = minimumControlHeight,
                         onClick = onColorMyself,
                     )
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        WorkspaceButton(
+                            label = "Color with me",
+                            modifier = Modifier.weight(1f),
+                            primary = true,
+                            enabled = enabled,
+                            minimumHeight = minimumControlHeight,
+                            onClick = onColorWithMe,
+                        )
+                        WorkspaceButton(
+                            label = "Color myself",
+                            modifier = Modifier.weight(1f),
+                            enabled = enabled,
+                            minimumHeight = minimumControlHeight,
+                            onClick = onColorMyself,
+                        )
+                    }
                 }
             }
             WorkspaceButton(

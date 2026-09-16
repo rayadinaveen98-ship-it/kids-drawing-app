@@ -40,3 +40,26 @@ class ProductTimingLedger {
         monitors.values.forEach(DurationPerformanceMonitor::reset)
     }
 }
+
+/**
+ * Process-local timing source shared by production operation boundaries and the internal Quality Lab.
+ *
+ * It deliberately uses [System.nanoTime] so elapsed measurement is monotonic, and it records failed
+ * operations too because slow/failing recovery paths are still useful hardening evidence. Nothing is
+ * persisted or uploaded.
+ */
+object ProductTimingEvidence {
+    val ledger = ProductTimingLedger()
+
+    suspend fun <T> measure(
+        metric: ProductTimingMetric,
+        block: suspend () -> T,
+    ): T {
+        val startedNanos = System.nanoTime()
+        return try {
+            block()
+        } finally {
+            ledger.record(metric, System.nanoTime() - startedNanos)
+        }
+    }
+}

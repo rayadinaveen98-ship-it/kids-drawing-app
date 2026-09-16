@@ -5,7 +5,9 @@ import com.navin.kidsdrawing.coloring.persistence.AtomicColoringSessionStore
 import com.navin.kidsdrawing.coloring.session.ColoringSessionEngine
 import com.navin.kidsdrawing.coloring.session.ColoringSessionPhase
 import com.navin.kidsdrawing.lesson.content.AndroidAssetLessonSource
-import com.navin.kidsdrawing.lesson.content.LessonCatalog
+import com.navin.kidsdrawing.lesson.content.CatalogIndexV2Entry
+import com.navin.kidsdrawing.lesson.content.CatalogIndexV2LoadResult
+import com.navin.kidsdrawing.lesson.content.CatalogIndexV2Loader
 import com.navin.kidsdrawing.lesson.persistence.AtomicLessonSessionStore
 import com.navin.kidsdrawing.product.adaptive.LocalAdaptiveStateRepository
 import com.navin.kidsdrawing.product.adaptive.adaptiveFreshDecisions
@@ -17,16 +19,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
- * Read-only product projection over authored catalog content + persisted Lesson/Coloring state.
+ * Read-only product projection over the metadata-only Catalog Index V2 + persisted session state.
  *
- * P5.7 preserves the accepted resume precedence while allowing the fresh-primary candidate list to
- * use the bounded local adaptive projection. Browse/category/journey discovery still uses the full
- * verified baseline ranking. Missing/corrupt/incompatible adaptive state falls back to P5.6 policy.
+ * Full lesson teaching packages are intentionally not loaded by Home. They are loaded lazily only
+ * after a child selects a lesson. Resume UI uses the index's generated drawingStepCount instead.
  */
 class StudioHomeRepository(context: Context) {
     private val appContext = context.applicationContext
     private val source = AndroidAssetLessonSource(appContext.assets)
-    private val catalog = LessonCatalog(source)
+    private val catalog = CatalogIndexV2Loader(source)
     private val sessionStore = AtomicLessonSessionStore(
         File(appContext.filesDir, ProductLessonRuntime.SESSION_DIRECTORY),
     )
@@ -38,28 +39,15 @@ class StudioHomeRepository(context: Context) {
     )
 
     suspend fun load(profile: ChildProfile): StudioHomeModel = withContext(Dispatchers.IO) {
-        val catalogSnapshot = catalog.load()
-        if (catalogSnapshot.entries.isEmpty()) {
-            return@withContext StudioHomeModel(
-                recommendation = null,
-                resumeCandidate = null,
-                coloringResumeCandidate = null,
-                contentMessage = "Your drawing studio is ready, but its lessons need a quick refresh.",
-                recommendations = emptyList(),
-            )
-        }
+        val catalogResult = catalog.load()
+        val catalogSnapshot = (catalogResult as? CatalogIndexV2LoadResult.Success)?.snapshot
+            ?: return@withContext unavailableModel()
+        if (catalogSnapshot.entries.isEmpty()) return@withContext unavailableModel()
 
-        val projected = catalogSnapshot.entries.mapNotNull { entry ->
-            val packageData = catalogSnapshot.runtimePackage(entry.identity) ?: return@mapNotNull null
-            val recommendation = StudioRecommendationPolicy.recommend(
-                profile = profile,
-                lesson = packageData.lesson,
-                title = entry.title,
-                summary = entry.summary,
-            )
+        val projected = catalogSnapshot.entries.map { entry ->
             ProjectedLesson(
-                recommendation = recommendation,
-                packageData = packageData,
+                entry = entry,
+                recommendation = entry.toStudioRecommendation(profile),
                 runtimeIdentity = ProductLessonRuntime.runtimeIdentityFor(entry.identity),
             )
         }
@@ -90,10 +78,7 @@ class StudioHomeRepository(context: Context) {
                     if (snapshot.sessionId == lesson.runtimeIdentity.sessionId &&
                         snapshot.childDocumentId == lesson.runtimeIdentity.documentId
                     ) {
-                        StudioRecommendationPolicy.resumeCandidate(
-                            snapshot = snapshot,
-                            lesson = lesson.packageData.lesson,
-                        )?.let(drawingCandidates::add)
+                        lesson.entry.resumeCandidate(snapshot)?.let(drawingCandidates::add)
                     }
                 }
 
@@ -107,8 +92,8 @@ class StudioHomeRepository(context: Context) {
                 is AtomicColoringSessionStore.LoadResult.Loaded -> persisted.snapshot
                     .takeIf { snapshot ->
                         snapshot.phase == ColoringSessionPhase.ACTIVE &&
-                            snapshot.lessonId == lesson.packageData.lesson.lessonId &&
-                            snapshot.lessonRevision == lesson.packageData.lesson.revision &&
+                            snapshot.lessonId == lesson.entry.identity.lessonId &&
+                            snapshot.lessonRevision == lesson.entry.identity.revision &&
                             snapshot.childDocumentId == lesson.runtimeIdentity.documentId
                     }
                     ?.let { snapshot ->
@@ -164,20 +149,24 @@ class StudioHomeRepository(context: Context) {
             recommendation = primaryRecommendation,
             resumeCandidate = primary.drawingResume,
             coloringResumeCandidate = primary.coloringResume,
-            contentMessage = if (catalogSnapshot.diagnostics.isNotEmpty()) {
-                "A few studio lessons are resting, but the ready ones are safe to use."
-            } else {
-                null
-            },
+            contentMessage = null,
             recommendations = ranked,
-            categories = StudioRecommendationPolicy.categories(ranked),
-            journeys = StudioRecommendationPolicy.journeys(ranked, activeLessonId),
+            categories = catalogCategories(ranked),
+            journeys = catalogJourneys(ranked, activeLessonId),
         )
     }
 
+    private fun unavailableModel() = StudioHomeModel(
+        recommendation = null,
+        resumeCandidate = null,
+        coloringResumeCandidate = null,
+        contentMessage = "Your drawing studio is ready, but its lessons need a quick refresh.",
+        recommendations = emptyList(),
+    )
+
     private data class ProjectedLesson(
+        val entry: CatalogIndexV2Entry,
         val recommendation: LessonRecommendation,
-        val packageData: com.navin.kidsdrawing.lesson.model.LessonRuntimePackage,
         val runtimeIdentity: com.navin.kidsdrawing.lesson.lab.LessonRuntimeIdentity,
     )
 }

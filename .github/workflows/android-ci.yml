@@ -45,9 +45,13 @@ jobs:
         run: |
           python -m json.tool schemas/lesson.schema.json > /dev/null
           python -m json.tool examples/cute-cat.lesson.json > /dev/null
+          python -m json.tool app/src/main/assets/catalog/lesson-index-v2.json > /dev/null
 
       - name: Verify Drawing Engine Ink boundary
         run: bash scripts/verify-ink-boundary.sh
+
+      - name: Verify Catalog Index V2 production boundary
+        run: bash scripts/verify-catalog-index-v2-boundary.sh
 
       - name: Unit tests, lint, debug APK, instrumentation APK, and profile APK compile
         run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleProfile
@@ -60,7 +64,11 @@ jobs:
           test -s "$REPORT_DIR/catalog-report.txt"
           test -s "$REPORT_DIR/catalog-report.json"
           test -s "$REPORT_DIR/authoring-capability-inventory.txt"
+          test -s "$REPORT_DIR/generated-lesson-index-v2.json"
+          test -s "$REPORT_DIR/catalog-index-v2-health.txt"
           python -m json.tool "$REPORT_DIR/catalog-report.json" > /dev/null
+          python -m json.tool "$REPORT_DIR/generated-lesson-index-v2.json" > /dev/null
+          cmp -s app/src/main/assets/catalog/lesson-index-v2.json "$REPORT_DIR/generated-lesson-index-v2.json"
           python - <<'PY'
           import json
           from pathlib import Path
@@ -69,15 +77,28 @@ jobs:
           assert report["lessonCount"] == 24, report
           assert report["errorCount"] == 0, report
           assert report["warningCount"] == 6, report
+          index = json.loads(Path("app/build/reports/content-quality/generated-lesson-index-v2.json").read_text())
+          assert len(index["entries"]) == 24, len(index["entries"])
+          health = Path("app/build/reports/content-quality/catalog-index-v2-health.txt").read_text()
+          for expected in (
+              "releaseEntries=24",
+              "unknownTaxonomyReferences=0",
+              "duplicateIdentities=0",
+              "prerequisiteGraphFailures=0",
+              "committedIndexDrift=0",
+          ):
+              assert expected in health, expected
           print(
               "Frozen curriculum content quality: "
               f"lessons={report['lessonCount']} "
               f"errors={report['errorCount']} "
               f"warnings={report['warningCount']}"
           )
+          print(f"Content V2.2 generated catalog index: entries={len(index['entries'])}, drift=0")
           PY
           cat "$REPORT_DIR/catalog-report.txt"
           cat "$REPORT_DIR/authoring-capability-inventory.txt"
+          cat "$REPORT_DIR/catalog-index-v2-health.txt"
           {
             echo "## Frozen Curriculum Content Quality"
             echo
@@ -90,6 +111,12 @@ jobs:
             echo '```text'
             cat "$REPORT_DIR/authoring-capability-inventory.txt"
             echo '```'
+            echo
+            echo "## Content V2.2 Catalog Index Health"
+            echo
+            echo '```text'
+            cat "$REPORT_DIR/catalog-index-v2-health.txt"
+            echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload P6.4 QA content quality reports
@@ -100,6 +127,8 @@ jobs:
             app/build/reports/content-quality/catalog-report.txt
             app/build/reports/content-quality/catalog-report.json
             app/build/reports/content-quality/authoring-capability-inventory.txt
+            app/build/reports/content-quality/generated-lesson-index-v2.json
+            app/build/reports/content-quality/catalog-index-v2-health.txt
           if-no-files-found: error
           retention-days: 30
 

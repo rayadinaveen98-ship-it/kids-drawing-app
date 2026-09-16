@@ -1,0 +1,1392 @@
+{
+    "schemaVersion": "2.0",
+    "contentApi": 2,
+    "entries": [
+        {
+            "lessonId": "create-your-character",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/create-your-character",
+            "title": "Create Your Character",
+            "titleKey": "lesson.create_character.title",
+            "summary": "Combine silhouette, expression, outfit shapes and story choices to design a character that belongs to you.",
+            "summaryKey": "lesson.create_character.summary",
+            "ageBands": [
+                "growing_artists",
+                "young_artists"
+            ],
+            "difficulty": 4,
+            "estimatedMinutes": 13,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "characters",
+                "design"
+            ],
+            "skillIds": [
+                "character.design",
+                "character.silhouette",
+                "storytelling.character",
+                "creativity.imagination",
+                "creativity.variation"
+            ],
+            "journeyIds": [
+                "journey.character_creator"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [
+                "simple-body-and-pose"
+            ],
+            "tags": [
+                "character",
+                "design",
+                "silhouette",
+                "story",
+                "creative-choice"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/create-your-character/thumbnail.svg",
+            "previewRef": "lessons/create-your-character/preview.svg"
+        },
+        {
+            "lessonId": "cute-cat",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/cute-cat",
+            "title": "Cute Cat",
+            "titleKey": "lesson.cute_cat.title",
+            "summary": "Draw a friendly cat from simple curves, ears, face details and a body with a tail.",
+            "summaryKey": "lesson.cute_cat.summary",
+            "ageBands": [
+                "creative_explorers",
+                "growing_artists"
+            ],
+            "difficulty": 1,
+            "estimatedMinutes": 8,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "animals",
+                "pets"
+            ],
+            "skillIds": [
+                "curves",
+                "shape_construction",
+                "simple_details"
+            ],
+            "journeyIds": [
+                "journey.first_shapes_to_pictures",
+                "journey.animal_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "cat",
+                "beginner"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw",
+                "trace_and_learn"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw",
+                    "trace_and_learn"
+                ],
+                "helpAvailable": true,
+                "traceReady": true,
+                "coloring": "freehand",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/cute-cat/thumbnail.svg",
+            "previewRef": "lessons/cute-cat/preview.svg"
+        },
+        {
+            "lessonId": "design-your-spaceship",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/design-your-spaceship",
+            "title": "Design Your Spaceship",
+            "titleKey": "lesson.design_your_spaceship.title",
+            "summary": "Learn a sturdy spaceship foundation, then choose, combine or invent details that make the final design unmistakably yours.",
+            "summaryKey": "lesson.design_your_spaceship.summary",
+            "ageBands": [
+                "creative_explorers",
+                "growing_artists",
+                "young_artists"
+            ],
+            "difficulty": 3,
+            "estimatedMinutes": 12,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "space",
+                "design",
+                "imagination"
+            ],
+            "skillIds": [
+                "shape.construction",
+                "placement",
+                "design.silhouette",
+                "design.variation",
+                "creative.choice"
+            ],
+            "journeyIds": [
+                "journey.space_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [
+                "simple-rocket"
+            ],
+            "tags": [
+                "spaceship",
+                "space",
+                "design",
+                "creative",
+                "variation"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/design-your-spaceship/thumbnail.svg",
+            "previewRef": "lessons/design-your-spaceship/preview.svg"
+        },
+        {
+            "lessonId": "easy-flower",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/easy-flower",
+            "title": "Easy Flower",
+            "titleKey": "lesson.easy_flower.title",
+            "summary": "Build a cheerful flower from a round center, a whole group of petals, then a stem and leaves.",
+            "summaryKey": "lesson.easy_flower.summary",
+            "ageBands": [
+                "little_artists",
+                "creative_explorers",
+                "growing_artists"
+            ],
+            "difficulty": 2,
+            "estimatedMinutes": 8,
+            "drawingStepCount": 3,
+            "categoryIds": [
+                "nature",
+                "nature.flowers"
+            ],
+            "skillIds": [
+                "shape.circle",
+                "shape.ellipse",
+                "shape.combine",
+                "placement.relative",
+                "line.straight"
+            ],
+            "journeyIds": [
+                "journey.first_shapes_to_pictures"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [
+                "smiling-sun"
+            ],
+            "tags": [
+                "flower",
+                "nature",
+                "grouped"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/easy-flower/thumbnail.svg",
+            "previewRef": "lessons/easy-flower/preview.svg"
+        },
+        {
+            "lessonId": "elephant-from-shapes",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/elephant-from-shapes",
+            "title": "Elephant From Shapes",
+            "titleKey": "lesson.elephant_from_shapes.title",
+            "summary": "Build a large elephant from simple connected forms, then use overlap and proportion to make the body feel solid before adding your own character details.",
+            "summaryKey": "lesson.elephant_from_shapes.summary",
+            "ageBands": [
+                "creative_explorers",
+                "growing_artists",
+                "young_artists"
+            ],
+            "difficulty": 3,
+            "estimatedMinutes": 11,
+            "drawingStepCount": 5,
+            "categoryIds": [
+                "animals",
+                "animals.wild"
+            ],
+            "skillIds": [
+                "shape.combine",
+                "scale.relative",
+                "proportion.basic",
+                "overlap.basic",
+                "contour.simple"
+            ],
+            "journeyIds": [
+                "journey.animal_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [
+                "friendly-owl"
+            ],
+            "tags": [
+                "elephant",
+                "animal",
+                "shapes",
+                "proportion",
+                "overlap"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/elephant-from-shapes/thumbnail.svg",
+            "previewRef": "lessons/elephant-from-shapes/preview.svg"
+        },
+        {
+            "lessonId": "face-and-expressions",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/face-and-expressions",
+            "title": "Face & Expressions",
+            "titleKey": "lesson.face_expressions.title",
+            "summary": "Build a simple face with clear landmarks, then change the features to create an expression that feels like yours.",
+            "summaryKey": "lesson.face_expressions.summary",
+            "ageBands": [
+                "growing_artists",
+                "young_artists"
+            ],
+            "difficulty": 3,
+            "estimatedMinutes": 10,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "characters",
+                "portrait"
+            ],
+            "skillIds": [
+                "anatomy.face_basic",
+                "placement.symmetry",
+                "expression.face",
+                "proportion.basic",
+                "creativity.variation"
+            ],
+            "journeyIds": [
+                "journey.character_creator"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "face",
+                "expression",
+                "portrait",
+                "construction",
+                "character"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/face-and-expressions/thumbnail.svg",
+            "previewRef": "lessons/face-and-expressions/preview.svg"
+        },
+        {
+            "lessonId": "fox-portrait",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/fox-portrait",
+            "title": "Fox Portrait",
+            "titleKey": "lesson.fox_portrait.title",
+            "summary": "Practice proportion, placement and refined details while building a thoughtful front-facing fox portrait.",
+            "summaryKey": "lesson.fox_portrait.summary",
+            "ageBands": [
+                "growing_artists",
+                "young_artists"
+            ],
+            "difficulty": 4,
+            "estimatedMinutes": 14,
+            "drawingStepCount": 5,
+            "categoryIds": [
+                "animals",
+                "wildlife",
+                "portrait"
+            ],
+            "skillIds": [
+                "proportion",
+                "construction",
+                "placement",
+                "balance",
+                "contour.refinement",
+                "detail.texture",
+                "observation"
+            ],
+            "journeyIds": [
+                "journey.animal_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [
+                "friendly-owl"
+            ],
+            "tags": [
+                "fox",
+                "portrait",
+                "proportion",
+                "detail",
+                "observation"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/fox-portrait/thumbnail.svg",
+            "previewRef": "lessons/fox-portrait/preview.svg"
+        },
+        {
+            "lessonId": "friendly-alien",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/friendly-alien",
+            "title": "Friendly Alien",
+            "titleKey": "lesson.friendly_alien.title",
+            "summary": "Build a clear alien silhouette, balance a few features, then change the parts, expression and story until the character feels like yours.",
+            "summaryKey": "lesson.friendly_alien.summary",
+            "ageBands": [
+                "creative_explorers",
+                "growing_artists",
+                "young_artists"
+            ],
+            "difficulty": 3,
+            "estimatedMinutes": 10,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "space",
+                "space.aliens",
+                "characters",
+                "characters.cartoon"
+            ],
+            "skillIds": [
+                "character.silhouette",
+                "placement.symmetry",
+                "creativity.variation",
+                "storytelling.character"
+            ],
+            "journeyIds": [
+                "journey.space_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [
+                "simple-rocket"
+            ],
+            "tags": [
+                "alien",
+                "character",
+                "space",
+                "silhouette",
+                "creative-choice"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/friendly-alien/thumbnail.svg",
+            "previewRef": "lessons/friendly-alien/preview.svg"
+        },
+        {
+            "lessonId": "friendly-owl",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/friendly-owl",
+            "title": "Friendly Owl",
+            "titleKey": "lesson.friendly_owl.title",
+            "summary": "Build a warm little owl from an oval body, balanced eyes, curved wings, a beak and tiny feet.",
+            "summaryKey": "lesson.friendly_owl.summary",
+            "ageBands": [
+                "creative_explorers",
+                "growing_artists"
+            ],
+            "difficulty": 2,
+            "estimatedMinutes": 10,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "animals",
+                "animals.birds"
+            ],
+            "skillIds": [
+                "shape.ellipse",
+                "shape.circle",
+                "placement.symmetry",
+                "shape.combine",
+                "line.curve"
+            ],
+            "journeyIds": [
+                "journey.animal_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "owl",
+                "animal",
+                "symmetry",
+                "help"
+            ],
+            "supportedModes": [
+                "draw_with_me"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/friendly-owl/thumbnail.svg",
+            "previewRef": "lessons/friendly-owl/preview.svg"
+        },
+        {
+            "lessonId": "happy-lines",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/happy-lines",
+            "title": "Happy Lines",
+            "titleKey": "lesson.happy_lines.title",
+            "summary": "Practice big straight, curvy, zigzag and looping lines, then turn your favorite marks into something of your own.",
+            "summaryKey": "lesson.happy_lines.summary",
+            "ageBands": [
+                "little_artists",
+                "creative_explorers"
+            ],
+            "difficulty": 1,
+            "estimatedMinutes": 6,
+            "drawingStepCount": 5,
+            "categoryIds": [
+                "foundations",
+                "foundations.lines"
+            ],
+            "skillIds": [
+                "line.straight",
+                "line.curve",
+                "line.zigzag",
+                "line.loop",
+                "line.control"
+            ],
+            "journeyIds": [
+                "journey.first_shapes_to_pictures"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "lines",
+                "foundations",
+                "trace",
+                "motor-control",
+                "creative-choice"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "trace_and_learn"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "trace_and_learn"
+                ],
+                "helpAvailable": true,
+                "traceReady": true,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/happy-lines/thumbnail.svg",
+            "previewRef": "lessons/happy-lines/preview.svg"
+        },
+        {
+            "lessonId": "hot-air-balloon",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 2,
+            "packageRef": "lessons/hot-air-balloon",
+            "title": "Hot Air Balloon",
+            "titleKey": "lesson.hot_air_balloon.title",
+            "summary": "Build a floating balloon from one big shape, simple panel lines and a basket, then explore bold color combinations.",
+            "summaryKey": "lesson.hot_air_balloon.summary",
+            "ageBands": [
+                "little_artists",
+                "creative_explorers",
+                "growing_artists"
+            ],
+            "difficulty": 2,
+            "estimatedMinutes": 10,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "travel",
+                "sky",
+                "objects"
+            ],
+            "skillIds": [
+                "shape.oval",
+                "line.straight",
+                "placement.relative",
+                "shape.combine",
+                "color.fill_control",
+                "color.palette_choice"
+            ],
+            "journeyIds": [
+                "journey.first_shapes_to_pictures"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [
+                "smiling-sun"
+            ],
+            "tags": [
+                "balloon",
+                "sky",
+                "travel",
+                "coloring"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "guided_prepared",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/hot-air-balloon/thumbnail.svg",
+            "previewRef": "lessons/hot-air-balloon/preview.svg"
+        },
+        {
+            "lessonId": "ice-cream-shop",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/ice-cream-shop",
+            "title": "Ice Cream Shop",
+            "titleKey": "lesson.ice_cream_shop.title",
+            "summary": "Build a playful ice-cream stand from simple shapes, then invent toppings, patterns and sign details that make the shop yours.",
+            "summaryKey": "lesson.ice_cream_shop.summary",
+            "ageBands": [
+                "creative_explorers",
+                "growing_artists"
+            ],
+            "difficulty": 2,
+            "estimatedMinutes": 9,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "everyday",
+                "food",
+                "design"
+            ],
+            "skillIds": [
+                "shape.combine",
+                "placement.relative",
+                "pattern",
+                "creativity.variation"
+            ],
+            "journeyIds": [],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [
+                "shape-friends"
+            ],
+            "tags": [
+                "ice-cream",
+                "shop",
+                "food",
+                "design",
+                "creative-choice"
+            ],
+            "supportedModes": [
+                "draw_with_me"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/ice-cream-shop/thumbnail.svg",
+            "previewRef": "lessons/ice-cream-shop/preview.svg"
+        },
+        {
+            "lessonId": "little-fish",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 2,
+            "packageRef": "lessons/little-fish",
+            "title": "Little Fish",
+            "titleKey": "lesson.little_fish.title",
+            "summary": "Turn an oval, two simple triangles and a tiny face into a cheerful fish, then bring it to life with color.",
+            "summaryKey": "lesson.little_fish.summary",
+            "ageBands": [
+                "little_artists",
+                "creative_explorers"
+            ],
+            "difficulty": 1,
+            "estimatedMinutes": 7,
+            "drawingStepCount": 3,
+            "categoryIds": [
+                "animals",
+                "animals.ocean"
+            ],
+            "skillIds": [
+                "shape.ellipse",
+                "shape.triangle",
+                "shape.circle",
+                "shape.combine",
+                "placement.relative",
+                "color.fill_control",
+                "color.palette_choice"
+            ],
+            "journeyIds": [
+                "journey.first_shapes_to_pictures",
+                "journey.animal_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [
+                "smiling-sun"
+            ],
+            "tags": [
+                "fish",
+                "ocean",
+                "coloring",
+                "beginner"
+            ],
+            "supportedModes": [
+                "draw_with_me"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "guided_prepared",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/little-fish/thumbnail.svg",
+            "previewRef": "lessons/little-fish/preview.svg"
+        },
+        {
+            "lessonId": "one-point-room",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/one-point-room",
+            "title": "One-Point Room",
+            "titleKey": "lesson.one_point_room.title",
+            "summary": "Use a horizon, one vanishing point and converging edges to build a room with believable depth, then design the space your way.",
+            "summaryKey": "lesson.one_point_room.summary",
+            "ageBands": [
+                "young_artists"
+            ],
+            "difficulty": 5,
+            "estimatedMinutes": 15,
+            "drawingStepCount": 5,
+            "categoryIds": [
+                "scenes",
+                "design"
+            ],
+            "skillIds": [
+                "perspective.one_point",
+                "perspective.depth_scale",
+                "scene.foreground_background",
+                "composition.balance",
+                "scale.relative"
+            ],
+            "journeyIds": [],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [
+                "sailboat-scene"
+            ],
+            "tags": [
+                "perspective",
+                "room",
+                "depth",
+                "scene",
+                "advanced"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/one-point-room/thumbnail.svg",
+            "previewRef": "lessons/one-point-room/preview.svg"
+        },
+        {
+            "lessonId": "planet-with-rings",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/planet-with-rings",
+            "title": "Planet With Rings",
+            "titleKey": "lesson.planet_with_rings.title",
+            "summary": "Build a centered planet, make its rings pass behind and in front, then invent the world’s own surface, moons and mood.",
+            "summaryKey": "lesson.planet_with_rings.summary",
+            "ageBands": [
+                "creative_explorers",
+                "growing_artists"
+            ],
+            "difficulty": 2,
+            "estimatedMinutes": 8,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "space",
+                "space.planets"
+            ],
+            "skillIds": [
+                "shape.circle",
+                "shape.ellipse",
+                "overlap.basic",
+                "composition.centering",
+                "color.palette_choice"
+            ],
+            "journeyIds": [
+                "journey.space_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "planet",
+                "rings",
+                "space",
+                "overlap",
+                "creative-choice"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/planet-with-rings/thumbnail.svg",
+            "previewRef": "lessons/planet-with-rings/preview.svg"
+        },
+        {
+            "lessonId": "rainbow-weather",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 2,
+            "packageRef": "lessons/rainbow-weather",
+            "title": "Rainbow Weather",
+            "titleKey": "lesson.rainbow_weather.title",
+            "summary": "Build a roomy rainbow scene, add balanced clouds, choose your own weather details, then color three broad rainbow bands.",
+            "summaryKey": "lesson.rainbow_weather.summary",
+            "ageBands": [
+                "little_artists",
+                "creative_explorers"
+            ],
+            "difficulty": 2,
+            "estimatedMinutes": 8,
+            "drawingStepCount": 3,
+            "categoryIds": [
+                "nature",
+                "nature.weather",
+                "scenes"
+            ],
+            "skillIds": [
+                "line.curve",
+                "placement.spacing",
+                "color.palette_choice",
+                "composition.balance"
+            ],
+            "journeyIds": [],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [
+                "smiling-sun"
+            ],
+            "tags": [
+                "rainbow",
+                "weather",
+                "scene",
+                "coloring",
+                "creative-choice"
+            ],
+            "supportedModes": [
+                "draw_with_me"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "guided_prepared",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/rainbow-weather/thumbnail.svg",
+            "previewRef": "lessons/rainbow-weather/preview.svg"
+        },
+        {
+            "lessonId": "sailboat-scene",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/sailboat-scene",
+            "title": "Sailboat Scene",
+            "titleKey": "lesson.sailboat_scene.title",
+            "summary": "Construct a sailboat, then use horizon, overlap and scale to place it inside a balanced water scene rather than drawing the boat alone.",
+            "summaryKey": "lesson.sailboat_scene.summary",
+            "ageBands": [
+                "growing_artists",
+                "young_artists"
+            ],
+            "difficulty": 3,
+            "estimatedMinutes": 11,
+            "drawingStepCount": 5,
+            "categoryIds": [
+                "vehicles",
+                "vehicles.water",
+                "nature.landscapes"
+            ],
+            "skillIds": [
+                "shape.triangle",
+                "overlap.basic",
+                "scene.foreground_background",
+                "composition.balance",
+                "scale.relative"
+            ],
+            "journeyIds": [],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [
+                "simple-car"
+            ],
+            "tags": [
+                "sailboat",
+                "water",
+                "scene",
+                "composition",
+                "watch"
+            ],
+            "supportedModes": [
+                "watch_then_draw",
+                "draw_with_me"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "watch_then_draw",
+                    "draw_with_me"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/sailboat-scene/thumbnail.svg",
+            "previewRef": "lessons/sailboat-scene/preview.svg"
+        },
+        {
+            "lessonId": "shape-friends",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/shape-friends",
+            "title": "Shape Friends",
+            "titleKey": "lesson.shape_friends.title",
+            "summary": "Practice a circle, square and triangle, combine them into a simple friend, then choose your own details.",
+            "summaryKey": "lesson.shape_friends.summary",
+            "ageBands": [
+                "little_artists",
+                "creative_explorers"
+            ],
+            "difficulty": 1,
+            "estimatedMinutes": 7,
+            "drawingStepCount": 5,
+            "categoryIds": [
+                "foundations",
+                "foundations.shapes",
+                "characters"
+            ],
+            "skillIds": [
+                "shape.circle",
+                "shape.square",
+                "shape.triangle",
+                "shape.combine",
+                "placement.relative"
+            ],
+            "journeyIds": [
+                "journey.first_shapes_to_pictures"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [
+                "happy-lines"
+            ],
+            "tags": [
+                "shapes",
+                "characters",
+                "trace",
+                "construction",
+                "creative-choice"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "trace_and_learn"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "trace_and_learn"
+                ],
+                "helpAvailable": true,
+                "traceReady": true,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/shape-friends/thumbnail.svg",
+            "previewRef": "lessons/shape-friends/preview.svg"
+        },
+        {
+            "lessonId": "simple-body-and-pose",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/simple-body-and-pose",
+            "title": "Simple Body & Pose",
+            "titleKey": "lesson.body_pose.title",
+            "summary": "Construct a simple figure with clear body proportions, then use direction and balance to give the pose more life.",
+            "summaryKey": "lesson.body_pose.summary",
+            "ageBands": [
+                "growing_artists",
+                "young_artists"
+            ],
+            "difficulty": 4,
+            "estimatedMinutes": 12,
+            "drawingStepCount": 5,
+            "categoryIds": [
+                "characters",
+                "design"
+            ],
+            "skillIds": [
+                "anatomy.body_basic",
+                "pose.simple",
+                "proportion.basic",
+                "character.silhouette",
+                "creativity.variation"
+            ],
+            "journeyIds": [
+                "journey.character_creator"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [
+                "face-and-expressions"
+            ],
+            "tags": [
+                "body",
+                "pose",
+                "gesture",
+                "proportion",
+                "character"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/simple-body-and-pose/thumbnail.svg",
+            "previewRef": "lessons/simple-body-and-pose/preview.svg"
+        },
+        {
+            "lessonId": "simple-car",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/simple-car",
+            "title": "Simple Car",
+            "titleKey": "lesson.simple_car.title",
+            "summary": "Build a clear car from one long body, a smaller cabin and two wheels, then change the design to make it yours.",
+            "summaryKey": "lesson.simple_car.summary",
+            "ageBands": [
+                "creative_explorers",
+                "growing_artists"
+            ],
+            "difficulty": 2,
+            "estimatedMinutes": 8,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "vehicles",
+                "vehicles.land"
+            ],
+            "skillIds": [
+                "shape.rectangle",
+                "shape.circle",
+                "placement.relative",
+                "proportion.basic",
+                "creativity.variation"
+            ],
+            "journeyIds": [],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [
+                "shape-friends"
+            ],
+            "tags": [
+                "car",
+                "vehicle",
+                "construction",
+                "proportion",
+                "creative-choice"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/simple-car/thumbnail.svg",
+            "previewRef": "lessons/simple-car/preview.svg"
+        },
+        {
+            "lessonId": "simple-rocket",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/simple-rocket",
+            "title": "Simple Rocket",
+            "titleKey": "lesson.simple_rocket.title",
+            "summary": "Watch a rocket come together, then draw it yourself from a tall body, balanced fins and a bright flame.",
+            "summaryKey": "lesson.simple_rocket.summary",
+            "ageBands": [
+                "creative_explorers",
+                "growing_artists"
+            ],
+            "difficulty": 2,
+            "estimatedMinutes": 9,
+            "drawingStepCount": 3,
+            "categoryIds": [
+                "space",
+                "space.rockets"
+            ],
+            "skillIds": [
+                "shape.ellipse",
+                "shape.combine",
+                "placement.symmetry",
+                "line.curve"
+            ],
+            "journeyIds": [
+                "journey.space_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "rocket",
+                "space",
+                "watch"
+            ],
+            "supportedModes": [
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/simple-rocket/thumbnail.svg",
+            "previewRef": "lessons/simple-rocket/preview.svg"
+        },
+        {
+            "lessonId": "smiling-sun",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/smiling-sun",
+            "title": "Smiling Sun",
+            "titleKey": "lesson.smiling_sun.title",
+            "summary": "Trace and draw a bright sun from one big circle, simple rays and a happy face.",
+            "summaryKey": "lesson.smiling_sun.summary",
+            "ageBands": [
+                "little_artists",
+                "creative_explorers"
+            ],
+            "difficulty": 1,
+            "estimatedMinutes": 6,
+            "drawingStepCount": 3,
+            "categoryIds": [
+                "foundations",
+                "nature.weather"
+            ],
+            "skillIds": [
+                "shape.circle",
+                "line.straight",
+                "placement.relative"
+            ],
+            "journeyIds": [
+                "journey.first_shapes_to_pictures"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "sun",
+                "shapes",
+                "trace",
+                "beginner"
+            ],
+            "supportedModes": [
+                "trace_and_learn",
+                "draw_with_me"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "trace_and_learn",
+                    "draw_with_me"
+                ],
+                "helpAvailable": true,
+                "traceReady": true,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/smiling-sun/thumbnail.svg",
+            "previewRef": "lessons/smiling-sun/preview.svg"
+        },
+        {
+            "lessonId": "snail-garden",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/snail-garden",
+            "title": "Snail Garden",
+            "titleKey": "lesson.snail_garden.title",
+            "summary": "Build a friendly snail with one flowing shell, then place it in a tiny garden and invent your own patterns and details.",
+            "summaryKey": "lesson.snail_garden.summary",
+            "ageBands": [
+                "little_artists",
+                "creative_explorers"
+            ],
+            "difficulty": 2,
+            "estimatedMinutes": 8,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "animals",
+                "nature",
+                "nature.plants"
+            ],
+            "skillIds": [
+                "line.curve",
+                "line.loop",
+                "shape.organic",
+                "overlap.basic",
+                "creativity.variation"
+            ],
+            "journeyIds": [
+                "journey.animal_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [
+                "little-fish"
+            ],
+            "tags": [
+                "snail",
+                "garden",
+                "curves",
+                "overlap",
+                "creative-choice"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/snail-garden/thumbnail.svg",
+            "previewRef": "lessons/snail-garden/preview.svg"
+        },
+        {
+            "lessonId": "tree-through-seasons",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/tree-through-seasons",
+            "title": "Tree Through Seasons",
+            "titleKey": "lesson.tree_through_seasons.title",
+            "summary": "Build an organic tree from trunk, branches and loose canopy shapes, then choose seasonal details that tell your own story.",
+            "summaryKey": "lesson.tree_through_seasons.summary",
+            "ageBands": [
+                "creative_explorers",
+                "growing_artists",
+                "young_artists"
+            ],
+            "difficulty": 3,
+            "estimatedMinutes": 11,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "nature",
+                "nature.trees",
+                "scenes"
+            ],
+            "skillIds": [
+                "shape.organic",
+                "contour.simple",
+                "detail.layering",
+                "composition.balance",
+                "creativity.variation"
+            ],
+            "journeyIds": [],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [
+                "easy-flower"
+            ],
+            "tags": [
+                "tree",
+                "seasons",
+                "nature",
+                "scene",
+                "creative-choice"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/tree-through-seasons/thumbnail.svg",
+            "previewRef": "lessons/tree-through-seasons/preview.svg"
+        }
+    ]
+}

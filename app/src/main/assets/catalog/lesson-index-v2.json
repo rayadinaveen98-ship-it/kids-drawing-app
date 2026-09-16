@@ -3,6 +3,224 @@
     "contentApi": 2,
     "entries": [
         {
+            "lessonId": "butterfly-big-shapes",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 2,
+            "packageRef": "lessons/butterfly-big-shapes",
+            "title": "Butterfly from Big Shapes",
+            "titleKey": "lesson.butterfly_big_shapes.title",
+            "summary": "Build a friendly butterfly from one long body, four big wings and a pair of matching spots, then fill it with color.",
+            "summaryKey": "lesson.butterfly_big_shapes.summary",
+            "ageBands": [
+                "little_artists"
+            ],
+            "difficulty": 1,
+            "estimatedMinutes": 7,
+            "drawingStepCount": 3,
+            "categoryIds": [
+                "animals",
+                "nature"
+            ],
+            "skillIds": [
+                "shape.ellipse",
+                "line.curve",
+                "placement.symmetry"
+            ],
+            "journeyIds": [
+                "journey.animal_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "butterfly",
+                "shapes",
+                "symmetry",
+                "beginner"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "trace_and_learn"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "trace_and_learn"
+                ],
+                "helpAvailable": true,
+                "traceReady": true,
+                "coloring": "guided_prepared",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/butterfly-big-shapes/thumbnail.svg",
+            "previewRef": "lessons/butterfly-big-shapes/preview.svg"
+        },
+        {
+            "lessonId": "butterfly-observation-study",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/butterfly-observation-study",
+            "title": "Observational Butterfly",
+            "titleKey": "lesson.butterfly_observation_study.title",
+            "summary": "Study the butterfly's center, wing contours, vein directions and edge texture to make a more observational drawing.",
+            "summaryKey": "lesson.butterfly_observation_study.summary",
+            "ageBands": [
+                "young_artists"
+            ],
+            "difficulty": 4,
+            "estimatedMinutes": 16,
+            "drawingStepCount": 5,
+            "categoryIds": [
+                "animals",
+                "nature"
+            ],
+            "skillIds": [
+                "observation",
+                "contour.refinement",
+                "proportion",
+                "detail.texture",
+                "placement.symmetry"
+            ],
+            "journeyIds": [
+                "journey.animal_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "butterfly",
+                "observation",
+                "contour",
+                "texture"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/butterfly-observation-study/thumbnail.svg",
+            "previewRef": "lessons/butterfly-observation-study/preview.svg"
+        },
+        {
+            "lessonId": "butterfly-pattern-play",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/butterfly-pattern-play",
+            "title": "Butterfly Pattern Play",
+            "titleKey": "lesson.butterfly_pattern_play.title",
+            "summary": "Build a balanced butterfly, repeat a few mirrored marks, then invent extra wing patterns of your own.",
+            "summaryKey": "lesson.butterfly_pattern_play.summary",
+            "ageBands": [
+                "creative_explorers"
+            ],
+            "difficulty": 2,
+            "estimatedMinutes": 10,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "animals",
+                "nature"
+            ],
+            "skillIds": [
+                "shape.combine",
+                "placement.symmetry",
+                "pattern",
+                "creativity.variation"
+            ],
+            "journeyIds": [
+                "journey.animal_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "butterfly",
+                "patterns",
+                "symmetry",
+                "creative"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw",
+                "trace_and_learn"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw",
+                    "trace_and_learn"
+                ],
+                "helpAvailable": true,
+                "traceReady": true,
+                "coloring": "freehand",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/butterfly-pattern-play/thumbnail.svg",
+            "previewRef": "lessons/butterfly-pattern-play/preview.svg"
+        },
+        {
+            "lessonId": "butterfly-symmetry-study",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/butterfly-symmetry-study",
+            "title": "Butterfly Symmetry & Proportion",
+            "titleKey": "lesson.butterfly_symmetry_study.title",
+            "summary": "Use a center axis, compare wing sizes and layer a few vein lines to build a more controlled butterfly.",
+            "summaryKey": "lesson.butterfly_symmetry_study.summary",
+            "ageBands": [
+                "growing_artists"
+            ],
+            "difficulty": 3,
+            "estimatedMinutes": 13,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "animals",
+                "nature"
+            ],
+            "skillIds": [
+                "proportion.basic",
+                "placement.symmetry",
+                "line.control",
+                "detail.layering"
+            ],
+            "journeyIds": [
+                "journey.animal_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "butterfly",
+                "symmetry",
+                "proportion",
+                "details"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/butterfly-symmetry-study/thumbnail.svg",
+            "previewRef": "lessons/butterfly-symmetry-study/preview.svg"
+        },
+        {
             "lessonId": "create-your-character",
             "revision": 1,
             "status": "release",

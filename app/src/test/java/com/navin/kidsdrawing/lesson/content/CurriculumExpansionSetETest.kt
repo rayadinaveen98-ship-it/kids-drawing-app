@@ -148,11 +148,60 @@ class CurriculumExpansionSetETest {
         assertEquals(listOf("simple-body-and-pose"), character.metadata.prerequisiteLessonIds)
     }
 
-    private fun productionCatalog(): LessonCatalogSnapshot = LessonCatalog(FileAssetCatalogSource(File("src/main/assets"))).load()
+    /**
+     * Phase-5 tests are historical acceptance evidence. Later library expansions must not silently
+     * redefine that cohort, so project the current production catalog onto the exact 24 lesson IDs
+     * accepted at the Phase-5/V2.3 baseline before evaluating these frozen assertions.
+     */
+    private fun productionCatalog(): LessonCatalogSnapshot {
+        val current = LessonCatalog(FileAssetCatalogSource(File("src/main/assets"))).load()
+        val phase5Entries = current.entries.filter { it.identity.lessonId in PHASE5_RELEASE_LESSON_IDS }
+        check(phase5Entries.map { it.identity.lessonId }.toSet() == PHASE5_RELEASE_LESSON_IDS) {
+            "Frozen Phase-5 release cohort is incomplete in current production catalog."
+        }
+        return LessonCatalogSnapshot(
+            entries = phase5Entries,
+            diagnostics = current.diagnostics,
+            runtimePackages = phase5Entries.associate { entry ->
+                entry.identity to checkNotNull(current.runtimePackage(entry.identity))
+            },
+        )
+    }
+
     private fun LessonCatalogSnapshot.runtime(id: String) = checkNotNull(runtimePackage(checkNotNull(byLessonId(id).singleOrNull()).identity))
+
     private class FileAssetCatalogSource(private val root: File) : LessonCatalogSource {
         override fun readText(path: String): String? = File(root, path).takeIf(File::isFile)?.readText()
         override fun list(path: String): List<String>? = File(root, path).list()?.toList()
         override fun exists(path: String): Boolean = File(root, path).isFile
+    }
+
+    private companion object {
+        val PHASE5_RELEASE_LESSON_IDS = setOf(
+            "create-your-character",
+            "cute-cat",
+            "design-your-spaceship",
+            "easy-flower",
+            "elephant-from-shapes",
+            "face-and-expressions",
+            "fox-portrait",
+            "friendly-alien",
+            "friendly-owl",
+            "happy-lines",
+            "hot-air-balloon",
+            "ice-cream-shop",
+            "little-fish",
+            "one-point-room",
+            "planet-with-rings",
+            "rainbow-weather",
+            "sailboat-scene",
+            "shape-friends",
+            "simple-body-and-pose",
+            "simple-car",
+            "simple-rocket",
+            "smiling-sun",
+            "snail-garden",
+            "tree-through-seasons",
+        )
     }
 }

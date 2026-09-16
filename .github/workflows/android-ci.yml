@@ -80,14 +80,14 @@ jobs:
           from pathlib import Path
 
           report = json.loads(Path("app/build/reports/content-quality/catalog-report.json").read_text())
-          assert report["lessonCount"] == 24, report
+          assert report["lessonCount"] == 28, report
           assert report["errorCount"] == 0, report
           assert report["warningCount"] == 6, report
           index = json.loads(Path("app/build/reports/content-quality/generated-lesson-index-v2.json").read_text())
-          assert len(index["entries"]) == 24, len(index["entries"])
+          assert len(index["entries"]) == 28, len(index["entries"])
           health = Path("app/build/reports/content-quality/catalog-index-v2-health.txt").read_text()
           for expected in (
-              "releaseEntries=24",
+              "releaseEntries=28",
               "unknownTaxonomyReferences=0",
               "duplicateIdentities=0",
               "prerequisiteGraphFailures=0",
@@ -111,7 +111,7 @@ jobs:
           assert studio["traceReady"] is True, studio
           assert studio["coloringCapability"] == "FREEHAND", studio
           assert studio["qualityWarningCount"] == 6, studio
-          assert studio["projectedIndexEntryCount"] == 24, studio
+          assert studio["projectedIndexEntryCount"] == 28, studio
           assert studio["diagnostics"] == [], studio
           assert len(studio["gates"]) == 6, studio
           assert all(gate["status"] == "PASSED" for gate in studio["gates"]), studio["gates"]
@@ -128,14 +128,14 @@ jobs:
 
           studio_health = Path("app/build/reports/content-quality/content-studio-v1-health.txt").read_text()
           for expected in (
-              "releasePackages=24",
-              "roundTripPassed=24/24",
+              "releasePackages=28",
+              "roundTripPassed=28/28",
               "representativeValidation=READY",
               "evidenceSchema=1.1",
               "packageLoaderPassed=true",
               "validationGatesPassed=6/6",
               "evidenceQualityWarnings=6",
-              "projectedIndexEntries=24",
+              "projectedIndexEntries=28",
               "projectedEntry=cute-cat@1",
               "authoredSignalReleaseBlockedUsages=0",
               "enforcedSuggestedColorsReleaseBlockedUsages=0",
@@ -149,20 +149,20 @@ jobs:
               assert expected in studio_health, expected
 
           print(
-              "Frozen curriculum content quality: "
+              "Content V2.4 curriculum quality: "
               f"lessons={report['lessonCount']} "
               f"errors={report['errorCount']} "
               f"warnings={report['warningCount']}"
           )
-          print(f"Content V2.2 generated catalog index: entries={len(index['entries'])}, drift=0")
-          print("Content V2.3 Studio: roundTrip=24/24 evidence=1.1 gates=6/6 representative=READY projectedIndex=24")
+          print(f"Content V2.4 generated catalog index: entries={len(index['entries'])}, drift=0")
+          print("Content Studio: roundTrip=28/28 evidence=1.1 gates=6/6 representative=READY projectedIndex=28")
           PY
           cat "$REPORT_DIR/catalog-report.txt"
           cat "$REPORT_DIR/authoring-capability-inventory.txt"
           cat "$REPORT_DIR/catalog-index-v2-health.txt"
           cat "$REPORT_DIR/content-studio-v1-health.txt"
           {
-            echo "## Frozen Curriculum Content Quality"
+            echo "## Content V2.4 Curriculum Quality"
             echo
             echo '```text'
             cat "$REPORT_DIR/catalog-report.txt"
@@ -174,13 +174,13 @@ jobs:
             cat "$REPORT_DIR/authoring-capability-inventory.txt"
             echo '```'
             echo
-            echo "## Content V2.2 Catalog Index Health"
+            echo "## Content V2.4 Catalog Index Health"
             echo
             echo '```text'
             cat "$REPORT_DIR/catalog-index-v2-health.txt"
             echo '```'
             echo
-            echo "## Content V2.3 Studio Health"
+            echo "## Content Studio Health"
             echo
             echo '```text'
             cat "$REPORT_DIR/content-studio-v1-health.txt"

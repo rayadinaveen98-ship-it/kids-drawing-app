@@ -188,8 +188,25 @@ class P5_8IntegratedReleaseGateTest {
         assertNotNull(withBoth.coloringResume)
     }
 
-    private fun releaseCatalog(): LessonCatalogSnapshot =
-        LessonCatalog(FileAssetCatalogSource(File("src/main/assets"))).load()
+    /**
+     * P5.8 is immutable historical release evidence. Later content expansion must not redefine the
+     * Phase-5 browse/recommendation cohort, so project today's catalog onto the exact 24 accepted
+     * release lesson IDs before exercising the frozen product integration assertions above.
+     */
+    private fun releaseCatalog(): LessonCatalogSnapshot {
+        val current = LessonCatalog(FileAssetCatalogSource(File("src/main/assets"))).load()
+        val phase5Entries = current.entries.filter { it.identity.lessonId in PHASE5_RELEASE_LESSON_IDS }
+        check(phase5Entries.map { it.identity.lessonId }.toSet() == PHASE5_RELEASE_LESSON_IDS) {
+            "Frozen Phase-5 release cohort is incomplete in current production catalog."
+        }
+        return LessonCatalogSnapshot(
+            entries = phase5Entries,
+            diagnostics = current.diagnostics,
+            runtimePackages = phase5Entries.associate { entry ->
+                entry.identity to checkNotNull(current.runtimePackage(entry.identity))
+            },
+        )
+    }
 
     private fun project(
         snapshot: LessonCatalogSnapshot,
@@ -225,5 +242,34 @@ class P5_8IntegratedReleaseGateTest {
         override fun readText(path: String): String? = File(root, path).takeIf(File::isFile)?.readText()
         override fun list(path: String): List<String>? = File(root, path).list()?.toList()
         override fun exists(path: String): Boolean = File(root, path).isFile
+    }
+
+    private companion object {
+        val PHASE5_RELEASE_LESSON_IDS = setOf(
+            "create-your-character",
+            "cute-cat",
+            "design-your-spaceship",
+            "easy-flower",
+            "elephant-from-shapes",
+            "face-and-expressions",
+            "fox-portrait",
+            "friendly-alien",
+            "friendly-owl",
+            "happy-lines",
+            "hot-air-balloon",
+            "ice-cream-shop",
+            "little-fish",
+            "one-point-room",
+            "planet-with-rings",
+            "rainbow-weather",
+            "sailboat-scene",
+            "shape-friends",
+            "simple-body-and-pose",
+            "simple-car",
+            "simple-rocket",
+            "smiling-sun",
+            "snail-garden",
+            "tree-through-seasons",
+        )
     }
 }

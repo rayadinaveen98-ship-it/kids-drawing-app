@@ -777,7 +777,7 @@ private fun WorkspaceButton(
             onClick = onClick,
             enabled = enabled,
             modifier = modifier
-                .heightIn(min = minimumControlHeight)
+                .heightIn(min = minimumHeight)
                 .then(selectionModifier),
             shape = RoundedCornerShape(16.dp),
             border = BorderStroke(1.dp, StudioColors.Line200),

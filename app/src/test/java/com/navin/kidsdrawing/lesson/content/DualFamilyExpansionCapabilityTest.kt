@@ -155,7 +155,7 @@ class DualFamilyExpansionCapabilityTest {
         }
     }
 
-    private fun projectedExpansion(snapshot: LessonCatalogSnapshot, expectedIds: Set<String>): Map<String, CatalogIndexV2Entry> {
+    private fun projectedExpansion(snapshot: LessonCatalogSnapshot, expectedIds: Set<String>): Map<String, CatalogIndexV2EntrySource> {
         val projection = CatalogIndexV2Projector.project(snapshot)
         assertTrue("Projection failed: $projection", projection is CatalogIndexV2ProjectionResult.Success)
         val projected = (projection as CatalogIndexV2ProjectionResult.Success).index.entries

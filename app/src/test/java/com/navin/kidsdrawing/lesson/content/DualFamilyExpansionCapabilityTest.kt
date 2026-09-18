@@ -93,10 +93,13 @@ class DualFamilyExpansionCapabilityTest {
                 CatalogColoringCapability.PREPARED -> error("V2.5 does not declare PREPARED-only lessons")
             }
 
-            assertTrue("Preview is missing for ${expectation.id}", File(assetRoot, lesson.assets.preview).isFile)
-            assertTrue("Thumbnail is missing for ${expectation.id}", File(assetRoot, lesson.assets.thumbnail).isFile)
+            assertTrue("Preview is missing for ${expectation.id}", packageAssetFile(expectation.id, lesson.assets.preview).isFile)
+            assertTrue("Thumbnail is missing for ${expectation.id}", packageAssetFile(expectation.id, lesson.assets.thumbnail).isFile)
             lesson.assets.strings.values.forEach { stringPath ->
-                assertTrue("Strings file is missing for ${expectation.id}: $stringPath", File(assetRoot, stringPath).isFile)
+                assertTrue(
+                    "Strings file is missing for ${expectation.id}: $stringPath",
+                    packageAssetFile(expectation.id, stringPath).isFile,
+                )
             }
         }
 
@@ -144,11 +147,11 @@ class DualFamilyExpansionCapabilityTest {
 
             val previews = family.map { expectation ->
                 val lesson = assertNotNullAndReturn(snapshot.runtimePackage(snapshot.byLessonId(expectation.id).single().identity)).lesson
-                File(assetRoot, lesson.assets.preview).readText()
+                packageAssetFile(expectation.id, lesson.assets.preview).readText()
             }
             val thumbnails = family.map { expectation ->
                 val lesson = assertNotNullAndReturn(snapshot.runtimePackage(snapshot.byLessonId(expectation.id).single().identity)).lesson
-                File(assetRoot, lesson.assets.thumbnail).readText()
+                packageAssetFile(expectation.id, lesson.assets.thumbnail).readText()
             }
             assertEquals("Each age variant must own distinct preview geometry for $prefix", 4, previews.distinct().size)
             assertEquals("Each age variant must own distinct thumbnail geometry for $prefix", 4, thumbnails.distinct().size)
@@ -164,6 +167,9 @@ class DualFamilyExpansionCapabilityTest {
         assertEquals(expectedIds, projected.keys)
         return projected
     }
+
+    private fun packageAssetFile(lessonId: String, relativePath: String): File =
+        File(File(assetRoot, "lessons/$lessonId"), relativePath)
 
     private fun expectedLessons(): List<ExpectedLesson> = listOf(
         ExpectedLesson(

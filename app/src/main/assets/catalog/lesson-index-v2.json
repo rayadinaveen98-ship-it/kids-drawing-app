@@ -1148,6 +1148,230 @@
             "previewRef": "lessons/rainbow-weather/preview.svg"
         },
         {
+            "lessonId": "robot-big-shapes",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 2,
+            "packageRef": "lessons/robot-big-shapes",
+            "title": "Friendly Robot from Big Shapes",
+            "titleKey": "lesson.robot_big_shapes.title",
+            "summary": "Build a friendly robot from one head box, one big body box, chunky limbs and simple round controls, then add color.",
+            "summaryKey": "lesson.robot_big_shapes.summary",
+            "ageBands": [
+                "little_artists"
+            ],
+            "difficulty": 1,
+            "estimatedMinutes": 7,
+            "drawingStepCount": 3,
+            "categoryIds": [
+                "characters",
+                "design"
+            ],
+            "skillIds": [
+                "shape.rectangle",
+                "shape.circle",
+                "shape.combine",
+                "placement.relative"
+            ],
+            "journeyIds": [
+                "journey.character_creator"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "robot",
+                "big-shapes",
+                "character",
+                "beginner"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "trace_and_learn"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "trace_and_learn"
+                ],
+                "helpAvailable": true,
+                "traceReady": true,
+                "coloring": "guided_prepared",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/robot-big-shapes/thumbnail.svg",
+            "previewRef": "lessons/robot-big-shapes/preview.svg"
+        },
+        {
+            "lessonId": "robot-design-lab",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/robot-design-lab",
+            "title": "Robot Design Lab",
+            "titleKey": "lesson.robot_design_lab.title",
+            "summary": "Build an action-pose robot, then change its face panel, antenna and accessories to create a silhouette with your own design choices.",
+            "summaryKey": "lesson.robot_design_lab.summary",
+            "ageBands": [
+                "creative_explorers"
+            ],
+            "difficulty": 2,
+            "estimatedMinutes": 10,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "characters",
+                "design"
+            ],
+            "skillIds": [
+                "shape.combine",
+                "design.silhouette",
+                "design.variation",
+                "creativity.variation",
+                "expression.face"
+            ],
+            "journeyIds": [
+                "journey.character_creator"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "robot",
+                "design",
+                "character",
+                "variation",
+                "action-pose"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw",
+                "trace_and_learn"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw",
+                    "trace_and_learn"
+                ],
+                "helpAvailable": true,
+                "traceReady": true,
+                "coloring": "freehand",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/robot-design-lab/thumbnail.svg",
+            "previewRef": "lessons/robot-design-lab/preview.svg"
+        },
+        {
+            "lessonId": "robot-mechanical-observation",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/robot-mechanical-observation",
+            "title": "Mechanical Robot Observation",
+            "titleKey": "lesson.robot_mechanical_observation.title",
+            "summary": "Observe a crouched service robot as connected mechanical forms, refine near/far limb proportions, and add restrained panel texture that follows the body.",
+            "summaryKey": "lesson.robot_mechanical_observation.summary",
+            "ageBands": [
+                "young_artists"
+            ],
+            "difficulty": 4,
+            "estimatedMinutes": 16,
+            "drawingStepCount": 5,
+            "categoryIds": [
+                "characters",
+                "design"
+            ],
+            "skillIds": [
+                "observation",
+                "contour.refinement",
+                "proportion",
+                "detail.texture",
+                "design.silhouette"
+            ],
+            "journeyIds": [
+                "journey.character_creator"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "robot",
+                "mechanical",
+                "observation",
+                "contour",
+                "service-robot"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/robot-mechanical-observation/thumbnail.svg",
+            "previewRef": "lessons/robot-mechanical-observation/preview.svg"
+        },
+        {
+            "lessonId": "robot-structure-study",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/robot-structure-study",
+            "title": "Robot Structure & Joints",
+            "titleKey": "lesson.robot_structure_study.title",
+            "summary": "Construct a three-quarter robot from connected masses, compare near and far limbs, and layer joints so the design feels structurally believable.",
+            "summaryKey": "lesson.robot_structure_study.summary",
+            "ageBands": [
+                "growing_artists"
+            ],
+            "difficulty": 3,
+            "estimatedMinutes": 13,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "characters",
+                "design"
+            ],
+            "skillIds": [
+                "proportion.basic",
+                "overlap.basic",
+                "line.control",
+                "detail.layering",
+                "design.silhouette"
+            ],
+            "journeyIds": [
+                "journey.character_creator"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "robot",
+                "structure",
+                "joints",
+                "overlap",
+                "proportion"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/robot-structure-study/thumbnail.svg",
+            "previewRef": "lessons/robot-structure-study/preview.svg"
+        },
+        {
             "lessonId": "sailboat-scene",
             "revision": 1,
             "status": "release",
@@ -1204,6 +1428,229 @@
             },
             "thumbnailRef": "lessons/sailboat-scene/thumbnail.svg",
             "previewRef": "lessons/sailboat-scene/preview.svg"
+        },
+        {
+            "lessonId": "sea-turtle-big-shell",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 2,
+            "packageRef": "lessons/sea-turtle-big-shell",
+            "title": "Sea Turtle from Big Shapes",
+            "titleKey": "lesson.sea_turtle_big_shell.title",
+            "summary": "Build a friendly sea turtle from one big shell, a small head and four easy flippers, then add color.",
+            "summaryKey": "lesson.sea_turtle_big_shell.summary",
+            "ageBands": [
+                "little_artists"
+            ],
+            "difficulty": 1,
+            "estimatedMinutes": 7,
+            "drawingStepCount": 3,
+            "categoryIds": [
+                "animals",
+                "nature"
+            ],
+            "skillIds": [
+                "shape.ellipse",
+                "shape.combine",
+                "line.curve",
+                "placement.relative"
+            ],
+            "journeyIds": [
+                "journey.animal_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "sea-turtle",
+                "big-shapes",
+                "ocean",
+                "beginner"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "trace_and_learn"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "trace_and_learn"
+                ],
+                "helpAvailable": true,
+                "traceReady": true,
+                "coloring": "guided_prepared",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/sea-turtle-big-shell/thumbnail.svg",
+            "previewRef": "lessons/sea-turtle-big-shell/preview.svg"
+        },
+        {
+            "lessonId": "sea-turtle-form-study",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/sea-turtle-form-study",
+            "title": "Sea Turtle Form & Flippers",
+            "titleKey": "lesson.sea_turtle_form_study.title",
+            "summary": "Build a three-quarter sea turtle by comparing shell, head and near/far flipper sizes, then add controlled shell structure.",
+            "summaryKey": "lesson.sea_turtle_form_study.summary",
+            "ageBands": [
+                "growing_artists"
+            ],
+            "difficulty": 3,
+            "estimatedMinutes": 13,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "animals",
+                "nature"
+            ],
+            "skillIds": [
+                "proportion.basic",
+                "overlap.basic",
+                "scale.relative",
+                "contour.simple",
+                "line.control"
+            ],
+            "journeyIds": [
+                "journey.animal_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "sea-turtle",
+                "form",
+                "flippers",
+                "overlap",
+                "proportion"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/sea-turtle-form-study/thumbnail.svg",
+            "previewRef": "lessons/sea-turtle-form-study/preview.svg"
+        },
+        {
+            "lessonId": "sea-turtle-observation-glide",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/sea-turtle-observation-glide",
+            "title": "Observational Sea Turtle Glide",
+            "titleKey": "lesson.sea_turtle_observation_glide.title",
+            "summary": "Study an oblique sea turtle pose, refine natural contours and overlapping flippers, then add restrained shell texture that follows the form.",
+            "summaryKey": "lesson.sea_turtle_observation_glide.summary",
+            "ageBands": [
+                "young_artists"
+            ],
+            "difficulty": 4,
+            "estimatedMinutes": 16,
+            "drawingStepCount": 5,
+            "categoryIds": [
+                "animals",
+                "nature"
+            ],
+            "skillIds": [
+                "observation",
+                "contour.refinement",
+                "proportion",
+                "detail.texture",
+                "overlap.basic"
+            ],
+            "journeyIds": [
+                "journey.animal_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "sea-turtle",
+                "observation",
+                "glide",
+                "contour",
+                "texture"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw"
+                ],
+                "helpAvailable": true,
+                "traceReady": false,
+                "coloring": "none",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/sea-turtle-observation-glide/thumbnail.svg",
+            "previewRef": "lessons/sea-turtle-observation-glide/preview.svg"
+        },
+        {
+            "lessonId": "sea-turtle-pattern-swim",
+            "revision": 1,
+            "status": "release",
+            "minimumContentApi": 1,
+            "packageRef": "lessons/sea-turtle-pattern-swim",
+            "title": "Sea Turtle Pattern Swim",
+            "titleKey": "lesson.sea_turtle_pattern_swim.title",
+            "summary": "Draw a sea turtle swimming upward, build a shell pattern and invent your own playful variations.",
+            "summaryKey": "lesson.sea_turtle_pattern_swim.summary",
+            "ageBands": [
+                "creative_explorers"
+            ],
+            "difficulty": 2,
+            "estimatedMinutes": 10,
+            "drawingStepCount": 4,
+            "categoryIds": [
+                "animals",
+                "nature"
+            ],
+            "skillIds": [
+                "shape.combine",
+                "line.curve",
+                "pattern",
+                "creativity.variation",
+                "placement.relative"
+            ],
+            "journeyIds": [
+                "journey.animal_artist"
+            ],
+            "collectionIds": [],
+            "prerequisiteLessonIds": [],
+            "tags": [
+                "sea-turtle",
+                "pattern",
+                "swimming",
+                "creative"
+            ],
+            "supportedModes": [
+                "draw_with_me",
+                "watch_then_draw",
+                "trace_and_learn"
+            ],
+            "capabilitySummary": {
+                "teachingModes": [
+                    "draw_with_me",
+                    "watch_then_draw",
+                    "trace_and_learn"
+                ],
+                "helpAvailable": true,
+                "traceReady": true,
+                "coloring": "freehand",
+                "voiceAudio": "not_supported"
+            },
+            "thumbnailRef": "lessons/sea-turtle-pattern-swim/thumbnail.svg",
+            "previewRef": "lessons/sea-turtle-pattern-swim/preview.svg"
         },
         {
             "lessonId": "shape-friends",

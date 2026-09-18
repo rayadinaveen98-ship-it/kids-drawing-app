@@ -14,12 +14,12 @@ class ProductionCatalogIndexV2ProjectionTest {
         val legacySnapshot = LessonCatalog(source).load()
 
         assertTrue("Catalog diagnostics: ${legacySnapshot.diagnostics}", legacySnapshot.diagnostics.isEmpty())
-        assertEquals("V2.4 Butterfly pilot must contain exactly 28 release lessons.", 28, legacySnapshot.entries.size)
+        assertEquals("V2.5 dual-family expansion must contain exactly 36 release lessons.", 36, legacySnapshot.entries.size)
 
         val projection = CatalogIndexV2Projector.project(legacySnapshot)
         assertTrue("Projection failed: $projection", projection is CatalogIndexV2ProjectionResult.Success)
         val index = (projection as CatalogIndexV2ProjectionResult.Success).index
-        assertEquals(28, index.entries.size)
+        assertEquals(36, index.entries.size)
 
         val rendered = CatalogIndexV2Projector.render(index)
         val outputDir = File("build/reports/content-quality").apply { mkdirs() }
@@ -38,7 +38,7 @@ class ProductionCatalogIndexV2ProjectionTest {
         val loaded = CatalogIndexV2Loader(source).load()
         assertTrue("Committed index must pass strict taxonomy/index validation: $loaded", loaded is CatalogIndexV2LoadResult.Success)
         val snapshot = (loaded as CatalogIndexV2LoadResult.Success).snapshot
-        assertEquals(28, snapshot.entries.size)
+        assertEquals(36, snapshot.entries.size)
         assertTrue(snapshot.entries.none { it.packageRef.isBlank() })
         assertTrue("Frozen taxonomy registry itself must be valid.", CatalogTaxonomyV2.registry.diagnostics.isEmpty())
 

@@ -19,7 +19,7 @@ class ButterflyPilotCapabilityTest {
     fun butterflyPilotHasExactlyOneIntentionalLessonPerAgeBandAndNoCapabilityDrift() {
         val snapshot = LessonCatalog(source).load()
         assertTrue("Catalog diagnostics: ${snapshot.diagnostics}", snapshot.diagnostics.isEmpty())
-        assertEquals(28, snapshot.entries.size)
+        assertEquals(4, snapshot.entries.count { it.identity.lessonId.startsWith("butterfly-") })
 
         val expected = listOf(
             ExpectedLesson(

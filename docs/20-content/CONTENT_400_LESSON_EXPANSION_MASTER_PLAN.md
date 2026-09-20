@@ -77,6 +77,22 @@ Stage 0 is mandatory before V2.6 package authoring.
 
 Stage 0 is complete only when all four sections above have deterministic evidence and V2.6 can be authored without bypassing any frozen product contract.
 
+### 3.5 Accepted-catalog breadth audit
+
+The 100-family plan was compared against the accepted 36-lesson catalog before freeze. Families that were too close to existing subjects were removed from the plan rather than counted as new breadth.
+
+Notable replacements made during this audit:
+- generic line practice → `Size & Scale` because `Happy Lines` already exists;
+- generic shape stacking → `Overlap Basics` because `Shape Friends` already exists;
+- `Tree` → `Pinecone` because `Tree Through Seasons` already exists;
+- `Car` → `Delivery Van` because `Simple Car` already exists;
+- `Ringed Planet` → `Astronaut Helmet` because `Planet With Rings` already exists;
+- standalone `Ice Cream` → `Donut` because `Ice Cream Shop` already exists;
+- `Sailboat` → `Submarine` because `Sailboat Scene` already exists;
+- `Dream Room` → `Playground Design` because `One-Point Room` already occupies the room-design/perspective space.
+
+Stage 0 must repeat this duplicate/near-duplicate check using exact runtime catalog data before V2.6 package IDs are frozen.
+
 ## 4. Editorial breadth allocation
 
 These are **planning/editorial categories**, not permission to create matching runtime taxonomy IDs.
@@ -138,15 +154,15 @@ The exact planned Little/Creative/Growing/Young lesson titles are frozen in `CON
 
 ### V2.6 — +40 → 76 release lessons
 
-`Line Adventure`, `Dog`, `Lion`, `Tree`, `Car`, `Friend Waving`, `Apple`, `Dragon`, `Ringed Planet`, `Cozy House`.
+`Size & Scale`, `Dog`, `Lion`, `Pinecone`, `Delivery Van`, `Friend Waving`, `Apple`, `Dragon`, `Astronaut Helmet`, `Cozy House`.
 
 ### V2.7 — +40 → 116 release lessons
 
-`Shape Stack`, `Tiger`, `Panda`, `Mushroom`, `City Bus`, `Walking Person`, `Pizza`, `Unicorn`, `Moon Rover`, `Treehouse`.
+`Overlap Basics`, `Tiger`, `Panda`, `Mushroom`, `City Bus`, `Walking Person`, `Pizza`, `Unicorn`, `Moon Rover`, `Treehouse`.
 
 ### V2.8 — +40 → 156 release lessons
 
-`Curves & Spirals`, `Giraffe`, `Zebra`, `Cactus`, `Train`, `Sitting Person`, `Ice Cream`, `Mermaid`, `Satellite`, `Lighthouse`.
+`Curves & Spirals`, `Giraffe`, `Zebra`, `Cactus`, `Train`, `Sitting Person`, `Donut`, `Mermaid`, `Satellite`, `Lighthouse`.
 
 ### V2.9 — +40 → 196 release lessons
 
@@ -166,7 +182,7 @@ The exact planned Little/Creative/Growing/Young lesson titles are frozen in `CON
 
 ### V3.3 — +40 → 356 release lessons
 
-`Frog`, `Crocodile`, `Seashell`, `Sailboat`, `Chef`, `Backpack`, `Magic Potion`, `Picnic Scene`, `Textile Pattern`, `Action Motion Panel`.
+`Frog`, `Crocodile`, `Seashell`, `Submarine`, `Chef`, `Backpack`, `Magic Potion`, `Picnic Scene`, `Textile Pattern`, `Action Motion Panel`.
 
 ### V3.4 — +40 → 396 release lessons
 
@@ -174,7 +190,7 @@ The exact planned Little/Creative/Growing/Young lesson titles are frozen in `CON
 
 ### V3.5 — +40 → 436 release lessons
 
-`Octopus`, `Penguin`, `Fire Truck`, `Builder`, `Teddy Bear`, `Night Camp Scene`, `Toy Invention`, `Dream Room`, `Decorative Diya Lamp`, `Rangoli / Kolam Pattern`.
+`Octopus`, `Penguin`, `Fire Truck`, `Builder`, `Teddy Bear`, `Night Camp Scene`, `Toy Invention`, `Playground Design`, `Decorative Diya Lamp`, `Rangoli / Kolam Pattern`.
 
 ## 7. Capability truth is stage-specific, not quota-driven
 

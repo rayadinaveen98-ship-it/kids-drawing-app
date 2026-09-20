@@ -100,7 +100,6 @@ jobs:
               "traceReady=10",
               "coloring.none=26",
               "coloring.freehand=4",
-              "coloring.prepared_only=0",
               "coloring.guided_prepared=6",
               "journey.journey.animal_artist.size=14",
               "unknownTaxonomyReferences=0",

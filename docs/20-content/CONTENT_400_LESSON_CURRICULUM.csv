@@ -1,15 +1,15 @@
 stage,target_release_catalog,family_number,editorial_category,family,little_title,creative_title,growing_title,young_title
-V2.6,76,1,Drawing Basics,Line Adventure,Big Lines Playground,Wiggly Line Creature,Controlled Line Rhythm Study,Gesture & Line Weight Study
+V2.6,76,1,Drawing Basics,Size & Scale,Big & Small Shape Game,Size-Contrast Creature,Relative Size & Scale Study,"Scale, Depth & Visual Hierarchy"
 V2.6,76,2,Animals,Dog,Dog From Big Shapes,Expressive Dog: Pose & Pattern,Dog In Motion: Proportion & Overlap,"Observational Dog: Form, Contour & Depth"
 V2.6,76,3,Animals,Lion,Lion From Big Shapes,Expressive Lion: Pose & Pattern,Lion In Motion: Proportion & Overlap,"Observational Lion: Form, Contour & Depth"
-V2.6,76,4,Nature,Tree,Simple Tree From Big Shapes,Creative Tree: Shape & Pattern,Tree Structure: Overlap & Proportion,"Observational Tree: Form, Texture & Depth"
-V2.6,76,5,Vehicles,Car,Friendly Car From Big Shapes,Design Your Car: Shape & Detail,Car Construction: Proportion & Parts,Observational Car: Perspective & Mechanical Form
+V2.6,76,4,Nature,Pinecone,Pinecone From Big Scales,Patterned Pinecone & Twig,Pinecone Structure: Overlap & Rhythm,Observational Pinecone: Scale Pattern & Texture
+V2.6,76,5,Vehicles,Delivery Van,Delivery Van From Big Shapes,Design Your Delivery Van,"Delivery Van: Proportion, Wheels & Panels",Observational Delivery Van: Perspective & Mechanical Form
 V2.6,76,6,People & Characters,Friend Waving,Waving Friend From Simple Shapes,Waving Friend: Expression & Outfit,Waving Figure: Proportion & Overlap,"Waving Figure: Gesture, Hands & Clothing"
 V2.6,76,7,Food & Everyday Things,Apple,Apple From Big Shapes,Creative Apple: Shape & Personality,"Apple: Form, Proportion & Overlap","Observational Apple: Contour, Light & Texture"
 V2.6,76,8,Fantasy & Magic,Dragon,Friendly Dragon From Big Shapes,Invent Your Dragon: Expression & Detail,"Dragon: Structure, Pose & Overlap","Illustrated Dragon: Form, Depth & Refined Contour"
-V2.6,76,9,Space & Science,Ringed Planet,Simple Ringed Planet From Big Shapes,Imagine a Ringed Planet: Shape & Detail,"Ringed Planet: Structure, Scale & Overlap","Ringed Planet: Perspective, Form & Technical Detail"
+V2.6,76,9,Space & Science,Astronaut Helmet,Astronaut Helmet From Big Shapes,Design a Space Helmet,"Space Helmet: Structure, Visor & Overlap","Observational Space Helmet: Perspective, Reflections & Detail"
 V2.6,76,10,Places & Buildings,Cozy House,Simple Cozy House: Front View,Design a Cozy House: Facade & Detail,Cozy House: Structure & Perspective,"Observational Cozy House: Depth, Perspective & Light"
-V2.7,116,11,Drawing Basics,Shape Stack,Build a Shape Tower,Shape City Mash-Up,Overlapping Form Stack,Geometric Form Composition
+V2.7,116,11,Drawing Basics,Overlap Basics,Shapes In Front & Behind,Overlap Creature Collage,Controlled Overlap & Layering Study,"Overlap, Depth & Occlusion Composition"
 V2.7,116,12,Animals,Tiger,Tiger From Big Shapes,Expressive Tiger: Pose & Pattern,Tiger In Motion: Proportion & Overlap,"Observational Tiger: Form, Contour & Depth"
 V2.7,116,13,Animals,Panda,Panda From Big Shapes,Expressive Panda: Pose & Pattern,Panda In Motion: Proportion & Overlap,"Observational Panda: Form, Contour & Depth"
 V2.7,116,14,Nature,Mushroom,Simple Mushroom From Big Shapes,Creative Mushroom: Shape & Pattern,Mushroom Structure: Overlap & Proportion,"Observational Mushroom: Form, Texture & Depth"
@@ -25,7 +25,7 @@ V2.8,156,23,Animals,Zebra,Zebra From Big Shapes,Expressive Zebra: Pose & Pattern
 V2.8,156,24,Nature,Cactus,Simple Cactus From Big Shapes,Creative Cactus: Shape & Pattern,Cactus Structure: Overlap & Proportion,"Observational Cactus: Form, Texture & Depth"
 V2.8,156,25,Vehicles,Train,Friendly Train From Big Shapes,Design Your Train: Shape & Detail,Train Construction: Proportion & Parts,Observational Train: Perspective & Mechanical Form
 V2.8,156,26,People & Characters,Sitting Person,Sitting Person From Simple Shapes,Sitting Character: Pose & Outfit,Seated Figure: Proportion & Overlap,"Seated Figure: Gesture, Weight & Foreshortening"
-V2.8,156,27,Food & Everyday Things,Ice Cream,Ice Cream From Big Shapes,Creative Ice Cream: Shape & Personality,"Ice Cream: Form, Proportion & Overlap","Observational Ice Cream: Contour, Light & Texture"
+V2.8,156,27,Food & Everyday Things,Donut,Donut From Big Shapes,Design a Decorated Donut,"Donut: Form, Ellipse & Topping Overlap","Observational Donut: Form, Light & Texture"
 V2.8,156,28,Fantasy & Magic,Mermaid,Friendly Mermaid From Big Shapes,Invent Your Mermaid: Expression & Detail,"Mermaid: Structure, Pose & Overlap","Illustrated Mermaid: Form, Depth & Refined Contour"
 V2.8,156,29,Space & Science,Satellite,Simple Satellite From Big Shapes,Imagine a Satellite: Shape & Detail,"Satellite: Structure, Scale & Overlap","Satellite: Perspective, Form & Technical Detail"
 V2.8,156,30,Places & Buildings,Lighthouse,Simple Lighthouse: Front View,Design a Lighthouse: Facade & Detail,Lighthouse: Structure & Perspective,"Observational Lighthouse: Depth, Perspective & Light"
@@ -72,7 +72,7 @@ V3.2,316,70,Comics & Expression,Comic Reaction Panel,Big-Face Comic Reaction,Com
 V3.3,356,71,Animals,Frog,Frog From Big Shapes,Expressive Frog: Pose & Pattern,Frog In Motion: Proportion & Overlap,"Observational Frog: Form, Contour & Depth"
 V3.3,356,72,Animals,Crocodile,Crocodile From Big Shapes,Expressive Crocodile: Pose & Pattern,Crocodile In Motion: Proportion & Overlap,"Observational Crocodile: Form, Contour & Depth"
 V3.3,356,73,Nature,Seashell,Simple Seashell From Big Shapes,Creative Seashell: Shape & Pattern,Seashell Structure: Overlap & Proportion,"Observational Seashell: Form, Texture & Depth"
-V3.3,356,74,Vehicles,Sailboat,Friendly Sailboat From Big Shapes,Design Your Sailboat: Shape & Detail,Sailboat Construction: Proportion & Parts,Observational Sailboat: Perspective & Mechanical Form
+V3.3,356,74,Vehicles,Submarine,Submarine From Big Shapes,Design Your Submarine,"Submarine: Proportion, Fins & Overlap",Observational Submarine: Perspective & Mechanical Form
 V3.3,356,75,People & Characters,Chef,Chef: Simple Person Shapes,Chef: Expression & Pose,Chef: Figure Proportion & Overlap,Chef: Observational Figure & Gesture
 V3.3,356,76,Food & Everyday Things,Backpack,Backpack From Big Shapes,Creative Backpack: Shape & Personality,"Backpack: Form, Proportion & Overlap","Observational Backpack: Contour, Light & Texture"
 V3.3,356,77,Fantasy & Magic,Magic Potion,Magic Potion Bottle From Big Shapes,Invent a Potion Bottle: Shape & Detail,"Magic Potion: Bottle Form, Overlap & Labels","Illustrated Potion Bottle: Glass, Form & Reflections"
@@ -96,6 +96,6 @@ V3.5,436,94,People & Characters,Builder,Builder: Simple Person Shapes,Builder: E
 V3.5,436,95,Food & Everyday Things,Teddy Bear,Teddy Bear From Big Shapes,Creative Teddy Bear: Shape & Personality,"Teddy Bear: Form, Proportion & Overlap","Observational Teddy Bear: Contour, Light & Texture"
 V3.5,436,96,Stories & Scenes,Night Camp Scene,Night Camp Scene: Simple Story Shapes,Night Camp Scene: Character & Story Choices,"Night Camp Scene: Foreground, Middle & Background","Night Camp Scene: Atmosphere, Perspective & Composition"
 V3.5,436,97,Design & Invent,Toy Invention,Toy Invention: Big Shape Idea,Toy Invention: Make Three Variations,Toy Invention: Functional Structure & Proportion,Toy Invention: Perspective Concept Sketch
-V3.5,436,98,Design & Invent,Dream Room,Dream Room: Big Shape Idea,Dream Room: Make Three Variations,Dream Room: Functional Structure & Proportion,Dream Room: Perspective Concept Sketch
+V3.5,436,98,Design & Invent,Playground Design,Playground From Big Shapes,Invent a Play Zone,"Playground: Structure, Scale & Safe Spacing","Playground Concept: Perspective, Flow & Composition"
 V3.5,436,99,Culture & Celebrations,Decorative Diya Lamp,Decorative Diya Lamp: Simple Shapes,Decorative Diya Lamp: Decorative Choices,"Decorative Diya Lamp: Pattern, Spacing & Construction",Decorative Diya Lamp: Refined Composition & Decorative Detail
 V3.5,436,100,Culture & Celebrations,Rangoli / Kolam Pattern,Rangoli / Kolam Pattern: Simple Shapes,Rangoli / Kolam Pattern: Decorative Choices,"Rangoli / Kolam Pattern: Pattern, Spacing & Construction",Rangoli / Kolam Pattern: Refined Composition & Decorative Detail

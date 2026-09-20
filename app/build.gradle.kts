@@ -12,8 +12,8 @@ android {
         applicationId = "com.navin.kidsdrawing"
         minSdk = 23
         targetSdk = 36
-        versionCode = 30
-        versionName = "0.6.0-family-readiness-p6.4-qa1"
+        versionCode = 32
+        versionName = "0.6.1-content-v2.5-qa1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -29,7 +29,8 @@ android {
 
         create("profile") {
             initWith(getByName("release"))
-            signingConfig = signingConfigs.getByName("debug")
+            // Intentionally unsigned in CI. User-installable QA APKs are signed after CI with the
+            // persistent QA update identity documented in QA_UPDATE_SIGNING_CONTRACT.md.
             isDebuggable = false
             isMinifyEnabled = false
             matchingFallbacks += listOf("release")

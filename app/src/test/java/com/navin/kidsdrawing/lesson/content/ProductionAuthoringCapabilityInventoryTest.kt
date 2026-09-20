@@ -17,7 +17,7 @@ class ProductionAuthoringCapabilityInventoryTest {
     fun releaseCatalogEmitsDeterministicAuthoringCapabilityInventory() {
         val snapshot = LessonCatalog(FileAssetCatalogSource(File("src/main/assets"))).load()
         assertTrue("Catalog diagnostics: ${snapshot.diagnostics}", snapshot.diagnostics.isEmpty())
-        assertEquals(28, snapshot.entries.size)
+        assertEquals(36, snapshot.entries.size)
 
         val toolPresets = mutableListOf<FieldUse>()
         val groupedTeacherDemos = mutableListOf<FieldUse>()

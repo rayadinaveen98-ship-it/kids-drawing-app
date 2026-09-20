@@ -56,7 +56,7 @@ jobs:
       - name: Verify Content Studio child-runtime boundary
         run: bash scripts/verify-content-studio-boundary.sh
 
-      - name: Unit tests, lint, debug APK, instrumentation APK, and profile APK compile
+      - name: Unit tests, lint, debug APK, instrumentation APK, and unsigned profile APK compile
         run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleProfile
 
       - name: Verify frozen curriculum content quality contract
@@ -80,14 +80,28 @@ jobs:
           from pathlib import Path
 
           report = json.loads(Path("app/build/reports/content-quality/catalog-report.json").read_text())
-          assert report["lessonCount"] == 28, report
+          assert report["lessonCount"] == 36, report
           assert report["errorCount"] == 0, report
           assert report["warningCount"] == 6, report
           index = json.loads(Path("app/build/reports/content-quality/generated-lesson-index-v2.json").read_text())
-          assert len(index["entries"]) == 28, len(index["entries"])
+          assert len(index["entries"]) == 36, len(index["entries"])
           health = Path("app/build/reports/content-quality/catalog-index-v2-health.txt").read_text()
           for expected in (
-              "releaseEntries=28",
+              "releaseEntries=36",
+              "difficulty.1=8",
+              "difficulty.2=12",
+              "difficulty.3=9",
+              "difficulty.4=6",
+              "difficulty.5=1",
+              "mode.draw_with_me=35",
+              "mode.watch_then_draw=26",
+              "mode.trace_and_learn=10",
+              "helpReady=36",
+              "traceReady=10",
+              "coloring.none=26",
+              "coloring.freehand=4",
+              "coloring.guided_prepared=6",
+              "journey.journey.animal_artist.size=14",
               "unknownTaxonomyReferences=0",
               "duplicateIdentities=0",
               "prerequisiteGraphFailures=0",
@@ -111,7 +125,7 @@ jobs:
           assert studio["traceReady"] is True, studio
           assert studio["coloringCapability"] == "FREEHAND", studio
           assert studio["qualityWarningCount"] == 6, studio
-          assert studio["projectedIndexEntryCount"] == 28, studio
+          assert studio["projectedIndexEntryCount"] == 36, studio
           assert studio["diagnostics"] == [], studio
           assert len(studio["gates"]) == 6, studio
           assert all(gate["status"] == "PASSED" for gate in studio["gates"]), studio["gates"]
@@ -128,14 +142,14 @@ jobs:
 
           studio_health = Path("app/build/reports/content-quality/content-studio-v1-health.txt").read_text()
           for expected in (
-              "releasePackages=28",
-              "roundTripPassed=28/28",
+              "releasePackages=36",
+              "roundTripPassed=36/36",
               "representativeValidation=READY",
               "evidenceSchema=1.1",
               "packageLoaderPassed=true",
               "validationGatesPassed=6/6",
               "evidenceQualityWarnings=6",
-              "projectedIndexEntries=28",
+              "projectedIndexEntries=36",
               "projectedEntry=cute-cat@1",
               "authoredSignalReleaseBlockedUsages=0",
               "enforcedSuggestedColorsReleaseBlockedUsages=0",
@@ -149,20 +163,20 @@ jobs:
               assert expected in studio_health, expected
 
           print(
-              "Content V2.4 curriculum quality: "
+              "Content V2.5 curriculum quality: "
               f"lessons={report['lessonCount']} "
               f"errors={report['errorCount']} "
               f"warnings={report['warningCount']}"
           )
-          print(f"Content V2.4 generated catalog index: entries={len(index['entries'])}, drift=0")
-          print("Content Studio: roundTrip=28/28 evidence=1.1 gates=6/6 representative=READY projectedIndex=28")
+          print(f"Content V2.5 generated catalog index: entries={len(index['entries'])}, drift=0")
+          print("Content Studio: roundTrip=36/36 evidence=1.1 gates=6/6 representative=READY projectedIndex=36")
           PY
           cat "$REPORT_DIR/catalog-report.txt"
           cat "$REPORT_DIR/authoring-capability-inventory.txt"
           cat "$REPORT_DIR/catalog-index-v2-health.txt"
           cat "$REPORT_DIR/content-studio-v1-health.txt"
           {
-            echo "## Content V2.4 Curriculum Quality"
+            echo "## Content V2.5 Curriculum Quality"
             echo
             echo '```text'
             cat "$REPORT_DIR/catalog-report.txt"
@@ -174,7 +188,7 @@ jobs:
             cat "$REPORT_DIR/authoring-capability-inventory.txt"
             echo '```'
             echo
-            echo "## Content V2.4 Catalog Index Health"
+            echo "## Content V2.5 Catalog Index Health"
             echo
             echo '```text'
             cat "$REPORT_DIR/catalog-index-v2-health.txt"
@@ -187,10 +201,10 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload P6.4 QA content quality reports
+      - name: Upload V2.5 content quality reports
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-0.6.0-family-readiness-p6.4-qa1-content-quality
+          name: kids-drawing-0.6.1-content-v2.5-qa1-content-quality
           path: |
             app/build/reports/content-quality/catalog-report.txt
             app/build/reports/content-quality/catalog-report.json
@@ -202,7 +216,7 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Verify P6.4 QA APK permission allowlist
+      - name: Verify V2.5 CI APK permission allowlist
         shell: bash
         run: |
           set -euo pipefail
@@ -211,7 +225,7 @@ jobs:
 
           for APK in \
             "app/build/outputs/apk/debug/app-debug.apk" \
-            "app/build/outputs/apk/profile/app-profile.apk"; do
+            "app/build/outputs/apk/profile/app-profile-unsigned.apk"; do
             echo "Checking $APK"
             OUTPUT=$("$ANDROID_HOME/build-tools/36.0.0/aapt2" dump permissions "$APK")
             echo "$OUTPUT"
@@ -223,79 +237,81 @@ jobs:
 
             for permission in "${REQUESTED_PERMISSIONS[@]}"; do
               if [[ "$permission" != "$ALLOWED_PERMISSION" ]]; then
-                echo "Unexpected Android permission detected in P6.4 QA APK: $permission"
+                echo "Unexpected Android permission detected in V2.5 CI APK: $permission"
                 exit 1
               fi
             done
           done
 
-          echo "Permission allowlist passed for P6.4 QA debug and profile APKs."
+          echo "Permission allowlist passed for V2.5 debug and unsigned profile APKs."
 
-      - name: Verify P6.4 QA APK identity
+      - name: Verify V2.5 CI APK identity
         shell: bash
         run: |
           set -euo pipefail
           AAPT2="$ANDROID_HOME/build-tools/36.0.0/aapt2"
           for APK in \
             "app/build/outputs/apk/debug/app-debug.apk" \
-            "app/build/outputs/apk/profile/app-profile.apk"; do
+            "app/build/outputs/apk/profile/app-profile-unsigned.apk"; do
             BADGING=$("$AAPT2" dump badging "$APK")
             FIRST_LINE=${BADGING%%$'\n'*}
             echo "$FIRST_LINE"
             grep -Fq "package: name='com.navin.kidsdrawing'" <<< "$BADGING"
-            grep -Fq "versionCode='30'" <<< "$BADGING"
-            grep -Fq "versionName='0.6.0-family-readiness-p6.4-qa1'" <<< "$BADGING"
+            grep -Fq "versionCode='32'" <<< "$BADGING"
+            grep -Fq "versionName='0.6.1-content-v2.5-qa1'" <<< "$BADGING"
           done
-          echo "P6.4 QA APK identity is 0.6.0-family-readiness-p6.4-qa1 / versionCode 30."
+          echo "V2.5 CI APK identity is 0.6.1-content-v2.5-qa1 / versionCode 32."
 
-      - name: Package P6.4 QA APK evidence
+      - name: Package V2.5 CI APK evidence
         shell: bash
         run: |
           set -euo pipefail
-          EVIDENCE_DIR="app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1"
+          EVIDENCE_DIR="app/build/outputs/milestone/0.6.1-content-v2.5-qa1"
           mkdir -p "$EVIDENCE_DIR"
           cp app/build/outputs/apk/debug/app-debug.apk \
-            "$EVIDENCE_DIR/Kids_Drawing_0.6.0_Family_Readiness_P6.4_QA1-debug.apk"
-          cp app/build/outputs/apk/profile/app-profile.apk \
-            "$EVIDENCE_DIR/Kids_Drawing_0.6.0_Family_Readiness_P6.4_QA1-profile.apk"
+            "$EVIDENCE_DIR/Kids_Drawing_0.6.1_Content_V2.5_QA1-ci-debug-ephemeral-do-not-install.apk"
+          cp app/build/outputs/apk/profile/app-profile-unsigned.apk \
+            "$EVIDENCE_DIR/Kids_Drawing_0.6.1_Content_V2.5_QA1-profile-unsigned.apk"
           (
             cd "$EVIDENCE_DIR"
             sha256sum \
-              Kids_Drawing_0.6.0_Family_Readiness_P6.4_QA1-debug.apk \
-              Kids_Drawing_0.6.0_Family_Readiness_P6.4_QA1-profile.apk \
+              Kids_Drawing_0.6.1_Content_V2.5_QA1-ci-debug-ephemeral-do-not-install.apk \
+              Kids_Drawing_0.6.1_Content_V2.5_QA1-profile-unsigned.apk \
               | tee SHA256SUMS.txt
             stat -c '%n %s bytes' \
-              Kids_Drawing_0.6.0_Family_Readiness_P6.4_QA1-debug.apk \
-              Kids_Drawing_0.6.0_Family_Readiness_P6.4_QA1-profile.apk \
+              Kids_Drawing_0.6.1_Content_V2.5_QA1-ci-debug-ephemeral-do-not-install.apk \
+              Kids_Drawing_0.6.1_Content_V2.5_QA1-profile-unsigned.apk \
               | tee APK_SIZES.txt
             {
-              echo "versionName=0.6.0-family-readiness-p6.4-qa1"
-              echo "versionCode=30"
+              echo "versionName=0.6.1-content-v2.5-qa1"
+              echo "versionCode=32"
+              echo "installableQaSigned=false"
+              echo "durableSignerSha256=5E:DB:6B:22:31:89:98:07:14:64:CA:54:0A:BE:C2:0F:73:4D:D6:E1:6C:C9:4C:F3:38:07:6E:0F:69:FC:13:23"
               echo "workflow_sha=${GITHUB_SHA}"
               echo "source_head_sha=${{ github.event.pull_request.head.sha || github.sha }}"
             } | tee RELEASE_IDENTITY.txt
           )
 
-      - name: Upload P6.4 QA debug APK
+      - name: Upload V2.5 CI debug APK - not installable QA evidence
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-0.6.0-family-readiness-p6.4-qa1-debug
+          name: kids-drawing-0.6.1-content-v2.5-qa1-ci-debug-ephemeral-do-not-install
           path: |
-            app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1/Kids_Drawing_0.6.0_Family_Readiness_P6.4_QA1-debug.apk
-            app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1/SHA256SUMS.txt
-            app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1/APK_SIZES.txt
-            app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1/RELEASE_IDENTITY.txt
+            app/build/outputs/milestone/0.6.1-content-v2.5-qa1/Kids_Drawing_0.6.1_Content_V2.5_QA1-ci-debug-ephemeral-do-not-install.apk
+            app/build/outputs/milestone/0.6.1-content-v2.5-qa1/SHA256SUMS.txt
+            app/build/outputs/milestone/0.6.1-content-v2.5-qa1/APK_SIZES.txt
+            app/build/outputs/milestone/0.6.1-content-v2.5-qa1/RELEASE_IDENTITY.txt
           if-no-files-found: error
           retention-days: 30
 
-      - name: Upload P6.4 QA release-like profile APK
+      - name: Upload V2.5 unsigned profile for durable QA signing
         uses: actions/upload-artifact@v4
         with:
-          name: kids-drawing-0.6.0-family-readiness-p6.4-qa1-profile
+          name: kids-drawing-0.6.1-content-v2.5-qa1-profile-unsigned
           path: |
-            app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1/Kids_Drawing_0.6.0_Family_Readiness_P6.4_QA1-profile.apk
-            app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1/SHA256SUMS.txt
-            app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1/APK_SIZES.txt
-            app/build/outputs/milestone/0.6.0-family-readiness-p6.4-qa1/RELEASE_IDENTITY.txt
+            app/build/outputs/milestone/0.6.1-content-v2.5-qa1/Kids_Drawing_0.6.1_Content_V2.5_QA1-profile-unsigned.apk
+            app/build/outputs/milestone/0.6.1-content-v2.5-qa1/SHA256SUMS.txt
+            app/build/outputs/milestone/0.6.1-content-v2.5-qa1/APK_SIZES.txt
+            app/build/outputs/milestone/0.6.1-content-v2.5-qa1/RELEASE_IDENTITY.txt
           if-no-files-found: error
           retention-days: 30

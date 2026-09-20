@@ -18,7 +18,7 @@ class ProductionContentStudioGateTest {
     fun currentCatalogProducesStudioV1HealthAndEvidence() {
         val base = FileAssetCatalogSource(File("src/main/assets"))
         val packageNames = checkNotNull(base.list("lessons")).sorted()
-        assertEquals(28, packageNames.size)
+        assertEquals(36, packageNames.size)
 
         var roundTrips = 0
         var toolPresetUsages = 0
@@ -59,7 +59,7 @@ class ProductionContentStudioGateTest {
             roundTrips++
         }
 
-        assertEquals(28, roundTrips)
+        assertEquals(36, roundTrips)
         assertEquals(0, authoredSignalUsages)
         assertEquals(0, enforcedSuggestedColorUsages)
         assertEquals(0, audioDeclarations)
@@ -92,7 +92,7 @@ class ProductionContentStudioGateTest {
         assertEquals(6, evidence.gateEvidence.size)
         assertTrue(evidence.gateEvidence.all { it.status == ContentStudioGateStatus.PASSED })
         assertEquals(6, evidence.qualityWarningCount)
-        assertEquals(28, evidence.projectedIndexEntryCount)
+        assertEquals(36, evidence.projectedIndexEntryCount)
         val projectedEntry = checkNotNull(evidence.projectedIndexEntry)
         assertEquals("cute-cat", projectedEntry.lessonId)
         assertEquals(1, projectedEntry.revision)

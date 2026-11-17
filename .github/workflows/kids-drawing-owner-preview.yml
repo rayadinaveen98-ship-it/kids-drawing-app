@@ -1,0 +1,90 @@
+name: Kids Drawing Isolated Owner Preview APK
+
+on:
+  push:
+    branches:
+      - qa/v2-5-fresh-install-apk-20261117
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout frozen V2.5 source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Install Android SDK packages
+        shell: bash
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Isolate preview package in runner workspace only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("app/build.gradle.kts")
+          original = path.read_text()
+          match = "    buildTypes {\n"
+          assert original.count(match) == 1, "Unexpected build type layout"
+          replacement = '    buildTypes {\n        getByName("debug") {\n            applicationIdSuffix = ".preview"\n        }\n'
+          path.write_text(original.replace(match, replacement, 1))
+          print("Temporary only: debug package com.navin.kidsdrawing.preview")
+          PY
+
+      - name: Build signed debug preview (not a release)
+        shell: bash
+        run: ./gradlew --no-daemon assembleDebug
+
+      - name: Verify exact isolated preview identity and signature
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          BADGING=$("$ANDROID_HOME/build-tools/36.0.0/aapt2" dump badging "$APK")
+          FIRST_LINE=${BADGING%%$'\n'*}
+          echo "$FIRST_LINE"
+          grep -Fq "package: name='com.navin.kidsdrawing.preview'" <<< "$BADGING"
+          grep -Fq "versionCode='32'" <<< "$BADGING"
+          grep -Fq "versionName='0.6.1-content-v2.5-qa1'" <<< "$BADGING"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs "$APK" | tee /tmp/preview-apk-signature.txt
+          mkdir -p owner-preview
+          cp "$APK" owner-preview/KidsDrawing_V2_5_36Lessons_IndependentPreview_20261117.apk
+          sha256sum owner-preview/*.apk | tee owner-preview/SHA256SUMS.txt
+          cp /tmp/preview-apk-signature.txt owner-preview/SIGNATURE.txt
+          {
+            echo "APP=Kids Drawing owner visual preview, 36 existing V2.5 lessons"
+            echo "PACKAGE=com.navin.kidsdrawing.preview"
+            echo "VERSION=0.6.1-content-v2.5-qa1"
+            echo "VERSION_CODE=32"
+            echo "SOURCE_BASELINE=54ed53be56c2d7d41806390317526c0c67a547d5"
+            echo "WORKFLOW_SHA=$GITHUB_SHA"
+            echo "SIGNING=TEMPORARY GITHUB DEBUG SIGNER; NOT DURABLE QA"
+            echo "USE=FRESH INSTALL PREVIEW ONLY. NO MERGE. NO RELEASE."
+          } | tee owner-preview/README.txt
+
+      - name: Upload isolated installable preview APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: KidsDrawing-V2_5-36-Lessons-FreshInstall-PREVIEW
+          path: owner-preview/
+          if-no-files-found: error
+          retention-days: 30
